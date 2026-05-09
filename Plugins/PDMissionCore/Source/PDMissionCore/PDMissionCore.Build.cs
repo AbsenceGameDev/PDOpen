@@ -23,6 +23,7 @@ public class PDMissionCore : ModuleRules
 			{
 				"Core",
 				"CoreUObject",
+				"DeveloperSettings",
 				"InputCore",
                 "NetCore",
                 "AIModule",

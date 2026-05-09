@@ -72,3 +72,21 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+
+# Other
+/.git
+/.idea
+/.vs
+/.vscode
+.ignore
+.vsconfig
+PDOpenSource.code-workspace
+PDOpenSource.sln.DotSettings.user
+UpgradeLog.htm
+desktop.ini
+/Backup
+/Content
+/DerivedDataCache
+/Intermediate
+/Saved

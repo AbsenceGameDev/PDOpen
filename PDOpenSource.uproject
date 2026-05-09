@@ -24,10 +24,6 @@
 		{
 			"Name": "SunPosition",
 			"Enabled": true
-		},
-		{
-			"Name": "PDMissionCore",
-			"Enabled": true
 		}
 	]
 }

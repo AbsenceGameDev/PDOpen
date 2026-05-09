@@ -9,11 +9,27 @@ void UPDMissionSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
+#if WITH_EDITOR	
+	UPDMissionSettings* Settings = GetMutableDefault<UPDMissionSettings>();
+	if (false == Settings->OnSettingChanged().IsBoundToObject(this))
+	{
+		Settings->OnSettingChanged().AddWeakLambda(this, [&](UObject* Object, struct FPropertyChangedEvent& Event){ OnSettingsChanged(Object, Event);});
+	}
+#endif
+	Utility = Settings->Utility;
+	Utility.InitializeMissionSubsystem();
+}
+
+void UPDMissionSubsystem::OnSettingsChanged(UObject* Object, struct FPropertyChangedEvent& Event)
+{
+	const UPDMissionSettings* Settings = GetDefault<UPDMissionSettings>();
+	Utility = Settings->Utility;
 	Utility.InitializeMissionSubsystem();
 }
 
 void UPDMissionSubsystem::SetMission(int32 ActorID, const FPDMissionBase& PersistentDatum)
 {
+	// TODO
 }
 
 bool UPDMissionSubsystem::FinishMission(int32 ActorID, const FPDMissionBase& PersistentDatum)
@@ -101,4 +117,10 @@ bool UPDMissionSubsystem::FinishMission(int32 ActorID, const FPDMissionBase& Per
 
 	
 	return true; // Either successfully passed to another branch or no branch left and was last mission in the current branching path 
+}
+
+
+UPDMissionSettings::UPDMissionSettings(const FObjectInitializer& ObjInit)
+{
+	// Reserved for later use
 }

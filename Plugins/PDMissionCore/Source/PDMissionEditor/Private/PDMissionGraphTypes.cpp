@@ -98,7 +98,11 @@ FString FPDMissionNodeData::ToString() const
 		const int32 ShortNameIdx = ClassDesc.Find(TEXT("_"), ESearchCase::CaseSensitive);
 		if (ShortNameIdx != INDEX_NONE)
 		{
+#if (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3 ) || ENGINE_MAJOR_VERSION < 5
+			ClassDesc.MidInline(ShortNameIdx + 1, MAX_int32, false);
+#else
 			ClassDesc.MidInline(ShortNameIdx + 1, MAX_int32, EAllowShrinking::No);
+#endif
 		}
 
 		return ClassDesc;

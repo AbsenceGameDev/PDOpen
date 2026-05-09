@@ -26,12 +26,13 @@ public:
 
 	// Customize pins overload, iterates a mission row and adds custom pins for its inner properties
 	virtual void CustomizePinData(UEdGraphPin* Pin, FName SourcePropertyName, int32 ArrayIndex, FProperty& Property, UPDMissionGraphNode* OwnerNode, EPDPinCustomizer Current = EPDPinCustomizer::CONTINUE) const;
-	
+	// virtual void CustomizePinData(UEdGraphPin* Pin, FName SourcePropertyName, int32 ArrayIndex, FProperty* Property) const {}
+
 	/** Should the specified property be displayed by default */
-	virtual void GetRecordDefaults(FProperty* TestProperty, FOptionalPinFromProperty& Record) const;
+	virtual void GetRecordDefaults(FProperty* TestProperty, FOptionalPinFromProperty& Record) const override;
 
 	/** Can this property be managed as an optional pin (with the ability to be shown or hidden) */
-	virtual bool CanTreatPropertyAsOptional(FProperty* TestProperty) const;
+	virtual bool CanTreatPropertyAsOptional(FProperty* TestProperty) const override;
 
 	// hide and call base in funciton, as we can't change these declaration in 'FOptionalPinManager' to be virtual
 	void RebuildPropertyList(TArray<FOptionalPinFromProperty>& Properties, UStruct* SourceStruct);

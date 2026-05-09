@@ -313,7 +313,11 @@ FString DescribeProperty(const FProperty* Prop, const uint8* PropertyAddr)
 		const FString CategoryLimit = StructProp->GetMetaData(TEXT("Categories"));
 		if (!CategoryLimit.IsEmpty() && ExportedStringValue.StartsWith(CategoryLimit))
 		{
+#if (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION <= 3 ) || ENGINE_MAJOR_VERSION < 5
+			ExportedStringValue.MidInline(CategoryLimit.Len(), MAX_int32, false);
+#else
 			ExportedStringValue.MidInline(CategoryLimit.Len(), MAX_int32, EAllowShrinking::No);
+#endif
 		}
 #endif
 	}

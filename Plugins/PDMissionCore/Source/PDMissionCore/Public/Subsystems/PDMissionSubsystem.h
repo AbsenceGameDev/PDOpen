@@ -2,7 +2,8 @@
 #pragma once
 
 #include "PDMissionCommon.h"
-#include <Engine/DataTable.h>
+#include "Engine/DataTable.h"
+#include "Engine/DeveloperSettings.h"
 
 #include "CoreMinimal.h"
 #include "PDMissionUtility.h"
@@ -23,6 +24,8 @@ public:
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	
+   void OnSettingsChanged(UObject* Object, struct FPropertyChangedEvent& Event);
+
 	UFUNCTION(BlueprintCallable)
 	void SetMission(int32 ActorID, const FPDMissionBase& PersistentDatum);
 
@@ -33,6 +36,19 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FPDMissionUtility Utility{};
+};
+
+UCLASS(config=Game, DefaultConfig)
+class PDMISSIONCORE_API UPDMissionSettings : public UDeveloperSettings
+{
+   GENERATED_BODY()
+
+public:
+
+   UPDMissionSettings(const FObjectInitializer& ObjInit);
+
+	UPROPERTY(Config, EditAnywhere)
+	FPDMissionUtility Utility{};   
 };
 
 /**
