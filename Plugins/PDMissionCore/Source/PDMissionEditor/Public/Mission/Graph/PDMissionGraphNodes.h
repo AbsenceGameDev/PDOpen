@@ -166,7 +166,7 @@ public:
 
 class SGraphNode;
 UCLASS(MinimalAPI)
-class UPDMissionGraphNode_Knot : public UEdGraphNode
+class UPDMissionGraphNode_Knot : public UPDMissionGraphNode
 {
 	GENERATED_UCLASS_BODY()
 
@@ -184,23 +184,27 @@ public:
 	virtual UEdGraphPin* GetPassThroughPin(const UEdGraphPin* FromPin) const override;
 	virtual TSharedPtr<SGraphNode> CreateVisualWidget() override;
 	virtual bool CanCreateUnderSpecifiedSchema(const UEdGraphSchema* Schema) const override;
-	virtual bool ShouldDrawNodeAsControlPointOnly(int32& OutInputPinIndex, int32& OutOutputPinIndex) const override { OutInputPinIndex = 0; OutOutputPinIndex = 1; return true; }
+	virtual bool ShouldDrawNodeAsControlPointOnly(int32& Out_InputPinIndex, int32& Out_OutputPinIndex) const override { Out_InputPinIndex = 0; Out_OutputPinIndex = 1; return true; }
+
+	virtual bool ShowVisualWarning() const override {return true;}
 	// End of UEdGraphNode interface
 	
-	UEdGraphPin* GetInputPin() const
+	virtual UEdGraphPin* GetInputPin(int32 Index = 0) const override
 	{
 		return Pins[0];
 	}
 
-	UEdGraphPin* GetOutputPin() const
+	virtual UEdGraphPin* GetOutputPin(int32 Index = 0) const override
 	{
 		return Pins[1];
 	}
+
+	inline static constexpr int32 MinOutputIdx = 1;
 };
 
 
 UCLASS(MinimalAPI, config=Editor)
-class UPDMissionTransitionNode : public UEdGraphNode
+class UPDMissionTransitionNode : public UPDMissionGraphNode
 {
 	GENERATED_UCLASS_BODY()
 

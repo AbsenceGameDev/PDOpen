@@ -28,13 +28,12 @@ UPDMissionGraphNode_Knot::UPDMissionGraphNode_Knot(const FObjectInitializer& Obj
 
 void UPDMissionGraphNode_Knot::AllocateDefaultPins()
 {
-	const FName InputPinName(TEXT("InputPin"));
-	const FName InputDataPin0_Name(TEXT("DataPin0"));
-	const FName OutputPinName(TEXT("OutputPin"));
-
-	CreatePin(EGPD_Input, PC_Wildcard, InputPinName)->bDefaultValueIsIgnored = true;
-	CreatePin(EGPD_Input, PC_Wildcard, InputDataPin0_Name);
-	CreatePin(EGPD_Output, PC_Wildcard, OutputPinName);
+	FCreatePinParams PinParams;
+	PinParams.ValueTerminalType.TerminalCategory = UEdGraphSchema_K2::PC_Exec;
+	PinParams.Index = 0;
+	CreatePin(EGPD_Input, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("In"), PinParams)->bHidden = false;
+	PinParams.Index = 1;
+	CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"), PinParams)->bHidden = false;
 }
 
 FText UPDMissionGraphNode_Knot::GetTooltipText() const
@@ -95,7 +94,7 @@ UEdGraphPin* UPDMissionGraphNode_Knot::GetPassThroughPin(const UEdGraphPin* From
 
 TSharedPtr<SGraphNode> UPDMissionGraphNode_Knot::CreateVisualWidget()
 {
-	return SNew(SGraphNodeKnot, this);
+	return SNew(SGraphNodeKnot /*TODO Finish or remove: SMissionGraphNodeKnot*/, this);
 }
 
 bool UPDMissionGraphNode_Knot::CanCreateUnderSpecifiedSchema(const UEdGraphSchema* Schema) const
@@ -114,9 +113,9 @@ UPDMissionTransitionNode::UPDMissionTransitionNode(const FObjectInitializer& Obj
 void UPDMissionTransitionNode::AllocateDefaultPins()
 {
 	UEdGraphPin* Inputs = CreatePin(EGPD_Input, TEXT("Transition"), TEXT("In"));
-	Inputs->bHidden = true;
+	Inputs->bHidden = false;
 	UEdGraphPin* Outputs = CreatePin(EGPD_Output, TEXT("Transition"), TEXT("Out"));
-	Outputs->bHidden = true;
+	Outputs->bHidden = false;
 }
 
 void UPDMissionTransitionNode::PostPlacedNewNode()
@@ -162,7 +161,7 @@ FText UPDMissionTransitionNode::GetNodeTitle(ENodeTitleType::Type TitleType) con
 	// @todo set up logic for the owning/bound mission 
 	Args.Add(TEXT("BoundGraph"), LOCTEXT("FinishMe", "(finish me)") );
 	// @TODO: FText::Format() is slow, and we could benefit from caching
-	return FText::Format(LOCTEXT("TransitionMission", "Transition {BoundMission}}"), Args);
+	return FText::Format(LOCTEXT("TransitionMission", "Transition {0}"), Args);
 }
 
 FText UPDMissionTransitionNode::GetTooltipText() const

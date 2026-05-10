@@ -20,6 +20,10 @@ enum class EMissionGraphSubNodeType : uint8
 	MainQuest,
 	SideQuest,
 	EventQuest,
+
+	// Visual nodes
+	Knot,
+	Transition,
 };
 
 /** @brief Selector enum for mission modifiers */

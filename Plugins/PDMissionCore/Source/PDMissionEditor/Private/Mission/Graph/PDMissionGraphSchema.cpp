@@ -154,6 +154,10 @@ UClass* UPDMissionGraphSchema::GetSubNodeClass(EMissionGraphSubNodeType SubNodeF
 		return UPDMissionGraphNode_SideQuest::StaticClass();
 	case EMissionGraphSubNodeType::EventQuest:
 		return UPDMissionGraphNode_EventQuest::StaticClass();
+	case EMissionGraphSubNodeType::Knot:
+		return UPDMissionGraphNode_Knot::StaticClass();
+	case EMissionGraphSubNodeType::Transition:
+		return UPDMissionTransitionNode::StaticClass();	
 	default:
 		break;
 	}
@@ -180,6 +184,7 @@ struct FPrivateNodeSelector // @todo move out of here later
 		if (TestClass->IsChildOf(UPDMissionGraphNode_SideQuest::StaticClass()))  { return UPDMissionGraphNode_SideQuest::StaticClass(); }
 		if (TestClass->IsChildOf(UPDMissionGraphNode_EventQuest::StaticClass())) { return UPDMissionGraphNode_EventQuest::StaticClass(); }
 		if (TestClass->IsChildOf(UPDMissionGraphNode_Knot::StaticClass()))       { return UPDMissionGraphNode_Knot::StaticClass(); }
+		if (TestClass->IsChildOf(UPDMissionTransitionNode::StaticClass()))       { return UPDMissionTransitionNode::StaticClass(); }
 		if (TestClass->IsChildOf(UPDMissionGraphNode_EntryPoint::StaticClass())) { return UPDMissionGraphNode_EntryPoint::StaticClass(); }
 		if (TestClass->IsChildOf(UPDMissionGraphNode::StaticClass())) { return UPDMissionGraphNode::StaticClass(); }
 		return UPDMissionGraphNode_EntryPoint::StaticClass(); // fallback

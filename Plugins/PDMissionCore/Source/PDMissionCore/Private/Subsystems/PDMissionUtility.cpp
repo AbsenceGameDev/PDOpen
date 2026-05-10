@@ -312,6 +312,13 @@ void FPDMissionUtility::FillIntermediaryMissionList(bool bOverwrite)
 	for (const FName& MissionName : MissionRowNames)
 	{
 		const FPDMissionRow* MissionRow = MissionLookupViaRowName.FindRef(MissionName).GetRow<FPDMissionRow>("");
+		if (nullptr == MissionRow)
+		{
+			// Fatal error
+			UE_LOG(LogTemp, Error, TEXT("FPDMissionUtility::FillIntermediaryMissionList - Fatal Error - MissionRow was NOT found via RowName(%s)"), *MissionName.ToString())
+			continue;
+		}
+
 		FString BuildString = MissionRow->Base.MissionBaseTag.GetTagName().ToString() + " (" + MissionName.ToString() + ") ";
 		
 		MissionConcatList.Emplace(MakeShared<FString>(BuildString));

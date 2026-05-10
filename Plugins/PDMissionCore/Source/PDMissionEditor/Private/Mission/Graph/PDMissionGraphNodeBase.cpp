@@ -113,6 +113,7 @@ void UPDMissionGraphNode::CreateMissionPin()
 	ValueTerminalType.TerminalSubCategory = NAME_None;
 	ValueTerminalType.TerminalSubCategoryObject = FPDMissionRow::StaticStruct();
 		
+	// FEdGraphPinType(FName InPinCategory, FName InPinSubCategory, UObject* InPinSubCategoryObject, EPinContainerType InPinContainerType, bool bInIsReference, const FEdGraphTerminalType& InValueTerminalType )
 	FEdGraphPinType PinType_Mission(
 		FPDMissionGraphTypes::PinCategory_MissionName,
 		NAME_None,

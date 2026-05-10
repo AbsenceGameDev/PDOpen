@@ -72,7 +72,7 @@ class UPDMissionGraphNode : public UEdGraphNode
 	// @return the input pin for this state
 	virtual UEdGraphPin* GetInputPin(int32 InputIndex = 0) const;
 	// @return the output pin for this state
-	virtual UEdGraphPin* GetOutputPin(int32 InputIndex = 0) const;
+	virtual UEdGraphPin* GetOutputPin(int32 OutputIndex = 0) const;
 	virtual UEdGraph* GetBoundGraph() const { return nullptr; }
 
 	virtual FText GetDescription() const;
