@@ -90,3 +90,7 @@ desktop.ini
 /DerivedDataCache
 /Intermediate
 /Saved
+
+# Hide for now
+/Plugins/PDProgression/
+/Plugins/PDUtility/

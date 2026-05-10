@@ -128,7 +128,8 @@ void UPDMissionGraphNode::CreateMissionPin()
 
 void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 {
-	if ((MissionRowName == "--New Mission Row--" || MissionRowName == NAME_None) && GetInputPin(2) != nullptr)
+	static const FName NewMissionRowLabel = "--New Mission Row--";
+	if ((MissionRowName == NewMissionRowLabel || MissionRowName == NAME_None) && GetInputPin(2) != nullptr)
 	{
 		// Generate pin
 		FEdGraphTerminalType ValueTerminalType;
@@ -144,12 +145,28 @@ void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 
 		FEdGraphPinType PinType_Key(FPDMissionGraphTypes::PinCategory_MissionRowKeyBuilder, NAME_None, FPDMissionRow::StaticStruct(), PinParam.ContainerType, PinParam.bIsReference, PinParam.ValueTerminalType);
 		PinType_Key.bIsConst = PinParam.bIsConst;
-		CreatePin(EGPD_Input, PinType_Key, TEXT("New data key"), PinParam.Index);			
+		CreatePin(EGPD_Input, PinType_Key, TEXT("New data key"), PinParam.Index);
+		
+
+		UEdGraphPin* MissionTagPin = GetPinWithDirectionAt(3, EGPD_Input);
+		if (MissionTagPin)
+		{
+			MissionTagPin->SafeSetHidden(false);
+		}
+
 	}
 	else if (GetInputPin(3) != nullptr)
 	{
-		RemovePinAt(3, EGPD_Input);
+		if (PreviousMissionRowName.ToString() == NewMissionRowLabel.ToString())
+		{
+			UEdGraphPin* MissionTagPin = GetPinWithDirectionAt(3, EGPD_Input);
+			MissionTagPin->BreakAllPinLinks();
+			MissionTagPin->SafeSetHidden(true);
+		}
 	}
+
+
+	PreviousMissionRowName = MissionRowName;
 }
 
 FText UPDMissionGraphNode::GetDescription() const
