@@ -5,9 +5,12 @@
 #include "Mission/Graph/PDMissionGraph.h"
 #include "Mission/Graph/PDPinManager.h"
 #include "Mission/Slate/PDMissionView.h"
+#include "Subsystems/PDMissionUtility.h"
 
 #include "Interfaces/IPluginManager.h"
 #include "UObject/ObjectSaveContext.h"
+
+
 
 
 #define LOCTEXT_NAMESPACE "FMissionTreeNode"
@@ -128,8 +131,7 @@ void UPDMissionGraphNode::CreateMissionPin()
 
 void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 {
-	static const FName NewMissionRowLabel = "--New Mission Row--";
-	if ((MissionRowName == NewMissionRowLabel || MissionRowName == NAME_None) && GetInputPin(2) != nullptr)
+	if ((MissionRowName.ToString() == FPDMissionUtility::NewMissionRowLabel || MissionRowName == NAME_None) && GetInputPin(2) != nullptr)
 	{
 		// Generate pin
 		FEdGraphTerminalType ValueTerminalType;
@@ -157,7 +159,7 @@ void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 	}
 	else if (GetInputPin(3) != nullptr)
 	{
-		if (PreviousMissionRowName.ToString() == NewMissionRowLabel.ToString())
+		if (PreviousMissionRowName.ToString() == FPDMissionUtility::NewMissionRowLabel.ToString())
 		{
 			UEdGraphPin* MissionTagPin = GetPinWithDirectionAt(3, EGPD_Input);
 			MissionTagPin->BreakAllPinLinks();

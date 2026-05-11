@@ -119,6 +119,8 @@ public:
 	TArray<TSharedPtr<FString>> MissionRowNameList;
 	TMap<int32, FName> IndexToName;
 #endif
+
+	static inline const FName NewMissionRowLabel = "--New Mission Row--";
 	
 protected:
 	/** @brief Datatable of row-type FPDMissionRow */

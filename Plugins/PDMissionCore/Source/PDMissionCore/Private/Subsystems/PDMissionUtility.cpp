@@ -307,7 +307,7 @@ void FPDMissionUtility::FillIntermediaryMissionList(bool bOverwrite)
 
 	IndexToName.Empty();
 	IndexToName.FindOrAdd(
-	MissionRowNameList.Emplace(MakeShared<FString>("--New Mission Row--")));
+	MissionRowNameList.Emplace(MakeShared<FString>(NewMissionRowLabel.ToString())));
 
 	for (const FName& MissionName : MissionRowNames)
 	{

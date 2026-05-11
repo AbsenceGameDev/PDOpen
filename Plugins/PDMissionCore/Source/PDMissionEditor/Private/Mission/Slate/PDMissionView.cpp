@@ -1009,7 +1009,7 @@ void SPDAttributePin::OnAttributeSelected(TSharedPtr<FString> ItemSelected, ESel
 	
 
 	// Wants to create new mission,
-	if (SelectedMissionRowName == "--New Mission Row--")
+	if (SelectedMissionRowName.ToString() == FPDMissionUtility::NewMissionRowLabel)
 	{
 		// AsMissionGraphNode->ConstructKeyEntryPin_ForNewRowEntry();
 		
