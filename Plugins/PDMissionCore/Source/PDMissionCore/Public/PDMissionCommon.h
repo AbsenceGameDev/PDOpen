@@ -120,7 +120,7 @@ struct PDMISSIONCORE_API FPDMissionTagCompound
 	bool operator==(const FPDMissionTagCompound& Other) const;
 	bool operator==(const FPDMissionTagCompound&& Other) const;
 
-	/** @brief Optional tags that need to exist on the actor requesting this mission for it to be approved, Set to not being editable so they are greyed out from the datatable editor */
+	/** @brief Optional tags that may exist on the actor requesting this mission. Reserved for now. Set to not being editable so they are greyed out from the datatable editor */
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Mission|Datum")
 	TSet<FGameplayTag> OptionalUserTags{};
 
