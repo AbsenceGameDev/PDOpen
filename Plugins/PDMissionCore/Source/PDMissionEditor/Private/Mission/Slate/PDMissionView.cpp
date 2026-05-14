@@ -8,6 +8,7 @@
 
 #include "PDMissionEditor.h"
 #include "Subsystems/PDMissionSubsystem.h"
+#include "Mission/Slate/PDMissionView.h"
 
 #include <Editor.h>
 #include <ScopedTransaction.h>
@@ -20,7 +21,7 @@
 #include <SGraphPanel.h>
 #include <Widgets/Input/STextComboBox.h>
 #include <Widgets/Views/STreeView.h>
-#include "Widgets/Text/SInlineEditableTextBlock.h"
+#include <Widgets/Text/SInlineEditableTextBlock.h>
 
 #include <Editor/GraphEditor/Private/DragConnection.h>
 #include <Framework/Commands/GenericCommands.h>
@@ -967,6 +968,7 @@ FSlateColor SPDMissionGraphPin::GetPinColor() const
 
 void SPDAttributePin::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj)
 {
+	// @todo will try to figure out a good way to indent the pins a bit wihtout having to redo the whole construct
 	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
 }
 
@@ -1007,9 +1009,11 @@ void SPDAttributePin::OnAttributeSelected(TSharedPtr<FString> ItemSelected, ESel
 		AsMissionGraphNode->RefreshDataRefPins(SelectedMissionRowName);
 	}
 	
+	//
+	//// Wants to create new mission,
 
-	// Wants to create new mission,
-	if (SelectedMissionRowName.ToString() == FPDMissionUtility::NewMissionRowLabel)
+	// if (SelectedMissionRowName.ToString() == FPDMissionUtility::NewMissionRowLabel)
+	if (SelectedMissionRowName.ToString() == TAG_MakeNewMission.GetTag().ToString())
 	{
 		// AsMissionGraphNode->ConstructKeyEntryPin_ForNewRowEntry();
 		
@@ -1085,6 +1089,20 @@ FSlateColor SPDNewKeyDataAttributePin::GetPinColor() const
 
 
 //
+// Label As Pin
+void SPDLabelAsPin::Construct(const FArguments &InArgs, UEdGraphPin *InGraphPinObj)
+{
+	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
+}
+
+const FSlateBrush* SPDLabelAsPin::GetPinIcon() const
+{
+	static const FName NAME_PosePin_Connected("Graph.PosePin.Connected");
+	return FAppStyle::GetBrush(NAME_PosePin_Connected);
+}
+
+
+//
 // PinFactory
 TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin) const
 {
@@ -1100,6 +1118,10 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_MissionDataRef && InPin->PinType.PinSubCategoryObject == FPDMissionRow::StaticStruct())
 	{
 		return SNew(SPDDataAttributePin, InPin);  // @todo SPDDataAttributePin
+	}
+	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_SectionLabel)
+	{
+		return SNew(SPDLabelAsPin, InPin);
 	}
 	
 	return FGraphPanelPinFactory::CreatePin(InPin);
@@ -1414,8 +1436,6 @@ void SMissionGraphNodeKnot::OnCommentTextCommitted(const FText& NewComment, ETex
 
 #undef LOCTEXT_NAMESPACE
 
-
-
 /**
 Business Source License 1.1
 
@@ -1424,21 +1444,21 @@ Parameters
 Licensor:             Ario Amin (@ Permafrost Development)
 Licensed Work:        PDOpenSource (Source available on github)
                       The Licensed Work is (c) 2024 Ario Amin (@ Permafrost Development)
-Additional Use Grant: You may make commercial use of the Licensed Work provided these three additional conditions as met; 
-                      	1. Must give attributions to the original author of the Licensed Work, in 'Credits' if that is applicable.
-                      	2. The Licensed Work must be Compiled before being redistributed.
-                      	3. The Licensed Work Source may not be packaged into the product or service being sold
+Additional Use Grant: You may make commercial use of the Licensed Work provided these three additional conditions as met;
+                        1. Must give attributions to the original author of the Licensed Work, in 'Credits' if that is applicable.
+                        2. The Licensed Work must be Compiled before being redistributed.
+                        3. The Licensed Work Source may not be packaged into the product or service being sold
 
                       "Credits" indicate a scrolling screen with attributions. This is usually in a products end-state
 
                       "Compiled" form means the compiled bytecode, object code, binary, or any other
                       form resulting from mechanical transformation or translation of the Source form.
-                      
+
                       "Source" form means the source code (.h & .cpp files) contained in the different modules in PDOpenSource.
                       This will usually be written in human-readable format.
 
                       "Package" means the collection of files distributed by the Licensor, and derivatives of that collection
-                      and/or of the files or codes therein..  
+                      and/or of the files or codes therein..
 
 Change Date:          2028-04-17
 

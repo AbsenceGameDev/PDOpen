@@ -7,7 +7,10 @@
 #include <Curves/CurveFloat.h>
 
 #include "AssetRegistry/AssetRegistryModule.h"
+
+#if WITH_EDITOR
 #include "Factories/DataTableFactory.h"
+#endif
 
 const FPDMissionMetadata& FPDMissionUtility::GetMetadataBase(const int32 mID) const
 {
@@ -218,8 +221,10 @@ void FPDMissionUtility::ProcessTablesForFastLookup()
 		}
 		if (bPackageWasDirtied)
 		{
+#if WITH_EDITORONLY_DATA
 			MissionTable->PreEditChange(nullptr);
 			MissionTable->PostEditChange();	
+#endif // WITH_EDITOR_ONLY_DATA
 		}
 	}
 	
@@ -291,12 +296,13 @@ void FPDMissionUtility::FillIntermediaryMissionList(bool bOverwrite)
 {
 #if WITH_EDITOR
 	
-	if (bOverwrite == false && MissionRowNameList.IsEmpty() == false)
+	const bool bCantOverwrite = bOverwrite == false && MissionRowNameList.IsEmpty() == false;
+	if (bCantOverwrite)
 	{
 		return;
 	}
 	
-	if (bOverwrite && MissionRowNameList.IsEmpty() == false)
+	if (bOverwrite)
 	{
 		MissionRowNameList.Empty();
 	}
@@ -307,7 +313,7 @@ void FPDMissionUtility::FillIntermediaryMissionList(bool bOverwrite)
 
 	IndexToName.Empty();
 	IndexToName.FindOrAdd(
-	MissionRowNameList.Emplace(MakeShared<FString>(NewMissionRowLabel.ToString())));
+		MissionRowNameList.Emplace(MakeShared<FString>(TAG_MakeNewMission.GetTag().ToString()))); //NewMissionRowLabel.ToString())));
 
 	for (const FName& MissionName : MissionRowNames)
 	{

@@ -8,14 +8,13 @@
 void UPDMissionSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
-
-#if WITH_EDITOR	
 	UPDMissionSettings* Settings = GetMutableDefault<UPDMissionSettings>();
+#if WITH_EDITOR	
 	if (false == Settings->OnSettingChanged().IsBoundToObject(this))
 	{
 		Settings->OnSettingChanged().AddWeakLambda(this, [&](UObject* Object, struct FPropertyChangedEvent& Event){ OnSettingsChanged(Object, Event);});
 	}
-#endif
+#endif // WITH_EDITOR
 	Utility = Settings->Utility;
 	Utility.InitializeMissionSubsystem();
 }

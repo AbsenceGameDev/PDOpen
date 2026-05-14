@@ -6,8 +6,12 @@
 #include "Interfaces/PDMissionInterface.h"
 #include "Subsystems/PDMissionSubsystem.h"
 
+
+UE_DEFINE_GAMEPLAY_TAG(TAG_MakeNewMission, "Mission.MakeNew");
+
+
 //
-// Progress statics
+// Mission statics
 
 UPDMissionSubsystem* UPDMissionStatics::GetMissionSubsystem()
 {

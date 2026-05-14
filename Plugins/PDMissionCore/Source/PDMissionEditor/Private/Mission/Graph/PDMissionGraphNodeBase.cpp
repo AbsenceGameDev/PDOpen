@@ -111,6 +111,9 @@ void UPDMissionGraphNode::ResetNodeOwner()
 
 void UPDMissionGraphNode::CreateMissionPin()
 {
+	UE_LOG(LogTemp, Warning, TEXT("================== MISSIONTEST ==================="));
+	UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: UPDMissionGraphNode::CreateMissionPin"));
+
 	FEdGraphTerminalType ValueTerminalType;
 	ValueTerminalType.TerminalCategory = UEdGraphSchema_K2::PC_Struct;
 	ValueTerminalType.TerminalSubCategory = NAME_None;
@@ -126,14 +129,19 @@ void UPDMissionGraphNode::CreateMissionPin()
 		ValueTerminalType);
 	
 	PinType_Mission.bIsConst = false;
-	CreatePin(EGPD_Input, PinType_Mission, TEXT("MissionSelector"), 2);
+	CreatePin(EGPD_Input, PinType_Mission, TEXT("Mission Root"), 2);
 }
 
 void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 {
-	if ((MissionRowName.ToString() == FPDMissionUtility::NewMissionRowLabel || MissionRowName == NAME_None) && GetInputPin(2) != nullptr)
+	UE_LOG(LogTemp, Warning, TEXT("================== MISSIONTEST ==================="));
+	UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: UPDMissionGraphNode::RefreshDataRefPins - %s"), *MissionRowName.ToString());
+
+	if ((MissionRowName.ToString() == TAG_MakeNewMission.GetTag().ToString() || MissionRowName == NAME_None) && GetInputPin(0) != nullptr)
 	{
-		// Generate pin
+		UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: Attempt create new mission"));
+
+		// Generate pin. TODO: Try to remember what the hell the plan was here nad then finish or scrap
 		FEdGraphTerminalType ValueTerminalType;
 		ValueTerminalType.TerminalCategory = UEdGraphSchema_K2::PC_Struct;
 		ValueTerminalType.TerminalSubCategory = NAME_None;
@@ -147,26 +155,13 @@ void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 
 		FEdGraphPinType PinType_Key(FPDMissionGraphTypes::PinCategory_MissionRowKeyBuilder, NAME_None, FPDMissionRow::StaticStruct(), PinParam.ContainerType, PinParam.bIsReference, PinParam.ValueTerminalType);
 		PinType_Key.bIsConst = PinParam.bIsConst;
-		CreatePin(EGPD_Input, PinType_Key, TEXT("New data key"), PinParam.Index);
-		
-
-		UEdGraphPin* MissionTagPin = GetPinWithDirectionAt(3, EGPD_Input);
-		if (MissionTagPin)
-		{
-			MissionTagPin->SafeSetHidden(false);
-		}
-
+		// CreatePin(EGPD_Input, PinType_Key, TEXT("New data key"), PinParam.Index);
 	}
-	else if (GetInputPin(3) != nullptr)
+	else
 	{
-		if (PreviousMissionRowName.ToString() == FPDMissionUtility::NewMissionRowLabel.ToString())
-		{
-			UEdGraphPin* MissionTagPin = GetPinWithDirectionAt(3, EGPD_Input);
-			MissionTagPin->BreakAllPinLinks();
-			MissionTagPin->SafeSetHidden(true);
-		}
+		// New line of thinking, never hide any pins. 
+		// Reserved for potential use 
 	}
-
 
 	PreviousMissionRowName = MissionRowName;
 }

@@ -120,7 +120,7 @@ public:
 	TMap<int32, FName> IndexToName;
 #endif
 
-	static inline const FName NewMissionRowLabel = "--New Mission Row--";
+	// static inline const FName NewMissionRowLabel = "--New Mission Row--";
 	
 protected:
 	/** @brief Datatable of row-type FPDMissionRow */

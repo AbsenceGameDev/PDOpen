@@ -1,16 +1,19 @@
 /* @author: Ario Amin @ Permafrost Development. @copyright: Full BSL(1.1) License included at bottom of the file  */
 #pragma once
 
-#include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
-
+#include <CoreMinimal.h>
+#include <GameplayTagContainer.h>
 #include <Curves/CurveFloat.h>
 #include <Engine/DataTable.h>
+#include <NativeGameplayTags.h>
 
-#include "PDMissionCommon.generated.h"
+#include <PDMissionCommon.generated.h>
 
 /* Forward declarations */
 class UPDMissionTracker;
+
+
+PDMISSIONCORE_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(TAG_MakeNewMission);
 
 UENUM()
 enum EPDMissionBranchBehaviour

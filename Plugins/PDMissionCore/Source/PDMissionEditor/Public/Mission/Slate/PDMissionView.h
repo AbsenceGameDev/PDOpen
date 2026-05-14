@@ -433,6 +433,37 @@ class SPDStructBuilder : public SWidget
 	SLATE_END_ARGS()
 };
 
+//
+// Empty Label fake pin
+class SPDLabelAsPin : public SGraphPin
+{
+public:
+	SLATE_BEGIN_ARGS(SPDLabelAsPin) {}
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj);
+
+
+// SGraphPin interface
+	/** @return Actual icon object */
+	virtual const FSlateBrush* GetPinIcon() const override;
+	/** @return The color that we should use to draw this pin */
+	virtual FSlateColor GetPinColor() const override { return FSlateColor{FColor::Green}; };
+
+	/** @return The color that we should use to draw the highlight for this pin */
+	virtual FSlateColor GetHighlightColor() const override { return FSlateColor{FColor::Silver}; };
+
+	virtual FSlateColor GetPinDiffColor() const override { return FSlateColor{FColor::Yellow};};
+	/** @return The color that we should use to draw this pin's text */
+	virtual FSlateColor GetPinTextColor() const override { return FSlateColor{FColor::Emerald};};
+
+	/** We never allow connections with a label pin, these are only cosmetical */
+	virtual bool TryHandlePinConnection(SGraphPin& OtherSPin) {return false;};
+// End of SGraphPin interface
+
+	friend class FPDAttributeGraphPinFactory;
+};
+
 
 //
 // Pin factory
