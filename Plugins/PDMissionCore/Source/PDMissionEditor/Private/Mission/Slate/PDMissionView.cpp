@@ -1060,6 +1060,27 @@ void SPDDataAttributePin::Construct(const FArguments& InArgs, UEdGraphPin* InGra
 
 TSharedRef<SWidget> SPDDataAttributePin::GetDefaultValueWidget()
 {
+	// Notes for what I need done
+
+	// If Base::mID (int32): slate widget with no text input
+	
+	// If TickSettings::DeltaValue, slate widget number box
+	// If TickSettings::Interval, slate widget number box	
+	// If TickSettings::IsPause, slate widget check box
+
+	// If ProgressRules::MissionConditionHandler::OptionaUserTags: slate widget Gameplay Tag Container	
+	// If ProgressRules::MissionConditionHandler::RequiredMissionTags: slate widget Gameplay Tag Container	
+
+	// If ProgressRules::NextMissionBranch: Need to step further in and expand more
+	// NextMissionBranch contains TArray<FPDMissionBranchElement> Branches;
+	// FPDMissionBranchElement contains:
+	//			FDataTableRowHandle Target; // @brief  'Target' is the mission we might branch to 
+	//			FPDMissionTagCompound BranchConditions; // @brief Actual condition to be able to branch to the target
+	//			uint8 bIsDirectBranch : 1; // @brief true means it's a direct branch, i.e. 'same questline', false means it's a new questline 
+	//			FPDMissionBranchBehaviour TargetBehaviour; // @brief Tells us how we want to treat the branch 
+	//				EPDMissionBranchBehaviour FPDMissionBranchBehaviour::Type = EPDMissionBranchBehaviour::ETrigger; // @brief Trigger or unlock? */
+	//				float FPDMissionBranchBehaviour::DelayTime = 0.0f; // @brief Delay or immediate? 
+
 	return SGraphPin::GetDefaultValueWidget();
 }
 
