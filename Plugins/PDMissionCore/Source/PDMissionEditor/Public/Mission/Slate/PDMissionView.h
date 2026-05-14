@@ -433,6 +433,21 @@ class SPDStructBuilder : public SWidget
 	SLATE_END_ARGS()
 };
 
+class SPDTagSelector : public SPDMissionGraphPin
+{
+	SLATE_BEGIN_ARGS(SPDTagSelector) {}
+	SLATE_END_ARGS()
+
+	/// Wrap a tag selector
+	void Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj);
+	virtual TSharedRef<SWidget>	GetDefaultValueWidget() override;
+
+	FGameplayTag GetGameplayTag() const {return Tag;}
+
+
+	FGameplayTag Tag;
+};
+
 //
 // Empty Label fake pin
 class SPDLabelAsPin : public SGraphPin

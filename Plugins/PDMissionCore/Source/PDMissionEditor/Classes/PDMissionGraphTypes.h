@@ -159,6 +159,7 @@ struct PDMISSIONEDITOR_API FPDMissionGraphTypes
 	static const FName PinCategory_String;
 	static const FName PinCategory_Text;
 	static const FName PinCategory_SectionLabel;
+	static const FName PinCategory_TagSelector;
 	static const FName PinCategory_MissionRow;
 	static const FName PinCategory_MissionDataRef;
 	static const FName PinCategory_MissionRowKeyBuilder;

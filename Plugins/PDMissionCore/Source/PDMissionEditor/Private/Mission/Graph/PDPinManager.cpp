@@ -243,12 +243,7 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 			break; // In CustomizePin we recurse into CreateVisiblePins if we are in SKIPPAST, as to expand into each compound 
 		case EPDPinCustomizer::STOPDEPTHLIM:
 			{
-				FEdGraphTerminalType ValueTerminalType;
-				ValueTerminalType.TerminalCategory = UEdGraphSchema_K2::PC_Struct;
-				ValueTerminalType.TerminalSubCategory = NAME_None;
-				ValueTerminalType.TerminalSubCategoryObject = TBaseStructure<FGameplayTag>::Get();
-				
-				ReturnPinType = FEdGraphPinType(ReturnPinType.PinCategory, NAME_None, TBaseStructure<FGameplayTag>::Get(), EPinContainerType::None, false, ValueTerminalType);
+				ReturnPinType = FEdGraphPinType(FPDMissionGraphTypes::PinCategory_TagSelector, NAME_None, nullptr, EPinContainerType::None, false, FEdGraphTerminalType());
 			}
 		case EPDPinCustomizer::CONTINUE:
 			{ // Scoped

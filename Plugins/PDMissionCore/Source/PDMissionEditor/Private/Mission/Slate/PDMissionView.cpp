@@ -28,6 +28,9 @@
 #include <TutorialMetaData.h>
 #include <SCommentBubble.h>
 
+#include <SGameplayTagWidget.h>
+#include <SGameplayTagCombo.h>
+
 #define LOCTEXT_NAMESPACE "FMissionTreeNode"
 
 class FText;
@@ -1089,8 +1092,31 @@ FSlateColor SPDNewKeyDataAttributePin::GetPinColor() const
 
 
 //
+// Tag selector wrapper
+void SPDTagSelector::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj)
+{
+	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
+}
+
+TSharedRef<SWidget>	SPDTagSelector::GetDefaultValueWidget()
+{
+	TSharedRef<SWidget> TagWidgetWrapper = SNew(SGameplayTagCombo)
+	.Visibility(EVisibility::Visible)
+	// .Filter(Property.GetMetaData(TEXT("Categories")))
+	.Tag(this, &SPDTagSelector::GetGameplayTag)
+	.OnTagChanged_Lambda(
+		[&](const FGameplayTag NewTag)
+		{
+			Tag = NewTag;
+		});
+
+	return TagWidgetWrapper;
+}
+
+
+//
 // Label As Pin
-void SPDLabelAsPin::Construct(const FArguments &InArgs, UEdGraphPin *InGraphPinObj)
+void SPDLabelAsPin::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj)
 {
 	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
 }
@@ -1122,6 +1148,10 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_SectionLabel)
 	{
 		return SNew(SPDLabelAsPin, InPin);
+	}
+	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_TagSelector)
+	{
+		return SNew(SPDTagSelector, InPin);
 	}
 	
 	return FGraphPanelPinFactory::CreatePin(InPin);
