@@ -1134,6 +1134,149 @@ TSharedRef<SWidget>	SPDTagSelector::GetDefaultValueWidget()
 	return TagWidgetWrapper;
 }
 
+//
+// Checkbox Wrapper
+void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj, EGenericInputSelector NewInputType)
+{
+	InputType = NewInputType;
+	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
+}
+
+TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
+{
+	switch (InputType)
+	{
+	case EGenericInputSelector::EMissionTickPaused:
+		{
+			TSharedRef<SWidget> PauseStateCheckboxWrapper = 
+				SNew(SCheckBox)
+				.Visibility(EVisibility::Visible)
+				.OnCheckStateChanged(this, &SPDGenericInputWrapper::OnPauseStateChanged)
+				.IsChecked(this, &SPDGenericInputWrapper::GetPauseState);
+			return PauseStateCheckboxWrapper;
+		}
+
+	case EGenericInputSelector::EMissionRepeatable:
+		{
+			TSharedRef<SWidget> RepeatableStateCheckboxWrapper = 
+				SNew(SCheckBox)
+				.Visibility(EVisibility::Visible)
+				.OnCheckStateChanged(this, &SPDGenericInputWrapper::OnRepeatableStateChanged)
+				.IsChecked(this, &SPDGenericInputWrapper::GetRepeatableState);
+			return RepeatableStateCheckboxWrapper;
+		}
+	case EGenericInputSelector::EMissionID:
+		{
+			FGameplayTag TODO__FINISH_ME = FGameplayTag::EmptyTag;
+			OnMissionIDChangedViaTag(TODO__FINISH_ME);
+			TSharedRef<SWidget> MissionIDValue = SNew(STextBlock).Text(this, &SPDGenericInputWrapper::GetMissionIDAsText);
+			
+			return MissionIDValue;
+		}
+
+	case EGenericInputSelector::EMissionBranchBehaviour:
+	{
+		Options.Empty();
+		for(int32 Step = static_cast<EPDMissionBranchBehaviour>(0); Step < EPDMissionBranchBehaviour::EMAX_BRANCH; Step++)
+		{
+			Options.Emplace(MakeShared<FString>(UEnum::GetValueAsName(static_cast<EPDMissionBranchBehaviour>(Step)).ToString()));
+		}
+
+		TSharedRef<SWidget> MissionBranchOptions = 
+			SNew(STextComboBox)
+			.OnSelectionChanged(this, &SPDGenericInputWrapper::OnMissionBranchBehaviourChanged)
+			.InitiallySelectedItem(GetMissionStateAsString())
+			.OptionsSource(&Options);
+
+		return MissionBranchOptions;
+
+	}
+	case EGenericInputSelector::EMissionState:
+	{
+		Options.Empty();
+		for(int32 Step = static_cast<EPDMissionState>(0); Step < EPDMissionState::EMAX_STATE; Step++)
+		{
+			Options.Emplace(MakeShared<FString>(UEnum::GetValueAsName(static_cast<EPDMissionState>(Step)).ToString()));
+		}
+
+		TSharedRef<SWidget> MissionStateOptions = 
+			SNew(STextComboBox)
+			.OnSelectionChanged(this, &SPDGenericInputWrapper::OnMissionStateChanged)
+			.InitiallySelectedItem(GetMissionStateAsString())
+			.OptionsSource(&Options);
+
+		return MissionStateOptions;
+	}
+
+	default:
+		break;
+	}
+
+	return SGraphPin::GetDefaultValueWidget();
+}
+
+TSharedPtr<FString> SPDGenericInputWrapper::GetMissionStateAsString() const 
+{
+	return MakeShared<FString>(UEnum::GetValueAsName(GetValue<EGenericInputSelector::EMissionState>()).ToString());
+}
+TSharedPtr<FString> SPDGenericInputWrapper::GetMissionBranchBehaviourAsString() const 
+{
+	return MakeShared<FString>(UEnum::GetValueAsName(GetValue<EGenericInputSelector::EMissionBranchBehaviour>()).ToString());
+}
+
+
+void SPDGenericInputWrapper::OnPauseStateChanged(ECheckBoxState NewState)
+{
+	GetValueMutable<EGenericInputSelector::EMissionTickPaused>() = NewState;
+}
+
+void SPDGenericInputWrapper::OnRepeatableStateChanged(ECheckBoxState NewState)
+{
+	GetValueMutable<EGenericInputSelector::EMissionRepeatable>() = NewState;
+}
+
+void SPDGenericInputWrapper::OnMissionIDChanged(int32 NewID)
+{
+	GetValueMutable<EGenericInputSelector::EMissionID>() = NewID;
+}
+void SPDGenericInputWrapper::OnMissionIDChangedViaTag(FGameplayTag MissionTag)
+{
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	check(MissionSubsystem) //Sanity check, should always be a valid object here
+
+	OnMissionIDChanged(MissionSubsystem->Utility.ResolveMIDViaTag(MissionTag));
+}
+
+void SPDGenericInputWrapper::OnMissionStateChanged(TSharedPtr<FString> SelectedItem, ESelectInfo::Type SelectInfo)
+{
+	switch (SelectInfo)
+	{
+	default:
+		return;
+	case ESelectInfo::OnKeyPress:
+	case ESelectInfo::OnMouseClick:
+		break;
+	}
+
+	EPDMissionState NewMissionState{}; // todo: convert to enum from string
+	GetValueMutable<EGenericInputSelector::EMissionState>() = NewMissionState;
+
+}
+void SPDGenericInputWrapper::OnMissionBranchBehaviourChanged(TSharedPtr<FString> SelectedItem, ESelectInfo::Type SelectInfo)
+{
+	switch (SelectInfo)
+	{
+	default:
+		return;
+	case ESelectInfo::OnKeyPress:
+	case ESelectInfo::OnMouseClick:
+		break;
+	}
+
+	EPDMissionBranchBehaviour NewBranchBehaviour{}; // todo: convert to enum from string
+	GetValueMutable<EGenericInputSelector::EMissionBranchBehaviour>() = NewBranchBehaviour;
+}
+
 
 //
 // Label As Pin
@@ -1147,6 +1290,11 @@ const FSlateBrush* SPDLabelAsPin::GetPinIcon() const
 	static const FName NAME_PosePin_Connected("Graph.PosePin.Connected");
 	return FAppStyle::GetBrush(NAME_PosePin_Connected);
 }
+
+
+
+//
+// Numeric box wrappet
 
 
 //

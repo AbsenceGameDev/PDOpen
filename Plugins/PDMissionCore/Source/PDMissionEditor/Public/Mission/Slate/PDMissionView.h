@@ -36,6 +36,8 @@
 #include "Containers/Map.h"
 #include "Containers/UnrealString.h"
 
+#include "PDMissionCommon.h"
+
 
 class SWidget;
 struct FGeometry;
@@ -446,6 +448,83 @@ class SPDTagSelector : public SPDMissionGraphPin
 
 
 	FGameplayTag Tag;
+};
+
+UENUM()
+enum class EGenericInputSelector : uint8
+{
+	EMissionState,
+	EMissionBranchBehaviour,
+	EMissionBranchDelayTime,
+	EMissionTickInterval,
+
+	EMissionTickPaused,
+	EMissionRepeatable,
+
+	EMissionID,
+	EMissionTickDeltaValue,
+	MAX,
+};
+
+class SPDGenericInputWrapper : public SPDMissionGraphPin
+{
+	SLATE_BEGIN_ARGS(SPDTagSelector) {}
+	SLATE_END_ARGS()
+
+	/// Wrap a tag selector
+	void Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj, EGenericInputSelector NewInputType);
+	virtual TSharedRef<SWidget>	GetDefaultValueWidget() override;
+
+
+private:
+	EGenericInputSelector InputType;
+	union 
+	{
+		EPDMissionState MissionState; 
+		EPDMissionBranchBehaviour BranchBehaviour;
+		ECheckBoxState IsPaused, IsRepeatable;
+		float Interval, BranchDelayTime;
+		int32 mID, DeltaValue;
+	};
+	TArray<TSharedPtr<FString>> Options;
+public:
+	ECheckBoxState GetPauseState() const {return GetValue<EGenericInputSelector::EMissionTickPaused>();}
+	ECheckBoxState GetRepeatableState() const {return GetValue<EGenericInputSelector::EMissionRepeatable>();}
+	int32 GetMissionID() const {return GetValue<EGenericInputSelector::EMissionID>();}
+	FText GetMissionIDAsText() const {return FText::AsCultureInvariant(FString::FromInt(GetMissionID()));}
+	TSharedPtr<FString> GetMissionStateAsString() const;
+	TSharedPtr<FString> GetMissionBranchBehaviourAsString() const;
+
+	void OnPauseStateChanged(ECheckBoxState NewState);
+	void OnRepeatableStateChanged(ECheckBoxState NewState);
+	void OnMissionIDChanged(int32 NewID);
+	void OnMissionIDChangedViaTag(FGameplayTag MissionTag);
+	void OnMissionStateChanged(TSharedPtr<FString> SelectedItem, ESelectInfo::Type SelectInfo);
+	void OnMissionBranchBehaviourChanged(TSharedPtr<FString> SelectedItem, ESelectInfo::Type SelectInfo);
+
+	template<EGenericInputSelector TSelector>
+	auto& GetValueMutable() 
+	{
+		using enum EGenericInputSelector;
+		if constexpr (TSelector == EMissionState){return MissionState;}
+		else if constexpr (TSelector == EMissionBranchBehaviour){return BranchBehaviour;}
+		else if constexpr (TSelector == EMissionBranchDelayTime){return BranchDelayTime;}
+		else if constexpr (TSelector == EMissionTickInterval){return Interval;}
+
+		else if constexpr (TSelector == EMissionTickPaused){return IsPaused;}
+		else if constexpr (TSelector == EMissionRepeatable){return IsRepeatable;}
+
+		else if constexpr (TSelector == EMissionID){return mID;}
+		else if constexpr (TSelector == EMissionTickDeltaValue){return DeltaValue;}
+		else {return INDEX_NONE;}
+	}
+
+	template<EGenericInputSelector TSelector>
+	auto GetValue() const
+	{
+		SPDGenericInputWrapper* MutableSelf = const_cast<SPDGenericInputWrapper*>(this);
+		return  MutableSelf->GetValueMutable<TSelector>();
+	}	
 };
 
 //

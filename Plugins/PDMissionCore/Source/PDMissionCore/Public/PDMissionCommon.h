@@ -20,6 +20,7 @@ enum EPDMissionBranchBehaviour
 {
 	ETrigger, // Apply and enable the mission, either with a delay or right away
 	EUnlock,  // Unlock the mission, either with a delay or right away, but do not apply nor enable the mission. 
+	EMAX_BRANCH,  //
 };
 
 UENUM()
@@ -31,7 +32,8 @@ enum EPDMissionState
 	EInactive,       // User has not triggered/enabled the mission  
 	ELocked,         // User has not unlocked the mission  
 	EPending,        // Mission is in a pending state, i.e. transitioning from one state to another with a delay  
-	EINVALID_STATE,  // Mission is in a pending state, i.e. transitioning from one state to another with a delay  
+	EINVALID_STATE,  //
+	EMAX_STATE,  //
 };
 
 /* Delegates */
