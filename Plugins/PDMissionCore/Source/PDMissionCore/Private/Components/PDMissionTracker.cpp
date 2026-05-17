@@ -64,11 +64,11 @@ void UPDMissionTracker::FinalizeOverwriteRef(const FGameplayTag& MissionBaseTag,
 	default: // Resolve default as trigger
 	case ETrigger:
 		// Go from locked/inactive to active
-		OverwriteDatum.State.Current = EPDMissionState::EActive;
+		OverwriteDatum.State.Current = EPDMissionState::EActiveMission;
 		break;
 	case EUnlock:
 		// Go from locked to inactive
-			OverwriteDatum.State.Current = EPDMissionState::EInactive;
+			OverwriteDatum.State.Current = EPDMissionState::EInactiveMission;
 		break;
 	}
 	SetMissionDatum(MissionBaseTag, OverwriteDatum);	
@@ -149,13 +149,13 @@ const FPDMissionNetDatum* UPDMissionTracker::GetDatum(const FGameplayTag& BaseTa
 TEnumAsByte<EPDMissionState> UPDMissionTracker::GetStateSelector(const FGameplayTag& BaseTag) const
 {
 	const UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
-	if (MissionSubsystem == nullptr) { return EPDMissionState::EINVALID_STATE; }
+	if (MissionSubsystem == nullptr) { return EPDMissionState::EINVALID_MISSIONSTATE; }
 	
 	const FPDMissionRow* Data = MissionSubsystem->Utility.GetDefaultBaseViaTag(BaseTag);
-	if (Data == nullptr) { return EPDMissionState::EINVALID_STATE; }
+	if (Data == nullptr) { return EPDMissionState::EINVALID_MISSIONSTATE; }
 	
 	const int32 ArrayIndex = mIDToReplIdMap.Contains(Data->Base.mID) ? *mIDToReplIdMap.Find(Data->Base.mID) - 1 : INDEX_NONE;
-	if (State.Items.IsValidIndex(ArrayIndex) == false) { return EPDMissionState::EINVALID_STATE; }
+	if (State.Items.IsValidIndex(ArrayIndex) == false) { return EPDMissionState::EINVALID_MISSIONSTATE; }
 
 	return State.Items[ArrayIndex].State.Current;
 }

@@ -133,6 +133,7 @@ void FPDOptionalPinManager::RebuildProperty(FProperty* TestProperty, FName Categ
 	FOptionalPinManager::RebuildProperty(TestProperty, CategoryName, Properties, SourceStruct, OldSettings);
 }
 
+//  Tag private member for safe access
 void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& Properties, UStruct* SourceStruct, EEdGraphPinDirection Direction, UPDMissionGraphNode* TargetNode)
 {
 	UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: FPDOptionalPinManager::CreateVisiblePins"));
@@ -186,8 +187,39 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 					: EPDPinCustomizer::CONTINUE;
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("========================================================"))
-		UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: Struct : %s"), StructProperty && StructProperty->Struct ? *StructProperty->Struct.GetName() : *FString(TEXT("N/A")))
+
+		// Note. I shoudl really make a custom derived pin class that adds afield for an enum and this text based mess can be avoided 
+
+		const FName InnerPropertyName = PropertyEntry.PropertyName;
+		bool bUseInnerPropertyAsCategory =
+			PropertyEntry.PropertyName != NAME_None && (
+				PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, MissionBaseTag)
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID)
+				|| PropertyEntry.PropertyName == FName(TEXT("MissionTypeTag"))
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, DeltaValue)
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, Interval)
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, bIsPaused)
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Name)
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Descriptor)
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState)
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, bRepeatable)
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch)
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches) // TODO: Array, not sure yet how I want to display these. Most likely using the default widget
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, Target) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, bIsDirectBranch) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, BranchConditions) // Tag compound with two tag containers
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, TargetBehaviour) // FPDMissionBranchBehaviour
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, DelayTime) 
+				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, Type) // EPDMissionBranchBehaviour
+			);
+		if (bUseInnerPropertyAsCategory)
+		{
+			ReturnPinType = FEdGraphPinType(FPDMissionGraphTypes::PinCategory_GenericData, InnerPropertyName, nullptr, EPinContainerType::None, false, FEdGraphTerminalType());
+		}
+
+
+		// UE_LOG(LogTemp, Warning, TEXT("========================================================"))
+		// UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: Property : %s"), *PropertyEntry.PropertyName.ToString())
 		UEdGraphPin* NewPin = nullptr;
 		switch (CreateTopLevelPin)
 		{

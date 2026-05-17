@@ -46,7 +46,7 @@ public:
 	
 	/** @brief Current State (value and limits) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = NetDatum)
-	FPDMissionState State = {EPDMissionState::EInactive, FPDMissionTagCompound{}};
+	FPDMissionState State = {EPDMissionState::EInactiveMission, FPDMissionTagCompound{}};
 	
 	/** @brief Current Tick behaviour */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = StatData)

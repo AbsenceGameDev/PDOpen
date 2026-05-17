@@ -26,14 +26,14 @@ enum EPDMissionBranchBehaviour
 UENUM()
 enum EPDMissionState
 {
-	ECompleted,      // Finished successfully
-	EFailed,         // Finished unsuccessfully  
-	EActive,         // Still active  
-	EInactive,       // User has not triggered/enabled the mission  
-	ELocked,         // User has not unlocked the mission  
-	EPending,        // Mission is in a pending state, i.e. transitioning from one state to another with a delay  
-	EINVALID_STATE,  //
-	EMAX_STATE,  //
+	ECompletedMission,      // Finished successfully
+	EFailedMission,         // Finished unsuccessfully  
+	EActiveMission,         // Still active  
+	EInactiveMission,       // User has not triggered/enabled the mission  
+	ELockedMission,         // User has not unlocked the mission  
+	EPendingMission,        // Mission is in a pending state, i.e. transitioning from one state to another with a delay  
+	EINVALID_MISSIONSTATE,  //
+	EMAX_MISSIONSTATE,  //
 };
 
 /* Delegates */
@@ -141,7 +141,7 @@ USTRUCT(BlueprintType)
 struct PDMISSIONCORE_API FPDMissionState
 {
 	GENERATED_BODY()
-	FPDMissionState(EPDMissionState _CurrrentState = EPDMissionState::EInactive, TArray<FGameplayTag> _RequiredMissionTags = {}) : Current(_CurrrentState), MissionConditionHandler(_RequiredMissionTags) {};
+	FPDMissionState(EPDMissionState _CurrrentState = EPDMissionState::EInactiveMission, TArray<FGameplayTag> _RequiredMissionTags = {}) : Current(_CurrrentState), MissionConditionHandler(_RequiredMissionTags) {};
 	FPDMissionState(EPDMissionState _CurrrentState, const FPDMissionTagCompound&_OtherHandler) : Current(_CurrrentState), MissionConditionHandler(_OtherHandler) {};
 	
 	/** @brief Current mission state */
@@ -284,7 +284,7 @@ public:
 
 	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
-	TEnumAsByte<EPDMissionState> EStartState = EPDMissionState::EInactive; 
+	TEnumAsByte<EPDMissionState> EStartState = EPDMissionState::EInactiveMission; 
 	
 	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
@@ -383,7 +383,7 @@ private:
 	static inline int64 _CatchMeIfYouCan_Int64 = 2;
 	static inline float _CatchMeIfYouCan_Float = 3;
 	static inline double _CatchMeIfYouCan_Double = 4;
-	static inline FPDMissionRow _CatchMeIfYouCan_FPDMissionRow{};
+	static inline FGameplayTag _CatchMeIfYouCan_FPDMissionRow{};
 	
 };
 
@@ -392,14 +392,15 @@ template class TTagPrivateMember<TAccessorTypeHandler<int8> , &FPDExamplePrivate
 template class TTagPrivateMember<TAccessorTypeHandler<int64> , &FPDExamplePrivateMemberHolder::_CatchMeIfYouCan_Int64>;
 template class TTagPrivateMember<TAccessorTypeHandler<float> , &FPDExamplePrivateMemberHolder::_CatchMeIfYouCan_Float>;
 template class TTagPrivateMember<TAccessorTypeHandler<double> , &FPDExamplePrivateMemberHolder::_CatchMeIfYouCan_Double>;
-template class TTagPrivateMember<TAccessorTypeHandler<FPDMissionRow> , &FPDExamplePrivateMemberHolder::_CatchMeIfYouCan_FPDMissionRow>;
+//template class TTagPrivateMember<TAccessorTypeHandler<FGameplayTag>, FPDMissionBase::MissionTypeTag>; // Won't work on ustructs? need to investigate when I have time
+
 inline void ExampleFunction()
 {
 	int8* PrivateInt8Ptr = TPrivateAccessor<TAccessorTypeHandler<int8>>::TypeValue;
 	int64* PrivateInt64Ptr = TPrivateAccessor<TAccessorTypeHandler<int64>>::TypeValue;
 	float* PrivateFloatPtr = TPrivateAccessor<TAccessorTypeHandler<float>>::TypeValue;
 	double* PrivateDoublePtr = TPrivateAccessor<TAccessorTypeHandler<double>>::TypeValue;
-	FPDMissionRow* PrivateMissionRowPtr = TPrivateAccessor<TAccessorTypeHandler<FPDMissionRow>>::TypeValue;
+	FGameplayTag* PrivateMissionRowPtr = TPrivateAccessor<TAccessorTypeHandler<FGameplayTag>>::TypeValue;
 }
 
 /**

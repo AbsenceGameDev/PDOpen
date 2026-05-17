@@ -50,7 +50,7 @@ FPDDelayMissionFunctor::FPDDelayMissionFunctor(UPDMissionTracker* Tracker, const
 	else
 	{
 		// Set to pending state
-		OverwriteDatum.State.Current = EPDMissionState::EPending;
+		OverwriteDatum.State.Current = EPDMissionState::EPendingMission;
 		Tracker->SetMissionDatum(MissionBaseTag, OverwriteDatum);
 
 		// Dispatch timer

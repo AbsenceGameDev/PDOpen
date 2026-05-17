@@ -468,16 +468,17 @@ enum class EGenericInputSelector : uint8
 
 class SPDGenericInputWrapper : public SPDMissionGraphPin
 {
-	SLATE_BEGIN_ARGS(SPDTagSelector) {}
+	SLATE_BEGIN_ARGS(SPDGenericInputWrapper) : _InputType(EGenericInputSelector::EMissionState) {}
+	SLATE_ATTRIBUTE(EGenericInputSelector, InputType)
 	SLATE_END_ARGS()
 
 	/// Wrap a tag selector
-	void Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj, EGenericInputSelector NewInputType);
+	void Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj);
 	virtual TSharedRef<SWidget>	GetDefaultValueWidget() override;
 
 
 private:
-	EGenericInputSelector InputType;
+	TAttribute<EGenericInputSelector> InputTypeAttr;
 	union 
 	{
 		EPDMissionState MissionState; 

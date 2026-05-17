@@ -1136,15 +1136,15 @@ TSharedRef<SWidget>	SPDTagSelector::GetDefaultValueWidget()
 
 //
 // Checkbox Wrapper
-void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj, EGenericInputSelector NewInputType)
+void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj)
 {
-	InputType = NewInputType;
+	InputTypeAttr = InArgs._InputType;
 	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
 }
 
 TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 {
-	switch (InputType)
+	switch (InputTypeAttr.Get())
 	{
 	case EGenericInputSelector::EMissionTickPaused:
 		{
@@ -1194,7 +1194,7 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 	case EGenericInputSelector::EMissionState:
 	{
 		Options.Empty();
-		for(int32 Step = static_cast<EPDMissionState>(0); Step < EPDMissionState::EMAX_STATE; Step++)
+		for(int32 Step = static_cast<EPDMissionState>(0); Step < EPDMissionState::EMAX_MISSIONSTATE; Step++)
 		{
 			Options.Emplace(MakeShared<FString>(UEnum::GetValueAsName(static_cast<EPDMissionState>(Step)).ToString()));
 		}
@@ -1258,7 +1258,9 @@ void SPDGenericInputWrapper::OnMissionStateChanged(TSharedPtr<FString> SelectedI
 		break;
 	}
 
-	EPDMissionState NewMissionState{}; // todo: convert to enum from string
+	const FString ActualString = *SelectedItem.Get(); 
+	UEnum* MissionStateEnum = StaticEnum<EPDMissionState>();
+	const EPDMissionState NewMissionState = static_cast<EPDMissionState>(MissionStateEnum->GetIndexByNameString(ActualString));
 	GetValueMutable<EGenericInputSelector::EMissionState>() = NewMissionState;
 
 }
@@ -1273,7 +1275,9 @@ void SPDGenericInputWrapper::OnMissionBranchBehaviourChanged(TSharedPtr<FString>
 		break;
 	}
 
-	EPDMissionBranchBehaviour NewBranchBehaviour{}; // todo: convert to enum from string
+	const FString ActualString = *SelectedItem.Get();
+	UEnum* MissionBehaviourEnum = StaticEnum<EPDMissionBranchBehaviour>();
+	const EPDMissionBranchBehaviour NewBranchBehaviour = static_cast<EPDMissionBranchBehaviour>(MissionBehaviourEnum->GetIndexByNameString(ActualString));
 	GetValueMutable<EGenericInputSelector::EMissionBranchBehaviour>() = NewBranchBehaviour;
 }
 
@@ -1322,6 +1326,74 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 	{
 		return SNew(SPDTagSelector, InPin);
 	}
+	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_GenericData)
+	{
+		SPDGenericInputWrapper::FArguments Args;
+
+
+		// Note: This is ragged and very uncouth 
+		const FName InnerPropertyName = InPin->PinType.PinSubCategory;
+		bool bUseInnerPropertyAsCategory =
+			InnerPropertyName != NAME_None && (
+				InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, MissionBaseTag)
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID)
+				|| InnerPropertyName == FName(TEXT("MissionTypeTag"))
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, DeltaValue)
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, Interval)
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, bIsPaused)
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Name)
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Descriptor)
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState)
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, bRepeatable)
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch)
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches) // TODO: Array, not sure yet how I want to display these. Most likely using the default widget
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, Target) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, bIsDirectBranch) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, BranchConditions) // Tag compound with two tag containers
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, TargetBehaviour) // FPDMissionBranchBehaviour
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, DelayTime) 
+				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, Type) // EPDMissionBranchBehaviour EPDMissionBranchBehaviour
+			);
+
+		EGenericInputSelector Type = EGenericInputSelector::MAX;
+		if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState))
+		{
+			Type = EGenericInputSelector::EMissionState;
+		}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, Type))
+		{
+			Type = EGenericInputSelector::EMissionBranchBehaviour;
+		}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, DelayTime))
+		{
+			Type = EGenericInputSelector::EMissionBranchDelayTime;
+		}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, Interval))
+		{
+			Type = EGenericInputSelector::EMissionTickInterval;
+		}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, bIsPaused))
+		{
+			Type = EGenericInputSelector::EMissionTickPaused;
+		}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, DeltaValue))
+		{
+			Type = EGenericInputSelector::EMissionTickDeltaValue;
+		}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, bRepeatable))
+		{
+			Type = EGenericInputSelector::EMissionRepeatable;
+		}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID))
+		{
+			Type = EGenericInputSelector::EMissionID;
+		}
+
+		Args.InputType(Type);
+
+		return SArgumentNew(Args, SPDGenericInputWrapper, InPin);
+	}
+
 	
 	return FGraphPanelPinFactory::CreatePin(InPin);
 }

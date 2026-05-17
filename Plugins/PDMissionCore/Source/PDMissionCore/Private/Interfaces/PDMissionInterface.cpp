@@ -103,10 +103,10 @@ void FPDPrivateMissionHandler::_GrantMissionToActor(const AActor* CallingActor, 
 	}
 
 	FPDMissionNetDatum OverwriteDatum = *ExistingDatum;
-	if (OverwriteDatum.State.Current == EPDMissionState::EInactive)
+	if (OverwriteDatum.State.Current == EPDMissionState::EInactiveMission)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s, Enabling mission by the ID of '%i' and by name of '%s'"), *BuildString , mID, *MissionName.ToString());
-		OverwriteDatum.State.Current = EPDMissionState::EActive;
+		OverwriteDatum.State.Current = EPDMissionState::EActiveMission;
 		MissionSubsystem->Utility.OverwriteMissionDatum(MissionTracker, mID, OverwriteDatum);
 		return;
 	}

@@ -51,20 +51,20 @@ bool UPDMissionSubsystem::FinishMission(int32 ActorID, const FPDMissionBase& Per
 
 	switch (Tracker->GetDatum(PersistentDatum.mID)->State.Current)
 	{
-	case ECompleted:
-	case EFailed:
+	case ECompletedMission:
+	case EFailedMission:
 		// @todo Complete/Fail path needs to check if it is repeatable and if yes, how long should it be delayed
 		return false;
-	case EPending:
+	case EPendingMission:
 		// Avoid re-triggering while pending
 		return false;
-	case ELocked:
+	case ELockedMission:
 		// @todo Locked path needs to check if conditions for immediate or delayed 'unlocking + completion' have been met  
 		return false;
-	case EInactive:
+	case EInactiveMission:
 		// @todo Inactive path needs to check if conditions for immediate or delayed 'unlocking + completion' have been met		return false;
 		return false;
-	case EActive:
+	case EActiveMission:
 		break;
 	default: ;
 	}
