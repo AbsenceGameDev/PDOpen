@@ -495,13 +495,21 @@ public:
 	FText GetMissionIDAsText() const {return FText::AsCultureInvariant(FString::FromInt(GetMissionID()));}
 	TSharedPtr<FString> GetMissionStateAsString() const;
 	TSharedPtr<FString> GetMissionBranchBehaviourAsString() const;
+	float GetMissionTickInterval() const;
+	float GetMissionBranchDelay() const;
+	FText GetMissionTickIntervalAsText() const;
+	FText GetMissionBranchDelayAsText() const;
 
+	
 	void OnPauseStateChanged(ECheckBoxState NewState);
 	void OnRepeatableStateChanged(ECheckBoxState NewState);
 	void OnMissionIDChanged(int32 NewID);
 	void OnMissionIDChangedViaTag(FGameplayTag MissionTag);
 	void OnMissionStateChanged(TSharedPtr<FString> SelectedItem, ESelectInfo::Type SelectInfo);
 	void OnMissionBranchBehaviourChanged(TSharedPtr<FString> SelectedItem, ESelectInfo::Type SelectInfo);
+	void OnMissionTickIntervalChanged(float NewVal);
+	void OnMissionBranchDelayChanged(float NewVal);
+
 
 	template<EGenericInputSelector TSelector>
 	auto& GetValueMutable() 

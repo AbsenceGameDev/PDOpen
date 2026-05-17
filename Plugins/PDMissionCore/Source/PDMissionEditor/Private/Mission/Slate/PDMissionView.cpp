@@ -22,6 +22,7 @@
 #include <Widgets/Input/STextComboBox.h>
 #include <Widgets/Views/STreeView.h>
 #include <Widgets/Text/SInlineEditableTextBlock.h>
+#include "Widgets/Input/SSlider.h"
 
 #include <Editor/GraphEditor/Private/DragConnection.h>
 #include <Framework/Commands/GenericCommands.h>
@@ -1167,9 +1168,10 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 		}
 	case EGenericInputSelector::EMissionID:
 		{
-			FGameplayTag TODO__FINISH_ME = FGameplayTag::EmptyTag;
-			OnMissionIDChangedViaTag(TODO__FINISH_ME);
-			TSharedRef<SWidget> MissionIDValue = SNew(STextBlock).Text(this, &SPDGenericInputWrapper::GetMissionIDAsText);
+			FGameplayTag TODO__FINISH_ME_TAG = FGameplayTag::EmptyTag;
+			OnMissionIDChangedViaTag(TODO__FINISH_ME_TAG);
+			FText TODO__FINISH_ME_TEXT= FText::AsCultureInvariant(FString(TEXT("TODO:FINISH ME")));
+			TSharedRef<SWidget> MissionIDValue = SNew(STextBlock).Text(TODO__FINISH_ME_TEXT); //(this, &SPDGenericInputWrapper::GetMissionIDAsText);
 			
 			return MissionIDValue;
 		}
@@ -1207,6 +1209,58 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 
 		return MissionStateOptions;
 	}
+	case EGenericInputSelector::EMissionTickInterval:
+	{
+		TSharedRef<SWidget> NumberBox = 
+			SNew(SBox)
+			.MinDesiredWidth(100)
+			.MaxDesiredWidth(200)
+			.Content()
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				[
+					SNew(SSlider)
+					.Visibility(EVisibility::Visible)
+					.MinValue(0.f)
+					.MaxValue(120.f) // Seconds
+					.Value(this, &SPDGenericInputWrapper::GetMissionTickInterval)
+					.OnValueChanged(this, &SPDGenericInputWrapper::OnMissionTickIntervalChanged)
+				]
+				+ SHorizontalBox::Slot()
+				[
+					SNew(STextBlock)
+					.Text(this, &SPDGenericInputWrapper::GetMissionTickIntervalAsText)
+				]
+			];
+		return NumberBox;
+	}
+	case EGenericInputSelector::EMissionBranchDelayTime:
+	{
+		TSharedRef<SWidget> NumberBox = 
+			SNew(SBox)
+			.MinDesiredWidth(100)
+			.MaxDesiredWidth(200)
+			.Content()
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				[
+					SNew(SSlider)
+					.Visibility(EVisibility::Visible)
+					.MinValue(0.f)
+					.MaxValue(120.f) // Seconds				
+					.Value(this, &SPDGenericInputWrapper::GetMissionBranchDelay)
+					.OnValueChanged(this, &SPDGenericInputWrapper::OnMissionBranchDelayChanged)
+				]
+				+ SHorizontalBox::Slot()
+				[
+					SNew(STextBlock)
+					.Text(this, &SPDGenericInputWrapper::GetMissionBranchDelayAsText)
+				]
+			];
+		return NumberBox;
+	}
 
 	default:
 		break;
@@ -1222,6 +1276,22 @@ TSharedPtr<FString> SPDGenericInputWrapper::GetMissionStateAsString() const
 TSharedPtr<FString> SPDGenericInputWrapper::GetMissionBranchBehaviourAsString() const 
 {
 	return MakeShared<FString>(UEnum::GetValueAsName(GetValue<EGenericInputSelector::EMissionBranchBehaviour>()).ToString());
+}
+float SPDGenericInputWrapper::GetMissionTickInterval() const 
+{
+	return GetValue<EGenericInputSelector::EMissionTickInterval>();
+}
+float SPDGenericInputWrapper::GetMissionBranchDelay() const 
+{
+	return GetValue<EGenericInputSelector::EMissionBranchDelayTime>();
+}
+FText SPDGenericInputWrapper::GetMissionTickIntervalAsText() const 
+{
+	return FText::AsCultureInvariant(FString::Printf(TEXT("%f"), GetMissionTickInterval()));
+}
+FText SPDGenericInputWrapper::GetMissionBranchDelayAsText() const 
+{
+	return FText::AsCultureInvariant(FString::Printf(TEXT("%f"), GetMissionBranchDelay()));
 }
 
 
@@ -1279,6 +1349,15 @@ void SPDGenericInputWrapper::OnMissionBranchBehaviourChanged(TSharedPtr<FString>
 	UEnum* MissionBehaviourEnum = StaticEnum<EPDMissionBranchBehaviour>();
 	const EPDMissionBranchBehaviour NewBranchBehaviour = static_cast<EPDMissionBranchBehaviour>(MissionBehaviourEnum->GetIndexByNameString(ActualString));
 	GetValueMutable<EGenericInputSelector::EMissionBranchBehaviour>() = NewBranchBehaviour;
+}
+
+void SPDGenericInputWrapper::OnMissionTickIntervalChanged(float NewVal)
+{
+	GetValueMutable<EGenericInputSelector::EMissionTickInterval>() = NewVal;
+}
+void SPDGenericInputWrapper::OnMissionBranchDelayChanged(float NewVal)
+{
+	GetValueMutable<EGenericInputSelector::EMissionBranchDelayTime>() = NewVal;
 }
 
 

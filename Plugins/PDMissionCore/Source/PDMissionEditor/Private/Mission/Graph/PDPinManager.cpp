@@ -214,12 +214,12 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 			);
 		if (bUseInnerPropertyAsCategory)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("========================================================"))
+			UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: Inner Property : %s"), *PropertyEntry.PropertyName.ToString())
 			ReturnPinType = FEdGraphPinType(FPDMissionGraphTypes::PinCategory_GenericData, InnerPropertyName, nullptr, EPinContainerType::None, false, FEdGraphTerminalType());
 		}
 
 
-		// UE_LOG(LogTemp, Warning, TEXT("========================================================"))
-		// UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: Property : %s"), *PropertyEntry.PropertyName.ToString())
 		UEdGraphPin* NewPin = nullptr;
 		switch (CreateTopLevelPin)
 		{

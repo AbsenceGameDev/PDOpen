@@ -68,7 +68,7 @@ void UPDMissionTracker::FinalizeOverwriteRef(const FGameplayTag& MissionBaseTag,
 		break;
 	case EUnlock:
 		// Go from locked to inactive
-			OverwriteDatum.State.Current = EPDMissionState::EInactiveMission;
+		OverwriteDatum.State.Current = EPDMissionState::EInactiveMission;
 		break;
 	}
 	SetMissionDatum(MissionBaseTag, OverwriteDatum);	
