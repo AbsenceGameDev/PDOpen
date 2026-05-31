@@ -1159,6 +1159,54 @@ void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* In
 	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
 }
 
+TSharedRef<SWidget> SPDGenericInputWrapper::GeneratePopupContent()
+{
+	TSharedPtr<SWidget> MissionBranchDetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A"))); 
+	UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET"));
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	FPDMissionUtility* Utility = MissionSubsystem ? &MissionSubsystem->Utility : nullptr;
+	if (Utility)
+	{
+		const FDataTableRowHandle& MissionHandle = Utility->MissionLookupViaRowName.FindRef(MissionRowName);
+		if (MissionHandle.DataTable)
+		{
+			// // Remember to have marked dirt before editing. 
+			// // Currently it is awlays marked dirty which si a bug so when that this still needs to be handled
+			// MissionHandle.DataTable->MarkPackageDirty(); 
+
+			FPDMissionRow* MutableRow = MissionHandle.GetRow<FPDMissionRow>("");
+			if (MutableRow)
+			{
+				UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET -- FOUND ROW"));
+
+				FDetailsViewArgs DetailsViewArgs;
+				DetailsViewArgs.bAllowSearch = false;
+				DetailsViewArgs.bHideSelectionTip = true;
+				DetailsViewArgs.bLockable = false;
+				DetailsViewArgs.bSearchInitialKeyFocus = false;
+				DetailsViewArgs.bUpdatesFromSelection = false;
+				DetailsViewArgs.bShowOptions = false;
+
+				FStructureDetailsViewArgs StructureDetailsViewArgs;
+				StructureDetailsViewArgs.bShowObjects = true;
+
+				FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+				UScriptStruct* RowStructType = MutableRow->ProgressRules.NextMissionBranch.StaticStruct();
+				if (RowStructType)
+				{
+					UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET -- FOUND STRUCT TYPE: %s"), *RowStructType->GetName());
+					TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(RowStructType, (uint8*)&MutableRow->ProgressRules.NextMissionBranch);
+					StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+					StructureDetailsView->SetStructureData(StructData);
+					MissionBranchDetailsView = StructureDetailsView->GetWidget();
+				}
+			}
+		}
+	}
+			
+	return MissionBranchDetailsView.ToSharedRef();
+}
+
 TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 {	
 	switch (InputTypeAttr.Get())
@@ -1184,129 +1232,15 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 		}
 	case EGenericInputSelector::ENextMissionBranch:
 		{
-			UE_LOG(LogTemp, Error, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET"));
-			UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
-			FPDMissionUtility* Utility = MissionSubsystem ? &MissionSubsystem->Utility : nullptr;
-			if (Utility)
-			{
-				const FDataTableRowHandle& MissionHandle = Utility->MissionLookupViaRowName.FindRef(MissionRowName);
-				if (MissionHandle.DataTable)
-				{
-					// // Remember to have marked dirt before editing. 
-					// // Currently it is awlays marked dirty which si a bug so when that this still needs to be handled
-					// MissionHandle.DataTable->MarkPackageDirty(); 
-
-					// MissionHandle.DataTable->Get;
-
-					FPDMissionRow* MutableRow = MissionHandle.GetRow<FPDMissionRow>("");
-					if (MutableRow)
-					{
-						UE_LOG(LogTemp, Error, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET -- FOUND ROW"));
-
-						FDetailsViewArgs DetailsViewArgs;
-						DetailsViewArgs.bAllowSearch = false;
-						DetailsViewArgs.bHideSelectionTip = true;
-						DetailsViewArgs.bLockable = false;
-						DetailsViewArgs.bSearchInitialKeyFocus = false;
-						DetailsViewArgs.bUpdatesFromSelection = false;
-						DetailsViewArgs.bShowOptions = false;
-
-						FStructureDetailsViewArgs StructureDetailsViewArgs;
-						StructureDetailsViewArgs.bShowObjects = true;
-
-						
-						// MutableRow->ProgressRules.NextMissionBranch.StaticStruct
-						FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-						for (FPropertyValueIterator PropIt(FProperty::StaticClass(), MutableRow->ProgressRules.NextMissionBranch.StaticStruct(), &MutableRow->ProgressRules.NextMissionBranch, EPropertyValueIteratorFlags::NoRecursion); PropIt; ++PropIt)
-						{
-							UE_LOG(LogTemp, Error, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET -- FOUND ROW - ITERATING PROPERTY(%s)"), *PropIt.Key()->GetName());
-
-							// FProperty* CurrProperty = PropIt.Key();
-							FArrayProperty* BranchArrayProp = const_cast<FArrayProperty*>(CastField<const FArrayProperty>(PropIt.Key()));
-							UField* PropertyOwner = BranchArrayProp->GetOwner<UField>();
-							if (UScriptStruct* BranchOwnerScriptStruct = Cast<UScriptStruct>(PropertyOwner))
-							{
-								UE_LOG(LogTemp, Error, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET -- FOUND INNER STRUCT PROPERTY"));
-								// FText CustomName;
-								TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(BranchOwnerScriptStruct->GetClass(), (uint8*)BranchOwnerScriptStruct);
-								StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
-								StructureDetailsView->SetStructureData(StructData);
-								break;								
-							}
-						}
-
-
-						TSharedPtr<SWidget> MissionBranchDetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A"))); 
-						if (StructureDetailsView.IsValid())
-						{
-							MissionBranchDetailsView = 
-							SNew(SBox)
-							.Visibility(EVisibility::Visible)
-							.Content()
-							[
-								SNew(SVerticalBox)
-								+ SVerticalBox::Slot()
-								[
-									SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("==========")))
-								]
-								+ SVerticalBox::Slot()
-								[
-									StructureDetailsView->GetWidget().ToSharedRef()
-								]
-							];
-						}
-						return MissionBranchDetailsView.ToSharedRef();
-
-
-						// TArray<FPDMissionBranchElement>& Branches = MutableRow->ProgressRules.NextMissionBranch.Branches;
-						// for (auto Branch : Branches)
-						// {
-						// 	;
-						// }
-					}
-
-				}
-			}
-
-			// UPDMissionSubsystem* MissionSubsystem = UPDMissionSubsystem::Get();
-			// FPDMissionUtility* Utlility = MissionSubsystem ? MissionSubsystem->Utility : nullptr;
-			// UPDMissionGraphNode* AsMissionGraphNode = OwnerNodePtr.Pin() != nullptr 
-			// 	? Cast<UPDMissionGraphNode>(OwnerNodePtr.Pin()->GetNodeObj()) 
-			// 	: nullptr;
-			// if (Utlility && AsMissionGraphNode)
-			// {
-			// 	AsMissionGraphNode;
-			// 	FDataTableRowHandle& MissionHandle = Utlility->MissionLookupViaRowName.FindRef(MissionRowName);
-			// 	if (MissionHandle.DataTable)
-			// 	{
-			// 		// // Remember to have marked dirt before editing. 
-			// 		// // Currently it is awlays marked dirty which si a bug so when that this still needs to be handled
-			// 		// MissionHandle.DataTable->MarkPackageDirty(); 
-
-			// 		FPDMissionRow* MutableRow = MissionHandle.GetRow<FPDMissionRow>("");
-			// 		if (MutableRow)
-			// 		{
-			// 			TArray<FPDMissionBranchElement>& Branches = MutableRow->ProgressRules.NextMissionBranch.Branches;
-			// 			for (auto Branch : Branches)
-			// 			{
-							
-			// 			}
-
-
-			// 			//SGraphPin::GetDefaultValueWidget();	
-			// 		}
-
-			// 	}
-			// }
-
-
-
-			// FPDMissionRow::ProgressRules.NextMissionBranch.Branches;
-
-			// TSharedRef<SWidget> BranchPropertyWrapper = 
-			// 	SNew(SPropertyValueWidget, PropertyKeyEditor, ParentCategory.Pin()->GetParentLayoutImpl()->GetPropertyUtilities())
-			// 	.IsEnabled(IsEnabledAttrib)
-			// 	.ShowPropertyButtons(false);
+			return SNew(SComboButton)
+				.ContentPadding(FMargin(2.0f, 2.0f))
+				.ComboButtonStyle(FAppStyle::Get(), "SimpleComboButton") 
+				.ButtonContent()
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString("Tiered branch logic"))
+				]
+				.OnGetMenuContent(this, &SPDGenericInputWrapper::GeneratePopupContent);
 		}
 		break;
 

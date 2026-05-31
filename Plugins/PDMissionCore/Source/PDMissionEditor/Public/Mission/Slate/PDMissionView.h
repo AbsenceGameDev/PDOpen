@@ -479,6 +479,7 @@ class SPDGenericInputWrapper : public SPDMissionGraphPin
 	void Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj);
 	virtual TSharedRef<SWidget>	GetDefaultValueWidget() override;
 
+	TSharedRef<SWidget> GeneratePopupContent();
 
 private:
 	TAttribute<EGenericInputSelector> InputTypeAttr;
