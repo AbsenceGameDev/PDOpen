@@ -15,6 +15,10 @@
 #include <EdGraph/EdGraphPin.h>
 #include <EdGraph/EdGraphSchema.h>
 
+#if WITH_EDITOR
+#include <IStructureDetailsView.h>
+#endif
+
 #include <Framework/Application/SlateApplication.h>
 #include <Framework/Views/TableViewMetadata.h>
 
@@ -1156,7 +1160,7 @@ void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* In
 }
 
 TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
-{
+{	
 	switch (InputTypeAttr.Get())
 	{
 	case EGenericInputSelector::EMissionTickPaused:
@@ -1180,6 +1184,90 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 		}
 	case EGenericInputSelector::ENextMissionBranch:
 		{
+			UE_LOG(LogTemp, Error, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET"));
+			UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+			FPDMissionUtility* Utility = MissionSubsystem ? &MissionSubsystem->Utility : nullptr;
+			if (Utility)
+			{
+				const FDataTableRowHandle& MissionHandle = Utility->MissionLookupViaRowName.FindRef(MissionRowName);
+				if (MissionHandle.DataTable)
+				{
+					// // Remember to have marked dirt before editing. 
+					// // Currently it is awlays marked dirty which si a bug so when that this still needs to be handled
+					// MissionHandle.DataTable->MarkPackageDirty(); 
+
+					// MissionHandle.DataTable->Get;
+
+					FPDMissionRow* MutableRow = MissionHandle.GetRow<FPDMissionRow>("");
+					if (MutableRow)
+					{
+						UE_LOG(LogTemp, Error, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET -- FOUND ROW"));
+
+						FDetailsViewArgs DetailsViewArgs;
+						DetailsViewArgs.bAllowSearch = false;
+						DetailsViewArgs.bHideSelectionTip = true;
+						DetailsViewArgs.bLockable = false;
+						DetailsViewArgs.bSearchInitialKeyFocus = false;
+						DetailsViewArgs.bUpdatesFromSelection = false;
+						DetailsViewArgs.bShowOptions = false;
+
+						FStructureDetailsViewArgs StructureDetailsViewArgs;
+						StructureDetailsViewArgs.bShowObjects = true;
+
+						
+						// MutableRow->ProgressRules.NextMissionBranch.StaticStruct
+						FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+						for (FPropertyValueIterator PropIt(FProperty::StaticClass(), MutableRow->ProgressRules.NextMissionBranch.StaticStruct(), &MutableRow->ProgressRules.NextMissionBranch, EPropertyValueIteratorFlags::NoRecursion); PropIt; ++PropIt)
+						{
+							UE_LOG(LogTemp, Error, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET -- FOUND ROW - ITERATING PROPERTY(%s)"), *PropIt.Key()->GetName());
+
+							// FProperty* CurrProperty = PropIt.Key();
+							FArrayProperty* BranchArrayProp = const_cast<FArrayProperty*>(CastField<const FArrayProperty>(PropIt.Key()));
+							UField* PropertyOwner = BranchArrayProp->GetOwner<UField>();
+							if (UScriptStruct* BranchOwnerScriptStruct = Cast<UScriptStruct>(PropertyOwner))
+							{
+								UE_LOG(LogTemp, Error, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET -- FOUND INNER STRUCT PROPERTY"));
+								// FText CustomName;
+								TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(BranchOwnerScriptStruct->GetClass(), (uint8*)BranchOwnerScriptStruct);
+								StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+								StructureDetailsView->SetStructureData(StructData);
+								break;								
+							}
+						}
+
+
+						TSharedPtr<SWidget> MissionBranchDetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A"))); 
+						if (StructureDetailsView.IsValid())
+						{
+							MissionBranchDetailsView = 
+							SNew(SBox)
+							.Visibility(EVisibility::Visible)
+							.Content()
+							[
+								SNew(SVerticalBox)
+								+ SVerticalBox::Slot()
+								[
+									SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("==========")))
+								]
+								+ SVerticalBox::Slot()
+								[
+									StructureDetailsView->GetWidget().ToSharedRef()
+								]
+							];
+						}
+						return MissionBranchDetailsView.ToSharedRef();
+
+
+						// TArray<FPDMissionBranchElement>& Branches = MutableRow->ProgressRules.NextMissionBranch.Branches;
+						// for (auto Branch : Branches)
+						// {
+						// 	;
+						// }
+					}
+
+				}
+			}
+
 			// UPDMissionSubsystem* MissionSubsystem = UPDMissionSubsystem::Get();
 			// FPDMissionUtility* Utlility = MissionSubsystem ? MissionSubsystem->Utility : nullptr;
 			// UPDMissionGraphNode* AsMissionGraphNode = OwnerNodePtr.Pin() != nullptr 
@@ -1540,21 +1628,22 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 		{
 			Type = EGenericInputSelector::EMissionRepeatable;
 		}
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch))
+		// else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch))
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches))
 		{
 			Type = EGenericInputSelector::ENextMissionBranch;
-		}		
+		}
 		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID))
 		{
 			Type = EGenericInputSelector::EMissionID;
 		}
 
-		// UPDMissionGraphNode* AsMissionGraphNode = OwnerNodePtr.Pin() != nullptr ?
-		// Cast<UPDMissionGraphNode>(OwnerNodePtr.Pin()->GetNodeObj()) : nullptr;		
-		// if (AsMissionGraphNode)
-		// {
-		// 	Args.MissionRowName(AsMissionGraphNode->SelectedMissionRowName); 
-		// }
+	
+		UPDMissionGraphNode* AsMissionGraphNode = Cast<UPDMissionGraphNode>(InPin->GetOwningNode());
+		if (AsMissionGraphNode)
+		{
+			Args.MissionRowName(AsMissionGraphNode->SelectedMissionRowName); 
+		}
 		Args.InputType(Type);
 
 		return SArgumentNew(Args, SPDGenericInputWrapper, InPin);

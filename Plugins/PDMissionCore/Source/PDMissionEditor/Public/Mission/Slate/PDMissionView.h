@@ -483,6 +483,9 @@ class SPDGenericInputWrapper : public SPDMissionGraphPin
 private:
 	TAttribute<EGenericInputSelector> InputTypeAttr;
 	FName MissionRowName;
+
+	TSharedPtr<class IStructureDetailsView> StructureDetailsView;
+	
 	union 
 	{
 		EPDMissionState MissionState; 
