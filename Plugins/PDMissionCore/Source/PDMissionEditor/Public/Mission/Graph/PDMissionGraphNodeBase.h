@@ -86,31 +86,33 @@ class UPDMissionGraphNode : public UEdGraphNode
 
 	virtual int32 FindSubNodeDropIndex(UPDMissionGraphNode* SubNode) const;
 	virtual void InsertSubNodeAt(UPDMissionGraphNode* SubNode, int32 DropIndex);
-
+	
 	/** check if node is sub-node */
 	virtual bool IsSubNode() const;
 
 	/** initialize instance object  */
 	virtual void InitializeInstance();
-
+	
 	/** updates ClassData from node instance */
 	virtual void UpdateNodeClassData();
-
+	
 	/** Check if node instance uses blueprint for its implementation */
 	bool UsesBlueprint() const;
-
+	
 	/** check if node has any errors, used for assigning colors on graph */
 	virtual bool HasErrors() const;
-
+	
 	virtual bool CanPlaceBreakpoints() const { return false; }
 	
 	void RefreshDataRefPins(const FName& MissionRowName);
-
+	
 	FString GetMissionName() { return "finish me"; }
 	
 	void GetMissionTransitions(TArray<UPDMissionTransitionNode*>& Array); // Get all mission transition for this node
-
+	
 	static void UpdateNodeDataFrom(UClass* InstanceClass, FPDMissionNodeData& UpdatedData);
+	void ReallocateDefaultPins();
+	void CopyLogicalPath(TArray<UEdGraphPin*> OldPins, TArray<UEdGraphPin*> NewPins);
 
 protected:
 	virtual void ResetNodeOwner();

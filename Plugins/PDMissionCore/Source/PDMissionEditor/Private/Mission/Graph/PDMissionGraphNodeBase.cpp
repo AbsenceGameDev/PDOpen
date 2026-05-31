@@ -142,30 +142,33 @@ void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: Attempt create new mission"));
 
-		// Generate pin. TODO: Try to remember what the hell the plan was here nad then finish or scrap
-		FEdGraphTerminalType ValueTerminalType;
-		ValueTerminalType.TerminalCategory = UEdGraphSchema_K2::PC_Struct;
-		ValueTerminalType.TerminalSubCategory = NAME_None;
-		ValueTerminalType.TerminalSubCategoryObject = FPDMissionRow::StaticStruct();
+		// TODO/NOTE: 
+		//	- This is currenlty unused, dead code basically, or even worse as it actually runs. 
+		//	- Commenting it out and rethinking what we need when we want to create a new mission row
+
+		// // Generate pin. TODO: Try to remember what the hell the plan was here nad then finish or scrap
+		// FEdGraphTerminalType ValueTerminalType;
+		// ValueTerminalType.TerminalCategory = UEdGraphSchema_K2::PC_Struct;
+		// ValueTerminalType.TerminalSubCategory = NAME_None;
+		// ValueTerminalType.TerminalSubCategoryObject = FPDMissionRow::StaticStruct();
 		
-		UEdGraphNode::FCreatePinParams PinParam;
-		PinParam.Index = 3;
-		PinParam.bIsReference = false;
-		PinParam.ContainerType = EPinContainerType::None;
-		PinParam.ValueTerminalType = ValueTerminalType;
+		// UEdGraphNode::FCreatePinParams PinParam;
+		// PinParam.Index = 3;
+		// PinParam.bIsReference = false;
+		// PinParam.ContainerType = EPinContainerType::None;
+		// PinParam.ValueTerminalType = ValueTerminalType;
 
-		FEdGraphPinType PinType_Key(FPDMissionGraphTypes::PinCategory_MissionRowKeyBuilder, NAME_None, FPDMissionRow::StaticStruct(), PinParam.ContainerType, PinParam.bIsReference, PinParam.ValueTerminalType);
-		PinType_Key.bIsConst = PinParam.bIsConst;
-		// CreatePin(EGPD_Input, PinType_Key, TEXT("New data key"), PinParam.Index);
+		// FEdGraphPinType PinType_Key(FPDMissionGraphTypes::PinCategory_MissionRowKeyBuilder, NAME_None, FPDMissionRow::StaticStruct(), PinParam.ContainerType, PinParam.bIsReference, PinParam.ValueTerminalType);
+		// PinType_Key.bIsConst = PinParam.bIsConst;
+		// // CreatePin(EGPD_Input, PinType_Key, TEXT("New data key"), PinParam.Index);
 	}
-	else
-	{
-		// New line of thinking, never hide any pins. 
-		// Reserved for potential use 
 
-		// TODO: Crude first try, delete existing pins, THEN Allocate new ones and rewire any connections:
-		AllocateDefaultPins();
-	}
+	// Always refresh, but TODO: Make it possible to save the state and apply on the new missions pins when 
+	// changing from an existing mission to creating a new mission via 'TAG_MakeNewMission', it will be needed in certain cases
+	GetMissionGraph()->Modify();
+	ReallocateDefaultPins();
+	GetMissionGraph()->NotifyGraphChanged();
+	GetMissionGraph()->UpdateData();		
 
 	PreviousMissionRowName = SelectedMissionRowName;
 }
@@ -503,6 +506,78 @@ void UPDMissionGraphNode::AllocateDefaultPins()
 		Pin->bDefaultValueIsIgnored = Pin->bDefaultValueIsIgnored || Pin->PinType.IsContainer();
 	}
 }
+
+void UPDMissionGraphNode::ReallocateDefaultPins()
+{
+	if (StructType == nullptr) { return; }
+	
+	PreloadObject(StructType);
+	FStructOnScope StructOnScope(StructType);
+	FPDOptionalPinManager OptionalPinManager(StructOnScope.GetStructMemory());
+
+
+	TArray<UEdGraphPin*> OldPins = Pins;
+
+	const bool bIsEntryPointNode = 
+		nullptr == OldPins.FindByPredicate(
+			[](const UEdGraphPin* PinElem) -> bool
+			{
+				return PinElem->Direction == EGPD_Input && PinElem->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_LogicalPath;
+			});
+	if (false == bIsEntryPointNode)
+	{
+		CreatePin(EGPD_Input, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("In"));
+	}
+	
+	CreateMissionPin();
+	CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+
+	OptionalPinManager.RebuildPropertyList(ShowPinForProperties, StructType);
+	OptionalPinManager.CreateVisiblePins(ShowPinForProperties, StructType, EGPD_Input, this);
+
+
+	TArray<UEdGraphPin*> NewPins = Pins.FilterByPredicate(
+		[OldPins](const UEdGraphPin* NewPinElem) -> bool
+		{
+			return false == OldPins.Contains(NewPinElem);
+		});
+
+	CopyLogicalPath(OldPins, NewPins);
+
+	for (UEdGraphPin* OldPin : OldPins) 
+	{
+		RemovePin(OldPin);
+	}
+
+	for(UEdGraphPin* Pin : Pins)
+	{
+		Pin->bDefaultValueIsIgnored = Pin->bDefaultValueIsIgnored || Pin->PinType.IsContainer();
+	}
+}
+
+void UPDMissionGraphNode::CopyLogicalPath(TArray<UEdGraphPin*> OldPins, TArray<UEdGraphPin*> NewPins)
+{
+#define ISLOGICALPATH(Elem) Elem->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_LogicalPath
+#define ISINPUT(Elem) Elem->Direction == EEdGraphPinDirection::EGPD_Input && ISLOGICALPATH(Elem)
+#define ISOUTPUT(Elem) Elem->Direction != EEdGraphPinDirection::EGPD_Input && ISLOGICALPATH(Elem)
+
+	UEdGraphPin** OldInPin = OldPins.FindByPredicate([](const UEdGraphPin* PinElem) -> bool {return ISINPUT(PinElem);});
+	UEdGraphPin** NewInPin = NewPins.FindByPredicate([](const UEdGraphPin* PinElem) -> bool {return ISINPUT(PinElem);});
+
+	UEdGraphPin** OldOutPin = OldPins.FindByPredicate([](const UEdGraphPin* PinElem) -> bool {return ISOUTPUT(PinElem);});
+	UEdGraphPin** NewOutPin = NewPins.FindByPredicate([](const UEdGraphPin* PinElem) -> bool {return ISOUTPUT(PinElem);});
+
+	// Copying links to logical path, w
+	if (OldInPin && NewInPin && *OldInPin && *NewInPin)
+	{
+		for (UEdGraphPin* OldLinkToPin : (*OldInPin)->LinkedTo){(*NewInPin)->MakeLinkTo(OldLinkToPin);}
+	}
+	if (OldOutPin && NewOutPin && *OldOutPin && *NewOutPin)
+	{
+		for (UEdGraphPin* OldLinkToPin : (*OldOutPin)->LinkedTo){(*NewOutPin)->MakeLinkTo(OldLinkToPin);}
+	}	
+}	
+
 
 void UPDMissionGraphNode::PreloadRequiredAssets()
 {
