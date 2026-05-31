@@ -461,6 +461,8 @@ enum class EGenericInputSelector : uint8
 	EMissionTickPaused,
 	EMissionRepeatable,
 
+	ENextMissionBranch,
+
 	EMissionID,
 	EMissionTickDeltaValue,
 	MAX,
@@ -470,6 +472,7 @@ class SPDGenericInputWrapper : public SPDMissionGraphPin
 {
 	SLATE_BEGIN_ARGS(SPDGenericInputWrapper) : _InputType(EGenericInputSelector::EMissionState) {}
 	SLATE_ATTRIBUTE(EGenericInputSelector, InputType)
+	SLATE_ARGUMENT(FName, MissionRowName)
 	SLATE_END_ARGS()
 
 	/// Wrap a tag selector
@@ -479,6 +482,7 @@ class SPDGenericInputWrapper : public SPDMissionGraphPin
 
 private:
 	TAttribute<EGenericInputSelector> InputTypeAttr;
+	FName MissionRowName;
 	union 
 	{
 		EPDMissionState MissionState; 

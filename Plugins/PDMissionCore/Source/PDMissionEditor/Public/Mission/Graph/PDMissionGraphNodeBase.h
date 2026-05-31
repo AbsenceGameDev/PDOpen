@@ -132,6 +132,10 @@ public:
 	struct FPDMissionNodeData ClassData;
 
 	UPROPERTY()
+	FName SelectedMissionRowName;
+	FName PreviousMissionRowName;
+
+	UPROPERTY()
 	FPDNodeColours NodeColours;	
 	
 	UPROPERTY()
@@ -167,7 +171,6 @@ private:
 	/** Constructing FText strings can be costly, so we cache the node's title/tooltip */
 	FNodeTextCache CachedTooltip;
 	FNodeTextCache CachedNodeTitle;
-	FName PreviousMissionRowName;
 
 	TArray<FName> OldShownPins;
 

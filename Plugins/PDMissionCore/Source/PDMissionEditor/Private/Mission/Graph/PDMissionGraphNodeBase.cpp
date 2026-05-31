@@ -137,6 +137,7 @@ void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 	UE_LOG(LogTemp, Warning, TEXT("================== MISSIONTEST ==================="));
 	UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: UPDMissionGraphNode::RefreshDataRefPins - %s"), *MissionRowName.ToString());
 
+	SelectedMissionRowName = MissionRowName;
 	if ((MissionRowName.ToString() == TAG_MakeNewMission.GetTag().ToString() || MissionRowName == NAME_None) && GetInputPin(0) != nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: Attempt create new mission"));
@@ -161,9 +162,12 @@ void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 	{
 		// New line of thinking, never hide any pins. 
 		// Reserved for potential use 
+
+		// TODO: Crude first try, delete existing pins, THEN Allocate new ones and rewire any connections:
+		AllocateDefaultPins();
 	}
 
-	PreviousMissionRowName = MissionRowName;
+	PreviousMissionRowName = SelectedMissionRowName;
 }
 
 FText UPDMissionGraphNode::GetDescription() const

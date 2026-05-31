@@ -981,9 +981,15 @@ TSharedRef<SWidget>	SPDAttributePin::GetDefaultValueWidget()
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
 	if (MissionSubsystem == nullptr) { return SNew(STextComboBox); }
 	
-	return	SNew(STextComboBox) //note you can display any widget here
-		.OptionsSource(&MissionSubsystem->Utility.MissionRowNameList) 
-		.OnSelectionChanged(this, &SPDAttributePin::OnAttributeSelected);
+	return 
+		// SNew(SBox)
+		// .MinDesiredHeight(200)
+		// [
+			SNew(STextComboBox) //note you can display any widget here
+			.OptionsSource(&MissionSubsystem->Utility.MissionRowNameList) 
+			.OnSelectionChanged(this, &SPDAttributePin::OnAttributeSelected)
+		// ]
+		;
 }
 void SPDAttributePin::OnAttributeSelected(TSharedPtr<FString> ItemSelected, ESelectInfo::Type SelectInfo)
 {
@@ -1122,16 +1128,21 @@ void SPDTagSelector::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPin
 
 TSharedRef<SWidget>	SPDTagSelector::GetDefaultValueWidget()
 {
-	TSharedRef<SWidget> TagWidgetWrapper = SNew(SGameplayTagCombo)
-	.Visibility(EVisibility::Visible)
-	// .Filter(Property.GetMetaData(TEXT("Categories")))
-	.Tag(this, &SPDTagSelector::GetGameplayTag)
-	.OnTagChanged_Lambda(
-		[&](const FGameplayTag NewTag)
-		{
-			Tag = NewTag;
-		});
-
+	TSharedRef<SWidget> TagWidgetWrapper = 
+	// SNew(SBox)
+	// .MinDesiredHeight(200)
+	// [
+		SNew(SGameplayTagCombo)
+		.Visibility(EVisibility::Visible)
+		// .Filter(Property.GetMetaData(TEXT("Categories")))
+		.Tag(this, &SPDTagSelector::GetGameplayTag)
+		.OnTagChanged_Lambda(
+			[&](const FGameplayTag NewTag)
+			{
+				Tag = NewTag;
+			})
+	//]
+	;
 	return TagWidgetWrapper;
 }
 
@@ -1140,6 +1151,7 @@ TSharedRef<SWidget>	SPDTagSelector::GetDefaultValueWidget()
 void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj)
 {
 	InputTypeAttr = InArgs._InputType;
+	MissionRowName = InArgs._MissionRowName;
 	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
 }
 
@@ -1166,6 +1178,50 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 				.IsChecked(this, &SPDGenericInputWrapper::GetRepeatableState);
 			return RepeatableStateCheckboxWrapper;
 		}
+	case EGenericInputSelector::ENextMissionBranch:
+		{
+			// UPDMissionSubsystem* MissionSubsystem = UPDMissionSubsystem::Get();
+			// FPDMissionUtility* Utlility = MissionSubsystem ? MissionSubsystem->Utility : nullptr;
+			// UPDMissionGraphNode* AsMissionGraphNode = OwnerNodePtr.Pin() != nullptr 
+			// 	? Cast<UPDMissionGraphNode>(OwnerNodePtr.Pin()->GetNodeObj()) 
+			// 	: nullptr;
+			// if (Utlility && AsMissionGraphNode)
+			// {
+			// 	AsMissionGraphNode;
+			// 	FDataTableRowHandle& MissionHandle = Utlility->MissionLookupViaRowName.FindRef(MissionRowName);
+			// 	if (MissionHandle.DataTable)
+			// 	{
+			// 		// // Remember to have marked dirt before editing. 
+			// 		// // Currently it is awlays marked dirty which si a bug so when that this still needs to be handled
+			// 		// MissionHandle.DataTable->MarkPackageDirty(); 
+
+			// 		FPDMissionRow* MutableRow = MissionHandle.GetRow<FPDMissionRow>("");
+			// 		if (MutableRow)
+			// 		{
+			// 			TArray<FPDMissionBranchElement>& Branches = MutableRow->ProgressRules.NextMissionBranch.Branches;
+			// 			for (auto Branch : Branches)
+			// 			{
+							
+			// 			}
+
+
+			// 			//SGraphPin::GetDefaultValueWidget();	
+			// 		}
+
+			// 	}
+			// }
+
+
+
+			// FPDMissionRow::ProgressRules.NextMissionBranch.Branches;
+
+			// TSharedRef<SWidget> BranchPropertyWrapper = 
+			// 	SNew(SPropertyValueWidget, PropertyKeyEditor, ParentCategory.Pin()->GetParentLayoutImpl()->GetPropertyUtilities())
+			// 	.IsEnabled(IsEnabledAttrib)
+			// 	.ShowPropertyButtons(false);
+		}
+		break;
+
 	case EGenericInputSelector::EMissionID:
 		{
 			FGameplayTag TODO__FINISH_ME_TAG = FGameplayTag::EmptyTag;
@@ -1185,10 +1241,16 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 		}
 
 		TSharedRef<SWidget> MissionBranchOptions = 
-			SNew(STextComboBox)
-			.OnSelectionChanged(this, &SPDGenericInputWrapper::OnMissionBranchBehaviourChanged)
-			.InitiallySelectedItem(GetMissionStateAsString())
-			.OptionsSource(&Options);
+			// SNew(SBox)
+			// .MinDesiredHeight(200)
+			// .Content()
+			// [
+				SNew(STextComboBox)
+				.OnSelectionChanged(this, &SPDGenericInputWrapper::OnMissionBranchBehaviourChanged)
+				.InitiallySelectedItem(GetMissionStateAsString())
+				.OptionsSource(&Options)
+			// ]
+			;
 
 		return MissionBranchOptions;
 
@@ -1202,19 +1264,30 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 		}
 
 		TSharedRef<SWidget> MissionStateOptions = 
-			SNew(STextComboBox)
-			.OnSelectionChanged(this, &SPDGenericInputWrapper::OnMissionStateChanged)
-			.InitiallySelectedItem(GetMissionStateAsString())
-			.OptionsSource(&Options);
+			// SNew(SBox)
+			// .MinDesiredHeight(200)
+			// .Content()
+			// [
+				SNew(STextComboBox)
+				.OnSelectionChanged(this, &SPDGenericInputWrapper::OnMissionStateChanged)
+				.InitiallySelectedItem(GetMissionStateAsString())
+				.OptionsSource(&Options)
+			// ]
+			;
 
 		return MissionStateOptions;
 	}
+
+	// This luckliy forces the whole tree to the same element height
 	case EGenericInputSelector::EMissionTickInterval:
 	{
 		TSharedRef<SWidget> NumberBox = 
 			SNew(SBox)
-			.MinDesiredWidth(100)
-			.MaxDesiredWidth(200)
+			.MinDesiredWidth(250)
+			.MaxDesiredWidth(400)
+			.MinDesiredHeight(200)
+			.HAlign(EHorizontalAlignment::HAlign_Left)
+			.VAlign(EVerticalAlignment::VAlign_Top)
 			.Content()
 			[
 				SNew(SHorizontalBox)
@@ -1239,8 +1312,12 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 	{
 		TSharedRef<SWidget> NumberBox = 
 			SNew(SBox)
-			.MinDesiredWidth(100)
-			.MaxDesiredWidth(200)
+			.MinDesiredWidth(250)
+			.MaxDesiredWidth(400)
+			// .HeightOverride(200)
+			.MinDesiredHeight(200)
+			.HAlign(EHorizontalAlignment::HAlign_Left)
+			.VAlign(EVerticalAlignment::VAlign_Top)
 			.Content()
 			[
 				SNew(SHorizontalBox)
@@ -1408,31 +1485,31 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_GenericData)
 	{
 		SPDGenericInputWrapper::FArguments Args;
-
-
-		// Note: This is ragged and very uncouth 
 		const FName InnerPropertyName = InPin->PinType.PinSubCategory;
-		bool bUseInnerPropertyAsCategory =
-			InnerPropertyName != NAME_None && (
-				InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, MissionBaseTag)
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID)
-				|| InnerPropertyName == FName(TEXT("MissionTypeTag"))
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, DeltaValue)
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, Interval)
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, bIsPaused)
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Name)
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Descriptor)
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState)
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, bRepeatable)
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch)
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches) // TODO: Array, not sure yet how I want to display these. Most likely using the default widget
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, Target) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, bIsDirectBranch) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, BranchConditions) // Tag compound with two tag containers
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, TargetBehaviour) // FPDMissionBranchBehaviour
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, DelayTime) 
-				|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, Type) // EPDMissionBranchBehaviour EPDMissionBranchBehaviour
-			);
+
+
+		// // Note: This is ragged and very uncouth 
+		// bool bUseInnerPropertyAsCategory =
+		// 	InnerPropertyName != NAME_None && (
+		// 		InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, MissionBaseTag)
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID)
+		// 		|| InnerPropertyName == FName(TEXT("MissionTypeTag"))
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, DeltaValue)
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, Interval)
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, bIsPaused)
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Name)
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Descriptor)
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState)
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, bRepeatable)
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch)
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches) // TODO: Array, not sure yet how I want to display these. Most likely using the default widget
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, Target) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, bIsDirectBranch) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, BranchConditions) // Tag compound with two tag containers
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, TargetBehaviour) // FPDMissionBranchBehaviour
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, DelayTime) 
+		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, Type) // EPDMissionBranchBehaviour EPDMissionBranchBehaviour
+		// 	);
 
 		EGenericInputSelector Type = EGenericInputSelector::MAX;
 		if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState))
@@ -1463,11 +1540,21 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 		{
 			Type = EGenericInputSelector::EMissionRepeatable;
 		}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch))
+		{
+			Type = EGenericInputSelector::ENextMissionBranch;
+		}		
 		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID))
 		{
 			Type = EGenericInputSelector::EMissionID;
 		}
 
+		// UPDMissionGraphNode* AsMissionGraphNode = OwnerNodePtr.Pin() != nullptr ?
+		// Cast<UPDMissionGraphNode>(OwnerNodePtr.Pin()->GetNodeObj()) : nullptr;		
+		// if (AsMissionGraphNode)
+		// {
+		// 	Args.MissionRowName(AsMissionGraphNode->SelectedMissionRowName); 
+		// }
 		Args.InputType(Type);
 
 		return SArgumentNew(Args, SPDGenericInputWrapper, InPin);
