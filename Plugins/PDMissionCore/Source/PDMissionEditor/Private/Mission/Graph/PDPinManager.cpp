@@ -194,6 +194,9 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 		const FName InnerPropertyName = PropertyEntry.PropertyName;
 		bool bUseInnerPropertyAsCategory =
 			PropertyEntry.PropertyName != NAME_None && (
+				// StructProperty->Struct == MissionMetadataStruct
+				//|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRow, Metadata)
+				// || 
 				PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, MissionBaseTag)
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID)
 				|| PropertyEntry.PropertyName == FName(TEXT("MissionTypeTag"))
@@ -205,6 +208,7 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState)
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, bRepeatable)
 				// || PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch)
+
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches) // TODO: Array, not sure yet how I want to display these. Most likely using the default widget
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, Target) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, bIsDirectBranch) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
@@ -219,48 +223,6 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 			UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: Inner Property : %s"), *PropertyEntry.PropertyName.ToString())
 			ReturnPinType = FEdGraphPinType(FPDMissionGraphTypes::PinCategory_GenericData, InnerPropertyName, nullptr, EPinContainerType::None, false, FEdGraphTerminalType());
 		}
-
-		// if (PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch)
-		// 	|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches))
-		// {
-		// 	UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: SelectedMissionRowName(%s)::%s"), *TargetNode->SelectedMissionRowName.ToString(), *PropertyEntry.PropertyName.ToString())
-
-
-		// 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
-		// 	FPDMissionUtility* Utility = MissionSubsystem ? &MissionSubsystem->Utility : nullptr;
-		// 	if (Utility)
-		// 	{
-		// 		const FDataTableRowHandle& MissionHandle = Utility->MissionLookupViaRowName.FindRef(TargetNode->SelectedMissionRowName);
-		// 		if (MissionHandle.DataTable)
-		// 		{
-		// 			// // Remember to have marked dirt before editing. 
-		// 			// // Currently it is awlays marked dirty which si a bug so when that this still needs to be handled
-		// 			// MissionHandle.DataTable->MarkPackageDirty(); 
-
-		// 			FPDMissionRow* MutableRow = MissionHandle.GetRow<FPDMissionRow>("");
-		// 			if (MutableRow)
-		// 			{
-		// 				TArray<FPDMissionBranchElement>& Branches = MutableRow->ProgressRules.NextMissionBranch.Branches;
-		// 				for (auto Branch : Branches)
-		// 				{
-		// 					ReturnPinType = FEdGraphPinType(FPDMissionGraphTypes::PinCategory_SectionLabel, NAME_None, nullptr, EPinContainerType::None, false, FEdGraphTerminalType());
-		// 					const FName PinName = PropertyEntry.PropertyName;
-
-		// 					UEdGraphPin* NewPin = TargetNode->CreatePin(Direction, ReturnPinType, PinName);
-		// 					NewPin->bNotConnectable = true;
-		// 					NewPin->bAllowFriendlyName = true;
-
-		// 					CustomizePinData(NewPin, PropertyEntry.PropertyName, INDEX_NONE, *OuterProperty, TargetNode, CreateTopLevelPin);
-		// 				}
-
-
-		// 				//SGraphPin::GetDefaultValueWidget();	
-		// 			}
-
-		// 		}
-		// 	}
-
-		// }
 
 
 		UEdGraphPin* NewPin = nullptr;

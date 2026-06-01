@@ -35,6 +35,7 @@
 #include "Containers/Array.h"
 #include "Containers/Map.h"
 #include "Containers/UnrealString.h"
+#include "DetailsViewArgs.h"
 
 #include "PDMissionCommon.h"
 
@@ -462,6 +463,7 @@ enum class EGenericInputSelector : uint8
 	EMissionRepeatable,
 
 	ENextMissionBranch,
+	EMissionMetadata,
 
 	EMissionID,
 	EMissionTickDeltaValue,
@@ -479,9 +481,29 @@ class SPDGenericInputWrapper : public SPDMissionGraphPin
 	void Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj);
 	virtual TSharedRef<SWidget>	GetDefaultValueWidget() override;
 
-	TSharedRef<SWidget> GeneratePopupContent();
+
+	TSharedRef<SWidget> GenerateBaseSettingsContent();
+	TSharedRef<SWidget> GenerateTickSettingsContent();
+	TSharedRef<SWidget> GenerateProgressRulesContent();
+	TSharedRef<SWidget> GenerateMetadataContent();
+	TSharedRef<SWidget> GenerateBranchesContent();
 
 private:
+	FPDMissionRow* GetCurrentMissionRow();
+	TPair<FDetailsViewArgs, FStructureDetailsViewArgs> GetDetailsArgs()
+	{
+		FDetailsViewArgs RetDetailsViewArgs;
+		RetDetailsViewArgs.bAllowSearch = false;
+		RetDetailsViewArgs.bHideSelectionTip = true;
+		RetDetailsViewArgs.bLockable = false;
+		RetDetailsViewArgs.bSearchInitialKeyFocus = false;
+		RetDetailsViewArgs.bUpdatesFromSelection = false;
+		RetDetailsViewArgs.bShowOptions = false;
+		FStructureDetailsViewArgs RetStructureDetailsViewArgs;
+		RetStructureDetailsViewArgs.bShowObjects = true;
+		return TPair<FDetailsViewArgs, FStructureDetailsViewArgs>{RetDetailsViewArgs, RetStructureDetailsViewArgs};
+	}
+
 	TAttribute<EGenericInputSelector> InputTypeAttr;
 	FName MissionRowName;
 
