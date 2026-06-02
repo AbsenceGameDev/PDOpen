@@ -573,14 +573,11 @@ class SPDLabelAsPin : public SGraphPin
 {
 public:
 	SLATE_BEGIN_ARGS(SPDLabelAsPin) {}
-	SLATE_ATTRIBUTE(EGenericInputSelector, InputType)
 	SLATE_ARGUMENT(FName, MissionRowName)	
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj);
 	virtual TSharedRef<SWidget>	GetDefaultValueWidget() override;
-
-
 
 // SGraphPin interface
 	/** @return Actual icon object */
@@ -599,10 +596,7 @@ public:
 	virtual bool TryHandlePinConnection(SGraphPin& OtherSPin) {return false;};
 // End of SGraphPin interface
 
-
-	TAttribute<EGenericInputSelector> InputTypeAttr;
 	FName MissionRowName;
-
 	TSharedPtr<class IStructureDetailsView> StructureDetailsView;
 	TWeakObjectPtr<UObject> SubCategoryObject = nullptr;
 

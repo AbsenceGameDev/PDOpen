@@ -986,14 +986,9 @@ TSharedRef<SWidget>	SPDAttributePin::GetDefaultValueWidget()
 	if (MissionSubsystem == nullptr) { return SNew(STextComboBox); }
 	
 	return 
-		// SNew(SBox)
-		// .MinDesiredHeight(200)
-		// [
-			SNew(STextComboBox) //note you can display any widget here
-			.OptionsSource(&MissionSubsystem->Utility.MissionRowNameList) 
-			.OnSelectionChanged(this, &SPDAttributePin::OnAttributeSelected)
-		// ]
-		;
+		SNew(STextComboBox) //note you can display any widget here
+		.OptionsSource(&MissionSubsystem->Utility.MissionRowNameList) 
+		.OnSelectionChanged(this, &SPDAttributePin::OnAttributeSelected);
 }
 void SPDAttributePin::OnAttributeSelected(TSharedPtr<FString> ItemSelected, ESelectInfo::Type SelectInfo)
 {
@@ -1071,27 +1066,6 @@ void SPDDataAttributePin::Construct(const FArguments& InArgs, UEdGraphPin* InGra
 
 TSharedRef<SWidget> SPDDataAttributePin::GetDefaultValueWidget()
 {
-	// Notes for what I need done
-
-	// If Base::mID (int32): slate widget with no text input
-	
-	// If TickSettings::DeltaValue, slate widget number box
-	// If TickSettings::Interval, slate widget number box	
-	// If TickSettings::IsPause, slate widget check box
-
-	// If ProgressRules::MissionConditionHandler::OptionaUserTags: slate widget Gameplay Tag Container	
-	// If ProgressRules::MissionConditionHandler::RequiredMissionTags: slate widget Gameplay Tag Container	
-
-	// If ProgressRules::NextMissionBranch: Need to step further in and expand more
-	// NextMissionBranch contains TArray<FPDMissionBranchElement> Branches;
-	// FPDMissionBranchElement contains:
-	//			FDataTableRowHandle Target; // @brief  'Target' is the mission we might branch to 
-	//			FPDMissionTagCompound BranchConditions; // @brief Actual condition to be able to branch to the target
-	//			uint8 bIsDirectBranch : 1; // @brief true means it's a direct branch, i.e. 'same questline', false means it's a new questline 
-	//			FPDMissionBranchBehaviour TargetBehaviour; // @brief Tells us how we want to treat the branch 
-	//				EPDMissionBranchBehaviour FPDMissionBranchBehaviour::Type = EPDMissionBranchBehaviour::ETrigger; // @brief Trigger or unlock? */
-	//				float FPDMissionBranchBehaviour::DelayTime = 0.0f; // @brief Delay or immediate? 
-
 	return SGraphPin::GetDefaultValueWidget();
 }
 
@@ -1133,20 +1107,14 @@ void SPDTagSelector::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPin
 TSharedRef<SWidget>	SPDTagSelector::GetDefaultValueWidget()
 {
 	TSharedRef<SWidget> TagWidgetWrapper = 
-	// SNew(SBox)
-	// .MinDesiredHeight(200)
-	// [
 		SNew(SGameplayTagCombo)
 		.Visibility(EVisibility::Visible)
-		// .Filter(Property.GetMetaData(TEXT("Categories")))
 		.Tag(this, &SPDTagSelector::GetGameplayTag)
 		.OnTagChanged_Lambda(
 			[&](const FGameplayTag NewTag)
 			{
 				Tag = NewTag;
-			})
-	//]
-	;
+			});
 	return TagWidgetWrapper;
 }
 
@@ -1274,72 +1242,17 @@ FPDMissionRow* GetCurrentMission(FName MissionRowName)
 	return nullptr;
 }
 
-FPDMissionRow* SPDGenericInputWrapper::GetCurrentMissionRow()
-{
-	return GetCurrentMission(MissionRowName);
-}
-
-
-TSharedRef<SWidget> SPDGenericInputWrapper::GenerateBaseSettingsContent()
-{
-	return GenerateSettingsContent<FPDMissionBase>(GetCurrentMissionRow(), StructureDetailsView);
-}	
-TSharedRef<SWidget> SPDGenericInputWrapper::GenerateTickSettingsContent()
-{
-	return GenerateSettingsContent<FPDMissionTickBehaviour>(GetCurrentMissionRow(), StructureDetailsView);
-}
-TSharedRef<SWidget> SPDGenericInputWrapper::GenerateProgressRulesContent()
-{
-	return GenerateSettingsContent<FPDMissionRules>(GetCurrentMissionRow(), StructureDetailsView);
-}
-TSharedRef<SWidget> SPDGenericInputWrapper::GenerateMetadataContent()
-{
-	return GenerateSettingsContent<FPDMissionMetadata>(GetCurrentMissionRow(), StructureDetailsView);
-}
-TSharedRef<SWidget> SPDGenericInputWrapper::GenerateBranchesContent()
-{
-	return GenerateSettingsContent<FPDMissionBranch>(GetCurrentMissionRow(), StructureDetailsView);
-}
+FPDMissionRow* SPDGenericInputWrapper::GetCurrentMissionRow(){return GetCurrentMission(MissionRowName);}
+TSharedRef<SWidget> SPDGenericInputWrapper::GenerateBaseSettingsContent(){return GenerateSettingsContent<FPDMissionBase>(GetCurrentMissionRow(), StructureDetailsView);}
+TSharedRef<SWidget> SPDGenericInputWrapper::GenerateTickSettingsContent(){return GenerateSettingsContent<FPDMissionTickBehaviour>(GetCurrentMissionRow(), StructureDetailsView);}
+TSharedRef<SWidget> SPDGenericInputWrapper::GenerateProgressRulesContent(){return GenerateSettingsContent<FPDMissionRules>(GetCurrentMissionRow(), StructureDetailsView);}
+TSharedRef<SWidget> SPDGenericInputWrapper::GenerateMetadataContent(){return GenerateSettingsContent<FPDMissionMetadata>(GetCurrentMissionRow(), StructureDetailsView);}
+TSharedRef<SWidget> SPDGenericInputWrapper::GenerateBranchesContent(){return GenerateSettingsContent<FPDMissionBranch>(GetCurrentMissionRow(), StructureDetailsView);}
 
 TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 {	
 	switch (InputTypeAttr.Get())
 	{
-	case EGenericInputSelector::EAllMissionRowData:
-		{
-			TSharedRef<SWidget> MissionRowDetails = 
-				SNew(SBox)
-				.Content()
-				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot()
-					[
-						SNew(SHorizontalBox)
-						+ SHorizontalBox::Slot()
-						[
-							GenerateMetadataContent()
-						]
-						+ SHorizontalBox::Slot()
-						[
-							GenerateBaseSettingsContent()
-						]
-					]
-					+ SVerticalBox::Slot()
-					[
-						GenerateTickSettingsContent()
-						// SNew(SHorizontalBox)
-						// + SHorizontalBox::Slot()
-						// [
-
-						// ]
-					]
-					+ SVerticalBox::Slot()
-					[
-						GenerateProgressRulesContent()
-					]
-				];
-			return MissionRowDetails;
-		}
 	case EGenericInputSelector::EMissionTickPaused:
 		{
 			TSharedRef<SWidget> PauseStateCheckboxWrapper = 
@@ -1371,9 +1284,7 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 
 				]
 				.OnGetMenuContent(this, &SPDGenericInputWrapper::GenerateMetadataContent);
-
 		}
-
 	case EGenericInputSelector::ENextMissionBranch:
 		{
 			return SNew(SComboButton)
@@ -1386,7 +1297,6 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 				]
 				.OnGetMenuContent(this, &SPDGenericInputWrapper::GenerateBranchesContent);
 		}
-
 	case EGenericInputSelector::EMissionID:
 		{
 			FGameplayTag TODO__FINISH_ME_TAG = FGameplayTag::EmptyTag;
@@ -1396,7 +1306,6 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 			
 			return MissionIDValue;
 		}
-
 	case EGenericInputSelector::EMissionBranchBehaviour:
 	{
 		Options.Empty();
@@ -1406,16 +1315,10 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 		}
 
 		TSharedRef<SWidget> MissionBranchOptions = 
-			// SNew(SBox)
-			// .MinDesiredHeight(200)
-			// .Content()
-			// [
-				SNew(STextComboBox)
-				.OnSelectionChanged(this, &SPDGenericInputWrapper::OnMissionBranchBehaviourChanged)
-				.InitiallySelectedItem(GetMissionStateAsString())
-				.OptionsSource(&Options)
-			// ]
-			;
+			SNew(STextComboBox)
+			.OnSelectionChanged(this, &SPDGenericInputWrapper::OnMissionBranchBehaviourChanged)
+			.InitiallySelectedItem(GetMissionStateAsString())
+			.OptionsSource(&Options);
 
 		return MissionBranchOptions;
 
@@ -1429,16 +1332,10 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 		}
 
 		TSharedRef<SWidget> MissionStateOptions = 
-			// SNew(SBox)
-			// .MinDesiredHeight(200)
-			// .Content()
-			// [
-				SNew(STextComboBox)
-				.OnSelectionChanged(this, &SPDGenericInputWrapper::OnMissionStateChanged)
-				.InitiallySelectedItem(GetMissionStateAsString())
-				.OptionsSource(&Options)
-			// ]
-			;
+			SNew(STextComboBox)
+			.OnSelectionChanged(this, &SPDGenericInputWrapper::OnMissionStateChanged)
+			.InitiallySelectedItem(GetMissionStateAsString())
+			.OptionsSource(&Options);
 
 		return MissionStateOptions;
 	}
@@ -1479,7 +1376,6 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 			SNew(SBox)
 			.MinDesiredWidth(250)
 			.MaxDesiredWidth(400)
-			// .HeightOverride(200)
 			.MinDesiredHeight(200)
 			.HAlign(EHorizontalAlignment::HAlign_Left)
 			.VAlign(EVerticalAlignment::VAlign_Top)
@@ -1535,18 +1431,14 @@ FText SPDGenericInputWrapper::GetMissionBranchDelayAsText() const
 {
 	return FText::AsCultureInvariant(FString::Printf(TEXT("%f"), GetMissionBranchDelay()));
 }
-
-
 void SPDGenericInputWrapper::OnPauseStateChanged(ECheckBoxState NewState)
 {
 	GetValueMutable<EGenericInputSelector::EMissionTickPaused>() = NewState;
 }
-
 void SPDGenericInputWrapper::OnRepeatableStateChanged(ECheckBoxState NewState)
 {
 	GetValueMutable<EGenericInputSelector::EMissionRepeatable>() = NewState;
 }
-
 void SPDGenericInputWrapper::OnMissionIDChanged(int32 NewID)
 {
 	GetValueMutable<EGenericInputSelector::EMissionID>() = NewID;
@@ -1607,7 +1499,6 @@ void SPDGenericInputWrapper::OnMissionBranchDelayChanged(float NewVal)
 // Label As Pin
 void SPDLabelAsPin::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj)
 {
-	InputTypeAttr = InArgs._InputType;
 	MissionRowName = InArgs._MissionRowName;
 	SubCategoryObject = InGraphPinObj->PinType.PinSubCategoryObject;
 
@@ -1693,10 +1584,8 @@ const FSlateBrush* SPDLabelAsPin::GetPinIcon() const
 }
 
 
-
 //
-// Numeric box wrappet
-
+// Numeric box wrapper
 
 //
 // PinFactory
@@ -1715,7 +1604,6 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 	{
 		return SNew(SPDDataAttributePin, InPin);  // @todo SPDDataAttributePin
 	}
-
 	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_SectionLabel)
 	{
 		SPDLabelAsPin::FArguments Args;
@@ -1724,8 +1612,6 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 		{
 			Args.MissionRowName(AsMissionGraphNode->SelectedMissionRowName); 
 		}
-		Args.InputType(EGenericInputSelector::EAllMissionRowData);
-
 		return SArgumentNew(Args, SPDLabelAsPin, InPin);
 	}
 
@@ -1733,72 +1619,24 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 	{
 		return SNew(SPDTagSelector, InPin);
 	}
-	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_AllData) 
-	{
-		SPDGenericInputWrapper::FArguments Args;
-		UPDMissionGraphNode* AsMissionGraphNode = Cast<UPDMissionGraphNode>(InPin->GetOwningNode());
-		if (AsMissionGraphNode)
-		{
-			Args.MissionRowName(AsMissionGraphNode->SelectedMissionRowName); 
-		}
-		Args.InputType(EGenericInputSelector::EAllMissionRowData);
-
-		return SArgumentNew(Args, SPDGenericInputWrapper, InPin);
-	}
 	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_GenericData)
 	{
 		SPDGenericInputWrapper::FArguments Args;
 		const FName InnerPropertyName = InPin->PinType.PinSubCategory;
 
 		EGenericInputSelector Type = EGenericInputSelector::MAX;
-		if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState))
-		{
-			Type = EGenericInputSelector::EMissionState;
-		}
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, Type))
-		{
-			Type = EGenericInputSelector::EMissionBranchBehaviour;
-		}
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, DelayTime))
-		{
-			Type = EGenericInputSelector::EMissionBranchDelayTime;
-		}
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, Interval))
-		{
-			Type = EGenericInputSelector::EMissionTickInterval;
-		}
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, bIsPaused))
-		{
-			Type = EGenericInputSelector::EMissionTickPaused;
-		}
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, DeltaValue))
-		{
-			Type = EGenericInputSelector::EMissionTickDeltaValue;
-		}
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, bRepeatable))
-		{
-			Type = EGenericInputSelector::EMissionRepeatable;
-		}
-		// else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch))
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches))
-		{
-			Type = EGenericInputSelector::ENextMissionBranch;
-		}
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRow, Metadata))
-		{
-			Type = EGenericInputSelector::EMissionMetadata;
-		}
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Name))
-		{
-			Type = EGenericInputSelector::EMissionMetadata;
-		}
+		if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState)){Type = EGenericInputSelector::EMissionState;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, Type)){Type = EGenericInputSelector::EMissionBranchBehaviour;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, DelayTime)){Type = EGenericInputSelector::EMissionBranchDelayTime;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, Interval)){Type = EGenericInputSelector::EMissionTickInterval;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, bIsPaused)){Type = EGenericInputSelector::EMissionTickPaused;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, DeltaValue)){Type = EGenericInputSelector::EMissionTickDeltaValue;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, bRepeatable)){Type = EGenericInputSelector::EMissionRepeatable;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches)){Type = EGenericInputSelector::ENextMissionBranch;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRow, Metadata)){Type = EGenericInputSelector::EMissionMetadata;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Name)){Type = EGenericInputSelector::EMissionMetadata;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID)){Type = EGenericInputSelector::EMissionID;}
 
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID))
-		{
-			Type = EGenericInputSelector::EMissionID;
-		}
-
-	
 		UPDMissionGraphNode* AsMissionGraphNode = Cast<UPDMissionGraphNode>(InPin->GetOwningNode());
 		if (AsMissionGraphNode)
 		{

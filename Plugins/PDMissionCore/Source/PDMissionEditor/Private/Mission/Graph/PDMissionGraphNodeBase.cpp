@@ -133,29 +133,6 @@ void UPDMissionGraphNode::CreateMissionPin()
 }
 
 
-void UPDMissionGraphNode::CreateMissionRowPin()
-{
-	UE_LOG(LogTemp, Warning, TEXT("================== MISSIONTEST ==================="));
-	UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: UPDMissionGraphNode::CreateMissionPin"));
-
-	FEdGraphTerminalType ValueTerminalType;
-	ValueTerminalType.TerminalCategory = UEdGraphSchema_K2::PC_Struct;
-	ValueTerminalType.TerminalSubCategory = NAME_None;
-	ValueTerminalType.TerminalSubCategoryObject = FPDMissionRow::StaticStruct();
-		
-	// FEdGraphPinType(FName InPinCategory, FName InPinSubCategory, UObject* InPinSubCategoryObject, EPinContainerType InPinContainerType, bool bInIsReference, const FEdGraphTerminalType& InValueTerminalType )
-	FEdGraphPinType PinType_Mission(
-		FPDMissionGraphTypes::PinCategory_AllData,
-		NAME_None,
-		nullptr,
-		EPinContainerType::None,
-		false,
-		ValueTerminalType);
-	
-	PinType_Mission.bIsConst = false;
-	CreatePin(EGPD_Input, PinType_Mission, TEXT("Mission Root"), 2);
-}
-
 void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 {
 	UE_LOG(LogTemp, Warning, TEXT("================== MISSIONTEST ==================="));
