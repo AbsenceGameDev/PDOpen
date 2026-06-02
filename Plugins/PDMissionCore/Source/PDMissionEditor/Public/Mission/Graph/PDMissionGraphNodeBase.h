@@ -118,6 +118,7 @@ protected:
 	virtual void ResetNodeOwner();
 	
 	void CreateMissionPin();
+	void CreateMissionRowPin();
 	
 	// Ensures the specified object is preloaded in case it is not invalid
 	FORCEINLINE void PreloadObject(UObject* ReferencedObject)

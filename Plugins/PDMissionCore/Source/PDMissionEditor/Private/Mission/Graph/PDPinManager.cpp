@@ -177,10 +177,10 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 			StructProperty->Struct == MissionBaseStruct
 			|| StructProperty->Struct == TickBehaviourStruct
 			|| StructProperty->Struct == MissionRulesStruct
-			|| StructProperty->Struct == MissionRules_TagCompoundStruct
-			|| StructProperty->Struct == MissionRules_BranchStruct
+			// || StructProperty->Struct == MissionRules_TagCompoundStruct
+			// || StructProperty->Struct == MissionRules_BranchStruct
 			//|| StructProperty->Struct == MissionRules_BranchElementStruct
-			|| StructProperty->Struct == MissionRules_BranchElement_BranchBehaviourStruct
+			//|| StructProperty->Struct == MissionRules_BranchElement_BranchBehaviourStruct
 			|| StructProperty->Struct == MissionMetadataStruct
 				? EPDPinCustomizer::SKIPPAST
 				: StructProperty->Struct == TagMetadataStruct
@@ -204,7 +204,7 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, Interval)
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, bIsPaused)
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Name)
-				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Descriptor)
+				// || PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Descriptor)
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState)
 				|| PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, bRepeatable)
 				// || PropertyEntry.PropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch)
@@ -232,31 +232,33 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 			{
 				// Empty unpinnable category pin that is basically just a label, 
 				// @todo need to manage this better when I am done but this is a proof of concept that will mess up teh pin ordering, so if I map pins I need to take this into account
-				ReturnPinType = FEdGraphPinType(FPDMissionGraphTypes::PinCategory_SectionLabel, NAME_None, nullptr, EPinContainerType::None, false, FEdGraphTerminalType());
 				const FName PinName = PropertyEntry.PropertyName;
+				ReturnPinType = FEdGraphPinType(FPDMissionGraphTypes::PinCategory_SectionLabel, NAME_None, StructProperty->Struct, EPinContainerType::None, false, FEdGraphTerminalType());
 				NewPin = TargetNode->CreatePin(Direction, ReturnPinType, PinName);
 				NewPin->bNotConnectable = true;
 				NewPin->bAllowFriendlyName = true;
+				CustomizePinData(NewPin, PropertyEntry.PropertyName, INDEX_NONE, *OuterProperty, TargetNode, CreateTopLevelPin);
+
 			}
 			break; // In CustomizePin we recurse into CreateVisiblePins if we are in SKIPPAST, as to expand into each compound 
-		case EPDPinCustomizer::STOPDEPTHLIM:
-			{
-				ReturnPinType = FEdGraphPinType(FPDMissionGraphTypes::PinCategory_TagSelector, NAME_None, nullptr, EPinContainerType::None, false, FEdGraphTerminalType());
-			}
-		case EPDPinCustomizer::CONTINUE:
-			{ // Scoped
-				const FName PinName = PropertyEntry.PropertyName;
-				NewPin = TargetNode->CreatePin(Direction, ReturnPinType, PinName);
-				NewPin->PinFriendlyName = FText::FromString(PropertyEntry.PropertyFriendlyName.IsEmpty() ? PinName.ToString() : PropertyEntry.PropertyFriendlyName);
-				NewPin->bNotConnectable = !PropertyEntry.bIsSetValuePinVisible;
-				NewPin->bDefaultValueIsIgnored = !PropertyEntry.bIsSetValuePinVisible;
-				Schema->ConstructBasicPinTooltip(*NewPin, PropertyEntry.PropertyTooltip, NewPin->PinToolTip);
-			}
-		default: break;
+		// case EPDPinCustomizer::STOPDEPTHLIM:
+		// 	{
+		// 		ReturnPinType = FEdGraphPinType(FPDMissionGraphTypes::PinCategory_TagSelector, NAME_None, nullptr, EPinContainerType::None, false, FEdGraphTerminalType());
+		// 	}
+		// case EPDPinCustomizer::CONTINUE:
+		// 	{ // Scoped
+		// 		const FName PinName = PropertyEntry.PropertyName;
+		// 		NewPin = TargetNode->CreatePin(Direction, ReturnPinType, PinName);
+		// 		NewPin->PinFriendlyName = FText::FromString(PropertyEntry.PropertyFriendlyName.IsEmpty() ? PinName.ToString() : PropertyEntry.PropertyFriendlyName);
+		// 		NewPin->bNotConnectable = !PropertyEntry.bIsSetValuePinVisible;
+		// 		NewPin->bDefaultValueIsIgnored = !PropertyEntry.bIsSetValuePinVisible;
+		// 		Schema->ConstructBasicPinTooltip(*NewPin, PropertyEntry.PropertyTooltip, NewPin->PinToolTip);
+		// 	}
+		// default: break;
 		}
 
-		// This version of CustomizePinData steps into the mission row and sets up the inner properties as pins 
-		CustomizePinData(NewPin, PropertyEntry.PropertyName, INDEX_NONE, *OuterProperty, TargetNode, CreateTopLevelPin);
+		// // This version of CustomizePinData steps into the mission row and sets up the inner properties as pins 
+		// CustomizePinData(NewPin, PropertyEntry.PropertyName, INDEX_NONE, *OuterProperty, TargetNode, CreateTopLevelPin);
 	}
 }
 

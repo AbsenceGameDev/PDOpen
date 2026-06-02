@@ -1165,98 +1165,99 @@ void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* In
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
 	// FPDMissionRules ProgressRules{};
 
-TSharedRef<SWidget> SPDGenericInputWrapper::GenerateProgressRulesContent()
+
+TPair<FDetailsViewArgs, FStructureDetailsViewArgs> GetDetailsArgs()
 {
-	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
-	FPDMissionRow* MissionRow = GetCurrentMissionRow();
-	if (MissionRow)
-	{
-		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
-		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionRules::StaticStruct(), (uint8*)&MissionRow->ProgressRules);
-		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
-		DetailsView = StructureDetailsView->GetWidget();
-	}
-
-
-	return DetailsView.ToSharedRef();
+	FDetailsViewArgs RetDetailsViewArgs;
+	RetDetailsViewArgs.bAllowSearch = false;
+	RetDetailsViewArgs.bHideSelectionTip = true;
+	RetDetailsViewArgs.bLockable = false;
+	RetDetailsViewArgs.bSearchInitialKeyFocus = false;
+	RetDetailsViewArgs.bUpdatesFromSelection = false;
+	RetDetailsViewArgs.bShowOptions = false;
+	FStructureDetailsViewArgs RetStructureDetailsViewArgs;
+	RetStructureDetailsViewArgs.bShowObjects = true;
+	return TPair<FDetailsViewArgs, FStructureDetailsViewArgs>{RetDetailsViewArgs, RetStructureDetailsViewArgs};
 }
 
-
-
-TSharedRef<SWidget> SPDGenericInputWrapper::GenerateBaseSettingsContent()
+template<typename TStructType>
+TSharedRef<SWidget> GenerateSettingsContent(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
-	FPDMissionRow* MissionRow = GetCurrentMissionRow();
+	return DetailsView.ToSharedRef();
+}
+template<>
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBase>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+{
+	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
 	if(MissionRow)
 	{
-		// LOG 
 		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
 		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionBase::StaticStruct(), (uint8*)&MissionRow->Base);
 		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
 		DetailsView = StructureDetailsView->GetWidget();;
 	}
-
 	return DetailsView.ToSharedRef();
-}	
-
-
-TSharedRef<SWidget> SPDGenericInputWrapper::GenerateTickSettingsContent()
+}
+template<>
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionTickBehaviour>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
-	FPDMissionRow* MutableRow = GetCurrentMissionRow();
-	if (MutableRow)
+	if(MissionRow)
 	{
-		// LOG 
 		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
 		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionTickBehaviour::StaticStruct(), (uint8*)&MutableRow->TickSettings);
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionTickBehaviour::StaticStruct(), (uint8*)&MissionRow->TickSettings);
 		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
-		DetailsView = StructureDetailsView->GetWidget();
-	}
-
+		DetailsView = StructureDetailsView->GetWidget();;
+	}	
 	return DetailsView.ToSharedRef();
 }
-
-TSharedRef<SWidget> SPDGenericInputWrapper::GenerateMetadataContent()
+template<>
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionRules>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
-	FPDMissionRow* MutableRow = GetCurrentMissionRow();
-	if(MutableRow)
+	if(MissionRow)
 	{
-		// UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET -- FOUND ROW"));
 		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
 		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionMetadata::StaticStruct(), (uint8*)&MutableRow->Metadata);
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionRules::StaticStruct(), (uint8*)&MissionRow->ProgressRules);
 		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
-		DetailsView = StructureDetailsView->GetWidget();
-	}
+		DetailsView = StructureDetailsView->GetWidget();;
+	}	
+	return DetailsView.ToSharedRef();
+}
+template<>
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionMetadata>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+{
+	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
+	if(MissionRow)
+	{
+		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
+		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionMetadata::StaticStruct(), (uint8*)&MissionRow->Metadata);
+		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+		DetailsView = StructureDetailsView->GetWidget();;
+	}	
+	return DetailsView.ToSharedRef();
+}
+template<>
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBranch>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+{
+	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
+	if(MissionRow)
+	{
+		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
+		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionBranch::StaticStruct(), (uint8*)&MissionRow->ProgressRules.NextMissionBranch);
+		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+		DetailsView = StructureDetailsView->GetWidget();;
+	}	
 	return DetailsView.ToSharedRef();
 }
 
-TSharedRef<SWidget> SPDGenericInputWrapper::GenerateBranchesContent()
-{
-	// // Remember to have marked dirt before editing. 
-	// // Currently it is awlays marked dirty which si a bug so when that this still needs to be handled
-	// MissionHandle.DataTable->MarkPackageDirty(); 
-	
-	TSharedPtr<SWidget> MissionBranchDetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A"))); 
-	FPDMissionRow* MutableRow = GetCurrentMissionRow();
-	if (MutableRow)
-	{
-		UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET -- FOUND ROW"));
-		const auto &[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
-		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionBranch::StaticStruct(), (uint8*)&MutableRow->ProgressRules.NextMissionBranch);
-		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
-		MissionBranchDetailsView = StructureDetailsView->GetWidget();
-	}
-			
-	return MissionBranchDetailsView.ToSharedRef();
-}
-
-FPDMissionRow* SPDGenericInputWrapper::GetCurrentMissionRow()
+FPDMissionRow* GetCurrentMission(FName MissionRowName)
 {
 
 	UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET"));
@@ -1273,10 +1274,72 @@ FPDMissionRow* SPDGenericInputWrapper::GetCurrentMissionRow()
 	return nullptr;
 }
 
+FPDMissionRow* SPDGenericInputWrapper::GetCurrentMissionRow()
+{
+	return GetCurrentMission(MissionRowName);
+}
+
+
+TSharedRef<SWidget> SPDGenericInputWrapper::GenerateBaseSettingsContent()
+{
+	return GenerateSettingsContent<FPDMissionBase>(GetCurrentMissionRow(), StructureDetailsView);
+}	
+TSharedRef<SWidget> SPDGenericInputWrapper::GenerateTickSettingsContent()
+{
+	return GenerateSettingsContent<FPDMissionTickBehaviour>(GetCurrentMissionRow(), StructureDetailsView);
+}
+TSharedRef<SWidget> SPDGenericInputWrapper::GenerateProgressRulesContent()
+{
+	return GenerateSettingsContent<FPDMissionRules>(GetCurrentMissionRow(), StructureDetailsView);
+}
+TSharedRef<SWidget> SPDGenericInputWrapper::GenerateMetadataContent()
+{
+	return GenerateSettingsContent<FPDMissionMetadata>(GetCurrentMissionRow(), StructureDetailsView);
+}
+TSharedRef<SWidget> SPDGenericInputWrapper::GenerateBranchesContent()
+{
+	return GenerateSettingsContent<FPDMissionBranch>(GetCurrentMissionRow(), StructureDetailsView);
+}
+
 TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 {	
 	switch (InputTypeAttr.Get())
 	{
+	case EGenericInputSelector::EAllMissionRowData:
+		{
+			TSharedRef<SWidget> MissionRowDetails = 
+				SNew(SBox)
+				.Content()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					[
+						SNew(SHorizontalBox)
+						+ SHorizontalBox::Slot()
+						[
+							GenerateMetadataContent()
+						]
+						+ SHorizontalBox::Slot()
+						[
+							GenerateBaseSettingsContent()
+						]
+					]
+					+ SVerticalBox::Slot()
+					[
+						GenerateTickSettingsContent()
+						// SNew(SHorizontalBox)
+						// + SHorizontalBox::Slot()
+						// [
+
+						// ]
+					]
+					+ SVerticalBox::Slot()
+					[
+						GenerateProgressRulesContent()
+					]
+				];
+			return MissionRowDetails;
+		}
 	case EGenericInputSelector::EMissionTickPaused:
 		{
 			TSharedRef<SWidget> PauseStateCheckboxWrapper = 
@@ -1310,7 +1373,6 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 				.OnGetMenuContent(this, &SPDGenericInputWrapper::GenerateMetadataContent);
 
 		}
-		break;
 
 	case EGenericInputSelector::ENextMissionBranch:
 		{
@@ -1324,7 +1386,6 @@ TSharedRef<SWidget> SPDGenericInputWrapper::GetDefaultValueWidget()
 				]
 				.OnGetMenuContent(this, &SPDGenericInputWrapper::GenerateBranchesContent);
 		}
-		break;
 
 	case EGenericInputSelector::EMissionID:
 		{
@@ -1546,8 +1607,84 @@ void SPDGenericInputWrapper::OnMissionBranchDelayChanged(float NewVal)
 // Label As Pin
 void SPDLabelAsPin::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj)
 {
+	InputTypeAttr = InArgs._InputType;
+	MissionRowName = InArgs._MissionRowName;
+	SubCategoryObject = InGraphPinObj->PinType.PinSubCategoryObject;
+
 	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
 }
+
+TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget() 
+{
+	static UScriptStruct* MissionBaseStruct = TBaseStructure<FPDMissionBase>::Get();
+	static UScriptStruct* TickBehaviourStruct = TBaseStructure<FPDMissionTickBehaviour>::Get();
+	static UScriptStruct* MissionMetadataStruct = TBaseStructure<FPDMissionMetadata>::Get();
+		
+	// The ones directly below MissionRulesStruct  should indent their graphpin slate widget if possible and have a custom icon 
+	static UScriptStruct* MissionRulesStruct = TBaseStructure<FPDMissionRules>::Get();
+	static UScriptStruct* MissionRules_TagCompoundStruct = TBaseStructure<FPDMissionTagCompound>::Get();
+	static UScriptStruct* MissionRules_BranchStruct = TBaseStructure<FPDMissionBranch>::Get();
+	static UScriptStruct* MissionRules_BranchElementStruct = TBaseStructure<FPDMissionBranchElement>::Get();
+	static UScriptStruct* MissionRules_BranchElement_BranchBehaviourStruct = TBaseStructure<FPDMissionBranchBehaviour>::Get();
+
+	// ignore and don't step further:
+	static UScriptStruct* TagMetadataStruct = TBaseStructure<FGameplayTag>::Get();
+	if (SubCategoryObject != nullptr)
+	{
+		
+		if (SubCategoryObject.Get() == MissionBaseStruct)
+		{
+			return SNew(SVerticalBox) 
+			+ SVerticalBox::Slot()
+			[
+				SGraphPin::GetDefaultValueWidget()
+			]
+			+ SVerticalBox::Slot()
+			[
+				GenerateSettingsContent<FPDMissionBase>(GetCurrentMission(MissionRowName), StructureDetailsView)
+			];
+		}
+		if (SubCategoryObject.Get() == TickBehaviourStruct)
+		{
+			return SNew(SVerticalBox) 
+			+ SVerticalBox::Slot()
+			[
+				SGraphPin::GetDefaultValueWidget()
+			]
+			+ SVerticalBox::Slot()
+			[
+				GenerateSettingsContent<FPDMissionTickBehaviour>(GetCurrentMission(MissionRowName), StructureDetailsView)
+			];
+		}
+		if (SubCategoryObject.Get() == MissionRulesStruct)
+		{
+			return SNew(SVerticalBox) 
+			+ SVerticalBox::Slot()
+			[
+				SGraphPin::GetDefaultValueWidget()
+			]
+			+ SVerticalBox::Slot()
+			[
+				GenerateSettingsContent<FPDMissionRules>(GetCurrentMission(MissionRowName), StructureDetailsView)
+			];
+		}
+		if (SubCategoryObject.Get() == MissionMetadataStruct)
+		{
+			return SNew(SVerticalBox) 
+			+ SVerticalBox::Slot()
+			[
+				SGraphPin::GetDefaultValueWidget()
+			]
+			+ SVerticalBox::Slot()
+			[
+				GenerateSettingsContent<FPDMissionMetadata>(GetCurrentMission(MissionRowName), StructureDetailsView)
+			];
+		}
+	}
+
+	return SGraphPin::GetDefaultValueWidget();
+}
+
 
 const FSlateBrush* SPDLabelAsPin::GetPinIcon() const
 {
@@ -1578,42 +1715,40 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 	{
 		return SNew(SPDDataAttributePin, InPin);  // @todo SPDDataAttributePin
 	}
+
 	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_SectionLabel)
 	{
-		return SNew(SPDLabelAsPin, InPin);
+		SPDLabelAsPin::FArguments Args;
+		UPDMissionGraphNode* AsMissionGraphNode = Cast<UPDMissionGraphNode>(InPin->GetOwningNode());
+		if (AsMissionGraphNode)
+		{
+			Args.MissionRowName(AsMissionGraphNode->SelectedMissionRowName); 
+		}
+		Args.InputType(EGenericInputSelector::EAllMissionRowData);
+
+		return SArgumentNew(Args, SPDLabelAsPin, InPin);
 	}
+
 	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_TagSelector)
 	{
 		return SNew(SPDTagSelector, InPin);
+	}
+	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_AllData) 
+	{
+		SPDGenericInputWrapper::FArguments Args;
+		UPDMissionGraphNode* AsMissionGraphNode = Cast<UPDMissionGraphNode>(InPin->GetOwningNode());
+		if (AsMissionGraphNode)
+		{
+			Args.MissionRowName(AsMissionGraphNode->SelectedMissionRowName); 
+		}
+		Args.InputType(EGenericInputSelector::EAllMissionRowData);
+
+		return SArgumentNew(Args, SPDGenericInputWrapper, InPin);
 	}
 	if (InPin->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_GenericData)
 	{
 		SPDGenericInputWrapper::FArguments Args;
 		const FName InnerPropertyName = InPin->PinType.PinSubCategory;
-
-
-		// // Note: This is ragged and very uncouth 
-		// bool bUseInnerPropertyAsCategory =
-		// 	InnerPropertyName != NAME_None && (
-		// 		InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, MissionBaseTag)
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID)
-		// 		|| InnerPropertyName == FName(TEXT("MissionTypeTag"))
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, DeltaValue)
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, Interval)
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionTickBehaviour, bIsPaused)
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Name)
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Descriptor)
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState)
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, bRepeatable)
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, NextMissionBranch)
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches) // TODO: Array, not sure yet how I want to display these. Most likely using the default widget
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, Target) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, bIsDirectBranch) // TODO: Table Row, not sure yet how I want to display these. Most likely using the default widget
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, BranchConditions) // Tag compound with two tag containers
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchElement, TargetBehaviour) // FPDMissionBranchBehaviour
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, DelayTime) 
-		// 		|| InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranchBehaviour, Type) // EPDMissionBranchBehaviour EPDMissionBranchBehaviour
-		// 	);
 
 		EGenericInputSelector Type = EGenericInputSelector::MAX;
 		if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRules, EStartState))
@@ -1653,6 +1788,11 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 		{
 			Type = EGenericInputSelector::EMissionMetadata;
 		}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Name))
+		{
+			Type = EGenericInputSelector::EMissionMetadata;
+		}
+
 		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID))
 		{
 			Type = EGenericInputSelector::EMissionID;

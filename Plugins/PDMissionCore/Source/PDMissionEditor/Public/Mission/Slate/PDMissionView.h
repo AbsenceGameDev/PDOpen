@@ -464,6 +464,7 @@ enum class EGenericInputSelector : uint8
 
 	ENextMissionBranch,
 	EMissionMetadata,
+	EAllMissionRowData,
 
 	EMissionID,
 	EMissionTickDeltaValue,
@@ -572,9 +573,13 @@ class SPDLabelAsPin : public SGraphPin
 {
 public:
 	SLATE_BEGIN_ARGS(SPDLabelAsPin) {}
+	SLATE_ATTRIBUTE(EGenericInputSelector, InputType)
+	SLATE_ARGUMENT(FName, MissionRowName)	
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinObj);
+	virtual TSharedRef<SWidget>	GetDefaultValueWidget() override;
+
 
 
 // SGraphPin interface
@@ -593,6 +598,13 @@ public:
 	/** We never allow connections with a label pin, these are only cosmetical */
 	virtual bool TryHandlePinConnection(SGraphPin& OtherSPin) {return false;};
 // End of SGraphPin interface
+
+
+	TAttribute<EGenericInputSelector> InputTypeAttr;
+	FName MissionRowName;
+
+	TSharedPtr<class IStructureDetailsView> StructureDetailsView;
+	TWeakObjectPtr<UObject> SubCategoryObject = nullptr;
 
 	friend class FPDAttributeGraphPinFactory;
 };
