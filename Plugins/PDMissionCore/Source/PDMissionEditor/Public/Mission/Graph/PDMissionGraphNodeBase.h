@@ -37,7 +37,6 @@ class UPDMissionGraphNode : public UEdGraphNode
 	virtual void ValidateNodeDuringCompilation(class FCompilerResultsLog& MessageLog) const override;
 	virtual FSlateIcon GetIconAndTint(FLinearColor& OutColor) const override;
 	virtual void PostPlacedNewNode() override;
-	virtual class UPDMissionGraph* GetMissionGraph();
 	virtual void AutowireNewNode(UEdGraphPin* FromPin) override;
 	virtual void PrepareForCopying() override;
 	virtual bool CanDuplicateNode() const override;
@@ -49,17 +48,18 @@ class UPDMissionGraphNode : public UEdGraphNode
 	virtual FLinearColor GetNodeCommentColor() const override;
 	
 	virtual void NodeConnectionListChanged() override;
-
+	
 	/** Create a visual widget to represent this node in a graph editor or graph panel.  If not implemented, the default node factory will be used. */
 	virtual TSharedPtr<SGraphNode> CreateVisualWidget();
-
+	
 	/** Create the background image for the widget representing this node */
 	// virtual TSharedPtr<SWidget> CreateNodeImage() const { return TSharedPtr<SWidget>(); }
 	virtual bool CanCreateUnderSpecifiedSchema(const UEdGraphSchema* DesiredSchema) const override;
 	virtual void FindDiffs(class UEdGraphNode* OtherNode, struct FDiffResults& Results) override;
 	virtual FString GetPropertyNameAndValueForDiff(const FProperty* Prop, const uint8* PropertyAddr) const override;
 	//~ End UEdGraphNode Interface
-
+	
+	virtual class UPDMissionGraph* GetMissionGraph();
 	//~ Begin UObject Interface
 #if WITH_EDITOR
 	virtual void PostEditImport() override;

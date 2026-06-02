@@ -330,10 +330,15 @@ void SMissionGraphNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 	{
 		LeftNodeBox->AddSlot()
 			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
-			.FillHeight(4.0f)
+			.VAlign(VAlign_Top)
+			.AutoHeight()
+			//.FillHeight(4.0f)
 			[
-				PinToAdd
+				SNew(SBox)
+				.MinDesiredHeight(24.0f)
+				[
+					PinToAdd
+				]
 			];
 		InputPins.Add(PinToAdd);
 	}
@@ -341,15 +346,47 @@ void SMissionGraphNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 	{
 		RightNodeBox->AddSlot()
 			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Fill)
-			.FillHeight(4.0f)
+			.VAlign(VAlign_Top)
+			.AutoHeight()
+			//.FillHeight(4.0f)
 			[
-				PinToAdd
+				SNew(SBox)
+				.MinDesiredHeight(24.0f)
+				[
+					PinToAdd
+				]				
 			];
 		OutputPins.Add(PinToAdd);
 	}
 }
 
+
+TSharedRef<SWidget> SMissionGraphNode::CreateNodeContentArea()
+{
+	// NODE CONTENT AREA
+	return SNew(SBorder)
+		.BorderImage( FAppStyle::GetBrush("NoBorder") )
+		.HAlign(HAlign_Fill)
+		.VAlign(VAlign_Top)
+		.Padding( FMargin(50,50) )
+		[
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.HAlign(HAlign_Left)
+			.FillWidth(1.0f)
+			[
+				// LEFT
+				SAssignNew(LeftNodeBox, SVerticalBox)
+			]
+			+SHorizontalBox::Slot()
+			.AutoWidth()
+			.HAlign(HAlign_Right)
+			[
+				// RIGHT
+				SAssignNew(RightNodeBox, SVerticalBox)
+			]
+		];	
+}
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
@@ -1525,48 +1562,52 @@ TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget()
 		
 		if (SubCategoryObject.Get() == MissionBaseStruct)
 		{
-			return SNew(SVerticalBox) 
-			+ SVerticalBox::Slot()
+			return SNew(SHorizontalBox) 
+			+ SHorizontalBox::Slot()
+			.FillWidth(0.2)
 			[
 				SGraphPin::GetDefaultValueWidget()
 			]
-			+ SVerticalBox::Slot()
+			+ SHorizontalBox::Slot()
 			[
 				GenerateSettingsContent<FPDMissionBase>(GetCurrentMission(MissionRowName), StructureDetailsView)
 			];
 		}
 		if (SubCategoryObject.Get() == TickBehaviourStruct)
 		{
-			return SNew(SVerticalBox) 
-			+ SVerticalBox::Slot()
+			return SNew(SHorizontalBox) 
+			+ SHorizontalBox::Slot()
+			.FillWidth(0.2)
 			[
 				SGraphPin::GetDefaultValueWidget()
 			]
-			+ SVerticalBox::Slot()
+			+ SHorizontalBox::Slot()
 			[
 				GenerateSettingsContent<FPDMissionTickBehaviour>(GetCurrentMission(MissionRowName), StructureDetailsView)
 			];
 		}
 		if (SubCategoryObject.Get() == MissionRulesStruct)
 		{
-			return SNew(SVerticalBox) 
-			+ SVerticalBox::Slot()
+			return SNew(SHorizontalBox) 
+			+ SHorizontalBox::Slot()
+			.FillWidth(0.2)
 			[
 				SGraphPin::GetDefaultValueWidget()
 			]
-			+ SVerticalBox::Slot()
+			+ SHorizontalBox::Slot()
 			[
 				GenerateSettingsContent<FPDMissionRules>(GetCurrentMission(MissionRowName), StructureDetailsView)
 			];
 		}
 		if (SubCategoryObject.Get() == MissionMetadataStruct)
 		{
-			return SNew(SVerticalBox) 
-			+ SVerticalBox::Slot()
+			return SNew(SHorizontalBox) 
+			+ SHorizontalBox::Slot()
+			.FillWidth(0.2)
 			[
 				SGraphPin::GetDefaultValueWidget()
 			]
-			+ SVerticalBox::Slot()
+			+ SHorizontalBox::Slot()
 			[
 				GenerateSettingsContent<FPDMissionMetadata>(GetCurrentMission(MissionRowName), StructureDetailsView)
 			];

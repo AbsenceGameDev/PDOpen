@@ -177,6 +177,7 @@ public:
 	virtual void AddPin(const TSharedRef<SGraphPin>& PinToAdd) override;
 	virtual void UpdateGraphNode() override;
 	virtual bool UseLowDetailNodeTitles() const override;
+	virtual TSharedRef<SWidget> CreateNodeContentArea();
 	//~ End SGraphNode Interface
 
 	/** handle mouse down on the node */
