@@ -6,6 +6,7 @@
 #include "Mission/Graph/PDPinManager.h"
 #include "Mission/Slate/PDMissionView.h"
 #include "Subsystems/PDMissionUtility.h"
+#include "Subsystems/PDMissionSubsystem.h"
 
 #include "Interfaces/IPluginManager.h"
 #include "UObject/ObjectSaveContext.h"
@@ -129,6 +130,30 @@ void UPDMissionGraphNode::CreateMissionPin()
 	
 	PinType_Mission.bIsConst = false;
 	CreatePin(EGPD_Input, PinType_Mission, TEXT("Mission Root"), 2);
+}
+
+void UPDMissionGraphNode::CreateOutputBranchPins()
+{
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	FDataTableRowHandle* RowHandle = MissionSubsystem->Utility.MissionLookupViaRowName.Find(SelectedMissionRowName);
+	if (RowHandle)
+	{
+		FPDMissionRow* SelectedMissionRow = RowHandle->GetRow<FPDMissionRow>(TEXT("UPDMissionGraphNode::CreateOutputBranchPins"));
+		if(SelectedMissionRow)
+		{
+			int32 BranchIdx = 0;
+			for (FPDMissionBranchElement& Branch : SelectedMissionRow->ProgressRules.NextMissionBranch.Branches)
+			{
+				const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchIdx) ;
+				const FString PinName = PinPrio + {Branch.Target.RowName != NAME_None ? Branch.Target.RowName.ToString() : TEXT("CONNECT ME")};
+				CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, *PinName);
+				++BranchIdx;
+
+				// TODO: Need to tell the node it can add output buttons AND then I need to update the actual table with new entries for each
+				// TODO: Think of potentially updating node when a branchtarget is changed in the property details view, as this part of the node might be obscured then this could be ignored perhaps
+			}
+		}
+	}
 }
 
 
@@ -530,7 +555,8 @@ void UPDMissionGraphNode::ReallocateDefaultPins()
 	}
 	
 	CreateMissionPin();
-	CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+	CreateOutputBranchPins();
+	// CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
 
 	OptionalPinManager.RebuildPropertyList(ShowPinForProperties, StructType);
 	OptionalPinManager.CreateVisiblePins(ShowPinForProperties, StructType, EGPD_Input, this);

@@ -106,6 +106,9 @@ public:
 	/** @brief Fast lookups. Associating Gameplay tags with mIDs */
 	TMap<FGameplayTag, int32> MissionTagToMIDLookup {};
 
+	/** @brief Fast lookups. Associating Row Names with mIDs */
+	TMap<FName, int32> MissionRowNameToMIDLookup {};
+
 	/**< @brief Fast lookups. Associating rownames with rowhandles */
 	TMap<FName, FDataTableRowHandle> MissionLookupViaRowName {};
 	

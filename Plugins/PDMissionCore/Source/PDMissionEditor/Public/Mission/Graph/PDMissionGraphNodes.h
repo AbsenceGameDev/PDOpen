@@ -38,7 +38,9 @@ public:
 		CreateMissionPin(); // @todo when set, generate the mission/questline in the graph using this node as its root
 
 		// Logical Output
-		CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+		// CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+		CreateOutputBranchPins();
+
 
 		// Custom pins (Data Input)
 		Super::AllocateDefaultPins(); // super call generates the entries for the mission data
@@ -70,9 +72,10 @@ public:
 		
 		// Custom pins (Input)
 		CreateMissionPin();
-
+		
 		// Simple pins (Output)		
-		CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+		// CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+		CreateOutputBranchPins();
 
 		Super::AllocateDefaultPins(); // super call generates the entries for the mission data
 	}
@@ -109,7 +112,8 @@ public:
 		CreateMissionPin();
 
 		// Simple pins (Output)
-		CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+		//CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+		CreateOutputBranchPins();
 
 		Super::AllocateDefaultPins(); // super call generates the entries for the mission data
 	}
@@ -147,7 +151,8 @@ public:
 		CreateMissionPin();
 
 		// Simple pins (Output)
-		CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+		// CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+		CreateOutputBranchPins();
 
 		Super::AllocateDefaultPins(); // super call generates the entries for the mission data
 	}
