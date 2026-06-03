@@ -412,9 +412,17 @@ FReply SMissionGraphNode::OnAddPin()
 	
 	MissionNode->CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, *PinName);
 
-	//
-	// TODO (In here):  I need to update the missionrow entry and add  a new branch target entry with none/none default value added when adding a new node
-	//
+	//  Updating Mission branch data to reflect the new node
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(MissionNode->SelectedMissionRowName);
+	if (RowHandlePtr)
+	{
+		FPDMissionRow* MissionRowPtr = RowHandlePtr->GetRow<FPDMissionRow>("SMissionGraphNode::OnAddPin()");
+		if (MissionRowPtr)
+		{
+			MissionRowPtr->ProgressRules.NextMissionBranch.Branches.Emplace(FPDMissionBranchElement{});
+		}
+	}
 
 	UpdateGraphNode();
 	GraphNode->GetGraph()->NotifyNodeChanged(GraphNode);

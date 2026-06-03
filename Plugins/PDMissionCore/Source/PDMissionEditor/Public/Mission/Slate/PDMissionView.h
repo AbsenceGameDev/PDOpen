@@ -181,7 +181,7 @@ public:
 
 	/** Override this to create a button to add pins on the output side of the node */
 	virtual void CreateOutputSideAddButton(TSharedPtr<SVerticalBox> OutputBox) override;
-	/** Callback function executed when Add pin button is clicked */
+	/** Adds a new UEdGraph output pin and adds a new branch entry in the missionrow to boot */
 	virtual FReply OnAddPin() override;
 	//~ End SGraphNode Interface
 
