@@ -178,6 +178,11 @@ public:
 	virtual void UpdateGraphNode() override;
 	virtual bool UseLowDetailNodeTitles() const override;
 	virtual TSharedRef<SWidget> CreateNodeContentArea();
+
+	/** Override this to create a button to add pins on the output side of the node */
+	virtual void CreateOutputSideAddButton(TSharedPtr<SVerticalBox> OutputBox) override;
+	/** Callback function executed when Add pin button is clicked */
+	virtual FReply OnAddPin() override;
 	//~ End SGraphNode Interface
 
 	/** handle mouse down on the node */

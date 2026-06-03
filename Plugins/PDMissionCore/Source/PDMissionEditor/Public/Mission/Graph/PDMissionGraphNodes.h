@@ -63,6 +63,7 @@ public:
 		: Super(ObjectInitializer)
 	{
 		bIsSubNode = false;
+		bIsReadOnly = false;
 	}
 
 	virtual void AllocateDefaultPins() override
@@ -101,6 +102,7 @@ public:
 		: Super(ObjectInitializer)
 	{
 		bIsSubNode = false;
+		bIsReadOnly = false;
 	}
 
 	virtual void AllocateDefaultPins() override
@@ -140,6 +142,7 @@ public:
 		: Super(ObjectInitializer)
 	{
 		bIsSubNode = false;
+		bIsReadOnly = false;
 	}
 
 	virtual void AllocateDefaultPins() override

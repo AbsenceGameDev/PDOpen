@@ -379,6 +379,50 @@ TSharedRef<SWidget> SMissionGraphNode::CreateNodeContentArea()
 		];	
 }
 
+void SMissionGraphNode::CreateOutputSideAddButton(TSharedPtr<SVerticalBox> OutputBox)
+{
+	TSharedRef<SWidget> AddPinButton = AddPinButtonContent(
+		NSLOCTEXT("CompareNode", "CompareNodeAddPinButton", "Add Case"),
+		NSLOCTEXT("CompareNode", "CompareNodeAddPinButton_Tooltip", "Add new case pins"));
+
+	FMargin AddPinPadding = Settings->GetOutputPinPadding();
+	AddPinPadding.Top += 6.0f;
+
+	OutputBox->AddSlot()
+		.AutoHeight()
+		.VAlign(VAlign_Center)
+		.Padding(AddPinPadding)
+		[
+			AddPinButton
+		];
+}
+
+FReply SMissionGraphNode::OnAddPin()
+{
+	UPDMissionGraphNode* MissionNode = CastChecked<UPDMissionGraphNode>(GraphNode);
+
+	const FScopedTransaction Transaction( NSLOCTEXT("Kismet", "AddExecutionPin", "Add Execution Pin") );
+	MissionNode->Modify();
+
+	const TArray<UEdGraphPin*> OutPins = MissionNode->Pins.FilterByPredicate([](const UEdGraphPin* PinElem) -> bool {return PinElem->Direction != EEdGraphPinDirection::EGPD_Input;});
+	const int32 BranchPrio = OutPins.Num();
+
+	const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchPrio);
+	const FString PinName = PinPrio + FString{TEXT("CONNECT ME")};	
+	
+	MissionNode->CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, *PinName);
+
+	//
+	// TODO (In here):  I need to update the missionrow entry and add  a new branch target entry with none/none default value added when adding a new node
+	//
+
+	UpdateGraphNode();
+	GraphNode->GetGraph()->NotifyNodeChanged(GraphNode);
+	return FReply::Handled();
+}
+
+
+
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 void SMissionGraphNode::UpdateGraphNode()

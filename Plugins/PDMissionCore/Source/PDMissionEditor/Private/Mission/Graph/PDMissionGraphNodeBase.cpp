@@ -60,7 +60,9 @@ bool UPDMissionGraphNode::CanDuplicateNode() const
 
 bool UPDMissionGraphNode::CanUserDeleteNode() const
 {
-	return bIsReadOnly ? false : Super::CanUserDeleteNode();
+	// This is not working, must be controlled elsewhere. I need to look at the context action schema stuff again I think
+	const bool bIsConnected = nullptr != Pins.FindByPredicate([](const UEdGraphPin* PinElem) -> bool{ return false == PinElem->LinkedTo.IsEmpty(); });
+	return bIsReadOnly || bIsConnected ? false : Super::CanUserDeleteNode();
 }
 
 void UPDMissionGraphNode::PrepareForCopying()
@@ -144,8 +146,8 @@ void UPDMissionGraphNode::CreateOutputBranchPins()
 			int32 BranchIdx = 0;
 			for (FPDMissionBranchElement& Branch : SelectedMissionRow->ProgressRules.NextMissionBranch.Branches)
 			{
-				const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchIdx) ;
-				const FString PinName = PinPrio + {Branch.Target.RowName != NAME_None ? Branch.Target.RowName.ToString() : TEXT("CONNECT ME")};
+				const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchIdx);
+				const FString PinName = PinPrio + FString{Branch.Target.RowName != NAME_None ? Branch.Target.RowName.ToString() : TEXT("CONNECT ME")};
 				CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, *PinName);
 				++BranchIdx;
 
