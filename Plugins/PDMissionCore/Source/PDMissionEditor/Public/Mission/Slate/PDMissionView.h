@@ -583,13 +583,14 @@ public:
 // SGraphPin interface
 	/** @return Actual icon object */
 	virtual const FSlateBrush* GetPinIcon() const override;
+
 	/** @return The color that we should use to draw this pin */
 	virtual FSlateColor GetPinColor() const override { return FSlateColor{FColor::Green}; };
 
 	/** @return The color that we should use to draw the highlight for this pin */
 	virtual FSlateColor GetHighlightColor() const override { return FSlateColor{FColor::Silver}; };
 
-	virtual FSlateColor GetPinDiffColor() const override { return FSlateColor{FColor::Yellow};};
+	virtual FSlateColor GetPinDiffColor() const override { return FSlateColor{FColor::Transparent};};
 	/** @return The color that we should use to draw this pin's text */
 	virtual FSlateColor GetPinTextColor() const override { return FSlateColor{FColor::Emerald};};
 

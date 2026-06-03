@@ -315,6 +315,22 @@ EVisibility SMissionGraphNode::GetDescriptionVisibility() const
 	return (!MyOwnerPanel.IsValid() || MyOwnerPanel->GetCurrentLOD() > EGraphRenderingLOD::LowDetail) ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
+void AddPinInner(TSharedPtr<SVerticalBox> NodeBox, const TSharedRef<SGraphPin>& PinToAdd)
+{
+	NodeBox->AddSlot()
+	.HAlign(HAlign_Fill)
+	.VAlign(VAlign_Top)
+	.AutoHeight()
+	//.FillHeight(4.0f)
+	[
+		SNew(SBox)
+		.MinDesiredHeight(24.0f)
+		[
+			PinToAdd
+		]
+	];
+}
+
 void SMissionGraphNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 {
 	PinToAdd->SetOwner(SharedThis(this));
@@ -328,34 +344,12 @@ void SMissionGraphNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 
 	if (PinToAdd->GetDirection() == EEdGraphPinDirection::EGPD_Input)
 	{
-		LeftNodeBox->AddSlot()
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Top)
-			.AutoHeight()
-			//.FillHeight(4.0f)
-			[
-				SNew(SBox)
-				.MinDesiredHeight(24.0f)
-				[
-					PinToAdd
-				]
-			];
+		AddPinInner(LeftNodeBox,PinToAdd);
 		InputPins.Add(PinToAdd);
 	}
-	else // Direction == EEdGraphPinDirection::EGPD_Output
+	else
 	{
-		RightNodeBox->AddSlot()
-			.HAlign(HAlign_Fill)
-			.VAlign(VAlign_Top)
-			.AutoHeight()
-			//.FillHeight(4.0f)
-			[
-				SNew(SBox)
-				.MinDesiredHeight(24.0f)
-				[
-					PinToAdd
-				]				
-			];
+		AddPinInner(RightNodeBox,PinToAdd);
 		OutputPins.Add(PinToAdd);
 	}
 }
@@ -363,26 +357,23 @@ void SMissionGraphNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 
 TSharedRef<SWidget> SMissionGraphNode::CreateNodeContentArea()
 {
-	// NODE CONTENT AREA
 	return SNew(SBorder)
 		.BorderImage( FAppStyle::GetBrush("NoBorder") )
 		.HAlign(HAlign_Fill)
 		.VAlign(VAlign_Top)
-		.Padding( FMargin(50,50) )
+		.Padding(FMargin(50,50))
 		[
 			SNew(SHorizontalBox)
 			+SHorizontalBox::Slot()
 			.HAlign(HAlign_Left)
 			.FillWidth(1.0f)
 			[
-				// LEFT
 				SAssignNew(LeftNodeBox, SVerticalBox)
 			]
 			+SHorizontalBox::Slot()
 			.AutoWidth()
 			.HAlign(HAlign_Right)
 			[
-				// RIGHT
 				SAssignNew(RightNodeBox, SVerticalBox)
 			]
 		];	
@@ -1542,81 +1533,56 @@ void SPDLabelAsPin::Construct(const FArguments& InArgs, UEdGraphPin* InGraphPinO
 	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
 }
 
+TSharedRef<SWidget> MakePinEntry(const TSharedRef<SWidget>& InnerLabel, const TSharedRef<SWidget>& InnerContent)
+{
+	constexpr float PinWidth = 500.0f;
+	return SNew(SHorizontalBox) 
+	+ SHorizontalBox::Slot()
+	.FillWidth(0.2)
+	.Padding(FMargin(24,24))
+	[
+		InnerLabel
+	]
+	+ SHorizontalBox::Slot()
+	[
+		SNew(SBox)
+		.WidthOverride(PinWidth)
+		.Content()
+		[
+			InnerContent
+		]
+	];	
+}
+
 TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget() 
 {
 	static UScriptStruct* MissionBaseStruct = TBaseStructure<FPDMissionBase>::Get();
 	static UScriptStruct* TickBehaviourStruct = TBaseStructure<FPDMissionTickBehaviour>::Get();
-	static UScriptStruct* MissionMetadataStruct = TBaseStructure<FPDMissionMetadata>::Get();
-		
-	// The ones directly below MissionRulesStruct  should indent their graphpin slate widget if possible and have a custom icon 
 	static UScriptStruct* MissionRulesStruct = TBaseStructure<FPDMissionRules>::Get();
-	static UScriptStruct* MissionRules_TagCompoundStruct = TBaseStructure<FPDMissionTagCompound>::Get();
-	static UScriptStruct* MissionRules_BranchStruct = TBaseStructure<FPDMissionBranch>::Get();
-	static UScriptStruct* MissionRules_BranchElementStruct = TBaseStructure<FPDMissionBranchElement>::Get();
-	static UScriptStruct* MissionRules_BranchElement_BranchBehaviourStruct = TBaseStructure<FPDMissionBranchBehaviour>::Get();
+	static UScriptStruct* MissionMetadataStruct = TBaseStructure<FPDMissionMetadata>::Get();
 
-	// ignore and don't step further:
-	static UScriptStruct* TagMetadataStruct = TBaseStructure<FGameplayTag>::Get();
 	if (SubCategoryObject != nullptr)
 	{
-		
 		if (SubCategoryObject.Get() == MissionBaseStruct)
 		{
-			return SNew(SHorizontalBox) 
-			+ SHorizontalBox::Slot()
-			.FillWidth(0.2)
-			[
-				SGraphPin::GetDefaultValueWidget()
-			]
-			+ SHorizontalBox::Slot()
-			[
-				GenerateSettingsContent<FPDMissionBase>(GetCurrentMission(MissionRowName), StructureDetailsView)
-			];
+			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionBase>(GetCurrentMission(MissionRowName), StructureDetailsView));
 		}
 		if (SubCategoryObject.Get() == TickBehaviourStruct)
 		{
-			return SNew(SHorizontalBox) 
-			+ SHorizontalBox::Slot()
-			.FillWidth(0.2)
-			[
-				SGraphPin::GetDefaultValueWidget()
-			]
-			+ SHorizontalBox::Slot()
-			[
-				GenerateSettingsContent<FPDMissionTickBehaviour>(GetCurrentMission(MissionRowName), StructureDetailsView)
-			];
+			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionTickBehaviour>(GetCurrentMission(MissionRowName), StructureDetailsView));
 		}
 		if (SubCategoryObject.Get() == MissionRulesStruct)
 		{
-			return SNew(SHorizontalBox) 
-			+ SHorizontalBox::Slot()
-			.FillWidth(0.2)
-			[
-				SGraphPin::GetDefaultValueWidget()
-			]
-			+ SHorizontalBox::Slot()
-			[
-				GenerateSettingsContent<FPDMissionRules>(GetCurrentMission(MissionRowName), StructureDetailsView)
-			];
+			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionRules>(GetCurrentMission(MissionRowName), StructureDetailsView));
 		}
 		if (SubCategoryObject.Get() == MissionMetadataStruct)
 		{
-			return SNew(SHorizontalBox) 
-			+ SHorizontalBox::Slot()
-			.FillWidth(0.2)
-			[
-				SGraphPin::GetDefaultValueWidget()
-			]
-			+ SHorizontalBox::Slot()
-			[
-				GenerateSettingsContent<FPDMissionMetadata>(GetCurrentMission(MissionRowName), StructureDetailsView)
-			];
+			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionMetadata>(GetCurrentMission(MissionRowName), StructureDetailsView));
 		}
 	}
 
 	return SGraphPin::GetDefaultValueWidget();
 }
-
 
 const FSlateBrush* SPDLabelAsPin::GetPinIcon() const
 {
