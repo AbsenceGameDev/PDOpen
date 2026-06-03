@@ -401,6 +401,15 @@ FReply SMissionGraphNode::OnAddPin()
 {
 	UPDMissionGraphNode* MissionNode = CastChecked<UPDMissionGraphNode>(GraphNode);
 
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(MissionNode->SelectedMissionRowName);
+	const bool bNoValidMission = nullptr == RowHandlePtr;
+	if (bNoValidMission)
+	{
+		return;
+	}
+
+
 	const FScopedTransaction Transaction( NSLOCTEXT("Kismet", "AddExecutionPin", "Add Execution Pin") );
 	MissionNode->Modify();
 
