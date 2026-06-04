@@ -6,6 +6,8 @@
 #include "Mission/FPDMissionEditor.h"
 #include "Mission/Graph/PDMissionGraphNodes.h"
 #include "Mission/Slate/PDMissionView.h"
+#include "Subsystems/PDMissionSubsystem.h"
+#include "Subsystems/PDMissionUtility.h"
 
 // Engine
 #include "UObject/Object.h"
@@ -440,6 +442,54 @@ void FPDMissionGraphConnectionDrawingPolicy::Draw(TMap<TSharedRef<SWidget>, FArr
 	// Now draw
 	FConnectionDrawingPolicy::Draw(InPinGeometries, ArrangedNodes);
 }
+
+void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const FVector2D& Start, const FVector2D& End, const FConnectionParams& Params)
+{
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+
+	UEdGraphPin* SourcePin = Params.AssociatedPin1;
+	UEdGraphPin* TargetPin = Params.AssociatedPin2;
+	if (SourcePin && TargetPin)
+	{
+		UPDMissionGraphNode* SourceMissionNode = Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode());
+		UPDMissionGraphNode* TargetMissionNode = Cast<UPDMissionGraphNode>(TargetPin->GetOwningNode());
+		if (SourceMissionNode && TargetMissionNode)
+		{
+			// TODO: Move to utility function - START
+			int32 OutPinIdx = INDEX_NONE;
+			// SourceMissionNode->GetMissionName();
+			for(UEdGraphPin* PinIt : SourceMissionNode->Pins)
+			{
+				OutPinIdx += PinIt->Direction != EEdGraphPinDirection::EGPD_Input;
+
+				if (SourcePin == PinIt)
+				{
+					break;
+				}
+			}
+			// TODO: Move to utility function - END
+
+			if (INDEX_NONE == OutPinIdx)
+			{
+				UE_LOG(LogTemp, Error, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection - Could not find valid output pin index for the source node"))
+				return;
+			}
+
+
+			// TODO: Move to utility function - START
+			const FString PinPrio = FString::Printf(TEXT("Prio %i : "), OutPinIdx);
+			const FString PinName = PinPrio + TargetMissionNode->GetMissionName();
+			// TODO: Move to utility function - END
+
+			SourcePin->PinName = FName(*PinName);
+
+			TargetMissionNode->GetMissionName();			
+		}
+	}
+
+	FConnectionDrawingPolicy::DrawConnection(LayerId, Start, End, Params);
+}
+
 
 void FPDMissionGraphConnectionDrawingPolicy::DrawPreviewConnector(const FGeometry& PinGeometry, const FVector2D& StartPoint, const FVector2D& EndPoint, UEdGraphPin* Pin)
 {

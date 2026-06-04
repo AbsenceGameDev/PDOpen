@@ -232,6 +232,7 @@ public:
 	// FConnectionDrawingPolicy interface
 	virtual void DetermineWiringStyle(UEdGraphPin* OutputPin, UEdGraphPin* InputPin, /*inout*/ FConnectionParams& Params) override;
 	virtual void Draw(TMap<TSharedRef<SWidget>, FArrangedWidget>& PinGeometries, FArrangedChildren& ArrangedNodes) override;
+	virtual void DrawConnection(int32 LayerId, const FVector2D& Start, const FVector2D& End, const FConnectionParams& Params) override;
 	virtual void DetermineLinkGeometry(
 		FArrangedChildren& ArrangedNodes, 
 		TSharedRef<SWidget>& OutputPinWidget,

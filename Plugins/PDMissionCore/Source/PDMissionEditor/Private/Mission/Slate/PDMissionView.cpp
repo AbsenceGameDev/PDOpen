@@ -400,13 +400,15 @@ void SMissionGraphNode::CreateOutputSideAddButton(TSharedPtr<SVerticalBox> Outpu
 FReply SMissionGraphNode::OnAddPin()
 {
 	UPDMissionGraphNode* MissionNode = CastChecked<UPDMissionGraphNode>(GraphNode);
-
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+
+	// TODO: Move to utility function - START
 	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(MissionNode->SelectedMissionRowName);
 	const bool bNoValidMission = nullptr == RowHandlePtr;
+	// TODO: Move to utility function - END
 	if (bNoValidMission)
 	{
-		return;
+		return FReply::Handled();
 	}
 
 
@@ -415,23 +417,22 @@ FReply SMissionGraphNode::OnAddPin()
 
 	const TArray<UEdGraphPin*> OutPins = MissionNode->Pins.FilterByPredicate([](const UEdGraphPin* PinElem) -> bool {return PinElem->Direction != EEdGraphPinDirection::EGPD_Input;});
 	const int32 BranchPrio = OutPins.Num();
-
+	
+	// TODO: Move to utility function - START
 	const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchPrio);
 	const FString PinName = PinPrio + FString{TEXT("CONNECT ME")};	
+	// TODO: Move to utility function - END
 	
 	MissionNode->CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, *PinName);
 
+	// TODO: Move to utility function - START
 	//  Updating Mission branch data to reflect the new node
-	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
-	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(MissionNode->SelectedMissionRowName);
-	if (RowHandlePtr)
+	FPDMissionRow* MissionRowPtr = RowHandlePtr->GetRow<FPDMissionRow>("SMissionGraphNode::OnAddPin()");
+	if (MissionRowPtr)
 	{
-		FPDMissionRow* MissionRowPtr = RowHandlePtr->GetRow<FPDMissionRow>("SMissionGraphNode::OnAddPin()");
-		if (MissionRowPtr)
-		{
-			MissionRowPtr->ProgressRules.NextMissionBranch.Branches.Emplace(FPDMissionBranchElement{});
-		}
+		MissionRowPtr->ProgressRules.NextMissionBranch.Branches.Emplace(FPDMissionBranchElement{});
 	}
+	// TODO: Move to utility function - END
 
 	UpdateGraphNode();
 	GraphNode->GetGraph()->NotifyNodeChanged(GraphNode);

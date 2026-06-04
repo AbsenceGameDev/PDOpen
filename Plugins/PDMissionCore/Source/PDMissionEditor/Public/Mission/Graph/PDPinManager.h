@@ -34,7 +34,7 @@ public:
 	/** Can this property be managed as an optional pin (with the ability to be shown or hidden) */
 	virtual bool CanTreatPropertyAsOptional(FProperty* TestProperty) const override;
 
-	// hide and call base in funciton, as we can't change these declaration in 'FOptionalPinManager' to be virtual
+	// hide and call base in function, as we can't change these declaration in 'FOptionalPinManager' to be virtual
 	void RebuildPropertyList(TArray<FOptionalPinFromProperty>& Properties, UStruct* SourceStruct);
 	void CreateVisiblePins(TArray<FOptionalPinFromProperty>& Properties, UStruct* SourceStruct, EEdGraphPinDirection Direction, class UPDMissionGraphNode* TargetNode);
 	

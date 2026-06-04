@@ -106,7 +106,7 @@ class UPDMissionGraphNode : public UEdGraphNode
 	
 	void RefreshDataRefPins(const FName& MissionRowName);
 	
-	FString GetMissionName() { return "finish me"; }
+	FString GetMissionName() { return SelectedMissionRowName.ToString(); }
 	
 	void GetMissionTransitions(TArray<UPDMissionTransitionNode*>& Array); // Get all mission transition for this node
 	

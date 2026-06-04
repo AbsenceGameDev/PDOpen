@@ -146,8 +146,11 @@ void UPDMissionGraphNode::CreateOutputBranchPins()
 			int32 BranchIdx = 0;
 			for (FPDMissionBranchElement& Branch : SelectedMissionRow->ProgressRules.NextMissionBranch.Branches)
 			{
+				// TODO: Move to utility function - START
 				const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchIdx);
 				const FString PinName = PinPrio + FString{Branch.Target.RowName != NAME_None ? Branch.Target.RowName.ToString() : TEXT("CONNECT ME")};
+				// TODO: Move to utility function - END
+				
 				CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, *PinName);
 				++BranchIdx;
 
