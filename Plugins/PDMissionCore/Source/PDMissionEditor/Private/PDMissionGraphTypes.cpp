@@ -483,6 +483,29 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 
 			SourcePin->PinName = FName(*PinName);
 
+
+			// TODO: Move to utility function - START
+			//  Updating Mission branch data to reflect the new node
+			FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(SourceMissionNode->SelectedMissionRowName);
+			if (RowHandlePtr)
+			{
+				FPDMissionRow* MissionRowPtr = RowHandlePtr->GetRow<FPDMissionRow>("FPDMissionGraphConnectionDrawingPolicy::DrawConnection");
+				if (MissionRowPtr && MissionRowPtr->ProgressRules.NextMissionBranch.Branches.IsValidIndex(OutPinIdx))
+				{
+					FPDMissionBranchElement& BranchElem = MissionRowPtr->ProgressRules.NextMissionBranch.Branches[OutPinIdx];
+					// BranchElem.bIsDirectBranch; // TODO handle this visually somehow, need to think about how though
+					// BranchElem.BranchConditions; // TODO handle this visually somehow, need to think about how though
+					if (FDataTableRowHandle* TargetRowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(TargetMissionNode->SelectedMissionRowName))
+					{
+						BranchElem.Target = *TargetRowHandlePtr;
+					}
+					// BranchElem.TargetBehaviour; // TODO handle this visually somehow, need to think about how though
+					
+					
+				}
+			}
+			// TODO: Move to utility function - END
+
 			TargetMissionNode->GetMissionName();			
 		}
 	}
