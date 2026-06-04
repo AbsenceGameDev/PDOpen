@@ -48,6 +48,7 @@ class UPDMissionGraphNode : public UEdGraphNode
 	virtual FLinearColor GetNodeCommentColor() const override;
 	
 	virtual void NodeConnectionListChanged() override;
+	virtual void OnPinRemoved(UEdGraphPin* PinToRemove) override;
 	
 	/** Create a visual widget to represent this node in a graph editor or graph panel.  If not implemented, the default node factory will be used. */
 	virtual TSharedPtr<SGraphNode> CreateVisualWidget();

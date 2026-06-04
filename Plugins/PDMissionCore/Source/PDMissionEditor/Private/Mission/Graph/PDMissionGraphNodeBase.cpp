@@ -340,6 +340,39 @@ void UPDMissionGraphNode::NodeConnectionListChanged()
 	GetMissionGraph()->UpdateData();
 }
 
+void UPDMissionGraphNode::OnPinRemoved(UEdGraphPin* PinToRemove)
+{
+	if(PinToRemove)
+	{
+		UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+		FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(SelectedMissionRowName);
+		if (RowHandlePtr)
+		{
+			FPDMissionRow* MissionRow = RowHandlePtr->GetRow<FPDMissionRow>(TEXT("UPDMissionGraphNode::OnPinRemoved"));
+			if (MissionRow)
+			{
+				// TODO: Move to utility function - START
+				// Reference: TEXT("Prio %i : ")
+				FString PinStr = PinToRemove->PinName.ToString();
+				const int32 PrioTextIndex = FString(TEXT("Prio ")).Len();
+				const int32 ColonTextIndex = PinStr.Find(FString(TEXT(" : ")));
+				PinStr = PinStr.Left(ColonTextIndex); // Prio 54 :  a  s  d  a öekad  ->  Prio 54
+				PinStr = PinStr.Right(PinStr.Len() - PrioTextIndex);
+				const int32 BranchIdx = FCString::Atoi(*PinStr);
+				// TODO: Move to utility function - END
+				
+				TArray<FPDMissionBranchElement>& Branches = MissionRow->ProgressRules.NextMissionBranch.Branches;
+				if (Branches.IsValidIndex(BranchIdx))
+				{
+					RowHandlePtr->DataTable->MarkPackageDirty();
+					Branches.RemoveAt(BranchIdx);
+				}
+			}
+		}
+	}	
+}
+
+
 TSharedPtr<SGraphNode> UPDMissionGraphNode::CreateVisualWidget()
 {
 	return SNew(SMissionGraphNode, this);
