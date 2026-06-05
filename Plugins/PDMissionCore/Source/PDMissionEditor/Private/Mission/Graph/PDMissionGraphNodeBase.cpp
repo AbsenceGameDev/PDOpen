@@ -554,29 +554,17 @@ bool UPDMissionGraphNode::HasErrors() const
 void UPDMissionGraphNode::RemoveBranchPin(UEdGraphPin* Pin)
 {
 	check(Pin->Direction != EGPD_Input);
+	RemovePin(Pin);
 
-	// RemovePin();
-
-	FScopedTransaction Transaction(LOCTEXT("RemovePinTx", "RemovePin"));
+	UEdGraph* ParentGraph = GetGraph();
+	const FScopedTransaction Transaction(LOCTEXT("AddNode", "Add Node"));
+	ParentGraph->Modify();
 	Modify();
-	
-	TFunction<void(UEdGraphPin*)> RemovePinLambda = [this, &RemovePinLambda](UEdGraphPin* PinToRemove)
-	{
-		int32 PinRemovalIndex = INDEX_NONE;
-		if (Pins.Find(PinToRemove, PinRemovalIndex))
-		{
-			OnPinRemoved(PinToRemove);
-			Pins.RemoveAt(PinRemovalIndex);
-			PinToRemove->MarkAsGarbage();
-		}
-	};
 
-	RemovePinLambda(Pin);
-	PinConnectionListChanged(Pin);
+	ParentGraph->NotifyGraphChanged();
+	GetMissionGraph()->UpdateData();
 
-	// --NumInputs;
-	// SyncPinNames();
-	// FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(GetBlueprint());
+	// TODO: PRIO "NOW" : Update Pin names to keep things working
 }
 void UPDMissionGraphNode::GetNodeContextMenuActions(UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const
 {
@@ -593,7 +581,6 @@ void UPDMissionGraphNode::GetNodeContextMenuActions(UToolMenu* Menu, class UGrap
 			)
 		);
 	}
-	Super::GetNodeContextMenuActions(Menu, Context);
 }
 
 void UPDMissionGraphNode::AllocateDefaultPins()

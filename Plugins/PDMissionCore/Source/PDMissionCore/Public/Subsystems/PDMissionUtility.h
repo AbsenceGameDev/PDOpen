@@ -115,7 +115,7 @@ public:
 	/**< @brief Edition/version/revision comparison checks */
 	TMap<int32 /*Session unique TableID*/, int32 /*editversion*/> TableRevisions{};
 
-	TMap<int32, int32> LastComparisonTableRevisions;	
+	TMap<int32, int32> LastComparisonTableRevisions;
 
 #if WITH_EDITOR
 	TArray<TSharedPtr<FString>> MissionConcatList;

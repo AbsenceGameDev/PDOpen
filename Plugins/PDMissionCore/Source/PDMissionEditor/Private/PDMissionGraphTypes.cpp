@@ -187,7 +187,7 @@ bool FPDMissionNodeData::operator==(const FPDMissionNodeData& Other) const
 bool FPDMissionNodeData::operator!=(const FPDMissionNodeData& Other) const
 {
 	return (Other == *this) == false;
-}	
+}
 
 void FPDMissionDebuggerHandler::BindDebuggerToolbarCommands()
 {
@@ -245,7 +245,7 @@ FReply FPDMissionDebuggerHandler::JumpToNode(const UEdGraphNode* Node)
 {
 	// @todo
 
-	return FReply::Handled(); 
+	return FReply::Handled();
 }
 void FPDMissionDebuggerHandler::OnFinishedChangingProperties(const FPropertyChangedEvent& PropertyChangedEvent)
 {
@@ -385,7 +385,7 @@ void FPDMissionGraphConnectionDrawingPolicy::DetermineWiringStyle(UEdGraphPin* O
 }
 
 void FPDMissionGraphConnectionDrawingPolicy::DetermineLinkGeometry(
-	FArrangedChildren& ArrangedNodes, 
+	FArrangedChildren& ArrangedNodes,
 	TSharedRef<SWidget>& OutputPinWidget,
 	UEdGraphPin* OutputPin,
 	UEdGraphPin* InputPin,
@@ -500,13 +500,12 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 						BranchElem.Target = *TargetRowHandlePtr;
 					}
 					// BranchElem.TargetBehaviour; // TODO handle this visually somehow, need to think about how though
-					
-					
+
+
 				}
 			}
 			// TODO: Move to utility function - END
 
-			TargetMissionNode->GetMissionName();			
 		}
 	}
 
@@ -679,7 +678,7 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawSplineWithArrow(const FGeometry
 	const FVector2D StartCenter = FGeometryHelper::CenterOf(StartGeom);
 	const FVector2D EndCenter = FGeometryHelper::CenterOf(EndGeom);
 	const FVector2D SeedPoint = (StartCenter + EndCenter) * 0.5f;
-	
+
 	// Find the (approximate) closest points between the two boxes
 	const FVector2D StartAnchorPoint = FGeometryHelper::FindClosestPointOnGeom(StartGeom, SeedPoint);
 	const FVector2D EndAnchorPoint = FGeometryHelper::FindClosestPointOnGeom(EndGeom, SeedPoint);
@@ -700,7 +699,7 @@ FVector2D FPDMissionGraphConnectionDrawingPolicy::ComputeSplineTangent(const FVe
 #define LOCTEXT_NAMESPACE "AssetTypeActions"
 
 uint32 FAssetTypeActions_MissionEditor::GetCategories()
-{ 
+{
 	return EAssetTypeCategories::Gameplay;
 }
 
@@ -722,7 +721,7 @@ void FAssetTypeActions_MissionEditor::OpenAssetEditor(const TArray<UObject*>& In
 }
 
 UClass* FAssetTypeActions_MissionEditor::GetSupportedClass() const
-{ 
+{
 	return UPDMissionDataTable::StaticClass();
 }
 
@@ -749,7 +748,7 @@ Parameters
 Licensor:             Ario Amin (@ Permafrost Development)
 Licensed Work:        PDOpenSource v.0.1.0 (Source available on github)
                       The Licensed Work is (c) 2026 Ario Amin (@ Permafrost Development)
-Additional Use Grant: You may make commercial use of the Licensed Work provided these three additional conditions as met; 
+Additional Use Grant: You may make commercial use of the Licensed Work provided these three additional conditions as met;
                       1. Must give attributions to the original author of the Licensed Work, in 'Credits' if that is applicable.
                       2. The Licensed Work must be 'Compiled' before being redistributed.
                       3. The Licensed Work 'Source' may be linked but may not be packaged into the product or service being sold
@@ -760,7 +759,7 @@ Additional Use Grant: You may make commercial use of the Licensed Work provided 
 
                       "Total Finances" means the largest of your aggregate gross revenues, entire budget, or funding (no matter the source).
                       "Package" means the collection of files distributed by the Licensor, and derivatives of that collection
-                      and/or of those files..   
+                      and/or of those files..
 
                       "Source" form means the source code, documentation source, and configuration files for the Package, usually in human-readable format.
 
