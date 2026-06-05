@@ -551,10 +551,62 @@ bool UPDMissionGraphNode::HasErrors() const
 	return NodeInstance == nullptr;
 }
 
+// This is horrible, I know.. 
+// TODO: I should really just make an subclass to UEdGraphPin and use that instead, 
+// and store branch data there so we can have the pin name always reflect the proper name 
+// while still being able to easily target the branch index in the datatablerow
 void UPDMissionGraphNode::RemoveBranchPin(UEdGraphPin* Pin)
 {
 	check(Pin->Direction != EGPD_Input);
+
+	int32 FoundPinIdx = INDEX_NONE;
+	TArray<UEdGraphPin*> OutPins = Pins.FilterByPredicate([](const UEdGraphPin* PinElem) -> bool {return PinElem->Direction != EEdGraphPinDirection::EGPD_Input;});
+	for (UEdGraphPin* OutPin : OutPins)
+	{
+		if (Pin == OutPin)
+		{
+			break;
+		}
+		++FoundPinIdx;
+	};
+
 	RemovePin(Pin);
+
+	TArray<UEdGraphPin*> RemainderOutPins = Pins.FilterByPredicate([](const UEdGraphPin* PinElem) -> bool {return PinElem->Direction != EEdGraphPinDirection::EGPD_Input;});
+	const int32 OutPinLim = RemainderOutPins.Num();
+	for (int32 OutPinIdx = FoundPinIdx; OutPinIdx < OutPinLim; OutPinIdx++)
+	{
+		if (false == RemainderOutPins.IsValidIndex(OutPinIdx))
+		{
+			break;
+		}
+
+		UEdGraphPin* OutPin = RemainderOutPins[OutPinIdx];
+
+		// TODO: Move to utility function - START
+		// Reference: TEXT("Prio %i : ")
+		FString PinStr = OutPin->PinName.ToString();
+		const int32 PrioTextIndex = FString(TEXT("Prio ")).Len();
+		const int32 ColonTextIndex = PinStr.Find(FString(TEXT(" : ")));
+		PinStr = PinStr.Left(ColonTextIndex); // Prio 54 :  a  s  d  a öekad  ->  Prio 54
+		PinStr = PinStr.Right(PinStr.Len() - PrioTextIndex);
+		const int32 BranchIdx = FCString::Atoi(*PinStr);
+		// TODO: Move to utility function - END
+
+		const int32 NewBranchIdx = BranchIdx - 1;
+		if (NewBranchIdx >= 0)
+		{
+			// TODO: Move to utility function - START
+			const int32 MissionTextIndex = FString(TEXT(" : ")).Len();
+			const FString MissionNamePart = OutPin->PinName.ToString().RightChop(ColonTextIndex + MissionTextIndex);
+			const FString PinPrio = FString::Printf(TEXT("Prio %i : "), NewBranchIdx);
+			const FString PinName = PinPrio + MissionNamePart;
+			// TODO: Move to utility function - END		
+			
+			OutPin->PinName = FName(*PinName);
+		}
+
+	};
 
 	UEdGraph* ParentGraph = GetGraph();
 	const FScopedTransaction Transaction(LOCTEXT("AddNode", "Add Node"));
@@ -563,8 +615,6 @@ void UPDMissionGraphNode::RemoveBranchPin(UEdGraphPin* Pin)
 
 	ParentGraph->NotifyGraphChanged();
 	GetMissionGraph()->UpdateData();
-
-	// TODO: PRIO "NOW" : Update Pin names to keep things working
 }
 void UPDMissionGraphNode::GetNodeContextMenuActions(UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const
 {
