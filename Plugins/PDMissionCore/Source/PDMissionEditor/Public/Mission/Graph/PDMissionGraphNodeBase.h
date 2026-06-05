@@ -27,8 +27,10 @@ class UPDMissionGraphNode : public UEdGraphNode
 	virtual void PreSave(FObjectPreSaveContext SaveContext) override;
 	virtual void Serialize(FArchive& Ar) override;
 	// End of UObject interface
-
+	
+	void RemoveBranchPin(UEdGraphPin* Pin);
 	//~ Begin UEdGraphNode Interface
+	virtual void GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override;
 	virtual void AllocateDefaultPins() override;
 	virtual void PreloadRequiredAssets();
 	virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;

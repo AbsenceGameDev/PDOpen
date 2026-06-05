@@ -12,9 +12,7 @@
 #include "UObject/ObjectSaveContext.h"
 
 
-
 #define LOCTEXT_NAMESPACE "FMissionTreeNode"
-
 
 UPDMissionGraphNode::UPDMissionGraphNode(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -551,6 +549,51 @@ void UPDMissionGraphNode::UpdateNodeDataFrom(UClass* InstanceClass, FPDMissionNo
 bool UPDMissionGraphNode::HasErrors() const
 {
 	return NodeInstance == nullptr;
+}
+
+void UPDMissionGraphNode::RemoveBranchPin(UEdGraphPin* Pin)
+{
+	check(Pin->Direction != EGPD_Input);
+
+	// RemovePin();
+
+	FScopedTransaction Transaction(LOCTEXT("RemovePinTx", "RemovePin"));
+	Modify();
+	
+	TFunction<void(UEdGraphPin*)> RemovePinLambda = [this, &RemovePinLambda](UEdGraphPin* PinToRemove)
+	{
+		int32 PinRemovalIndex = INDEX_NONE;
+		if (Pins.Find(PinToRemove, PinRemovalIndex))
+		{
+			OnPinRemoved(PinToRemove);
+			Pins.RemoveAt(PinRemovalIndex);
+			PinToRemove->MarkAsGarbage();
+		}
+	};
+
+	RemovePinLambda(Pin);
+	PinConnectionListChanged(Pin);
+
+	// --NumInputs;
+	// SyncPinNames();
+	// FBlueprintEditorUtils::MarkBlueprintAsStructurallyModified(GetBlueprint());
+}
+void UPDMissionGraphNode::GetNodeContextMenuActions(UToolMenu* Menu, class UGraphNodeContextMenuContext* Context) const
+{
+	if (Context->Pin && Context->Pin->Direction != EEdGraphPinDirection::EGPD_Input)
+	{
+		FToolMenuSection& Section = Menu->AddSection("EdGraphSchemaPinActions", LOCTEXT("PinActionsMenuHeader", "Pin Actions"));
+		Section.AddMenuEntry(
+			"RemovePin",
+			LOCTEXT("RemovePin", "Remove branch"),
+			LOCTEXT("RemovePinTooltip", "Remove this mission branch pin"),
+			FSlateIcon(),
+			FUIAction(
+				FExecuteAction::CreateUObject(const_cast<UPDMissionGraphNode*>(this), &UPDMissionGraphNode::RemoveBranchPin, const_cast<UEdGraphPin*>(Context->Pin))
+			)
+		);
+	}
+	Super::GetNodeContextMenuActions(Menu, Context);
 }
 
 void UPDMissionGraphNode::AllocateDefaultPins()
