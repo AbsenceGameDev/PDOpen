@@ -455,57 +455,15 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 		UPDMissionGraphNode* TargetMissionNode = Cast<UPDMissionGraphNode>(TargetPin->GetOwningNode());
 		if (SourceMissionNode && TargetMissionNode)
 		{
-			// TODO: Move to utility function - START
-			int32 OutPinIdx = INDEX_NONE;
-			// SourceMissionNode->GetMissionName();
-			for(UEdGraphPin* PinIt : SourceMissionNode->Pins)
-			{
-				OutPinIdx += PinIt->Direction != EEdGraphPinDirection::EGPD_Input;
-
-				if (SourcePin == PinIt)
-				{
-					break;
-				}
-			}
-			// TODO: Move to utility function - END
-
+			const int32 OutPinIdx = UPDMissionStatics::NodeOp::FindDirectionIndex(SourcePin, SourceMissionNode->Pins, EEdGraphPinDirection::EGPD_Output);
 			if (INDEX_NONE == OutPinIdx)
 			{
 				UE_LOG(LogTemp, Error, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection - Could not find valid output pin index for the source node"))
 				return;
 			}
 
-
-			// TODO: Move to utility function - START
-			const FString PinPrio = FString::Printf(TEXT("Prio %i : "), OutPinIdx);
-			const FString PinName = PinPrio + TargetMissionNode->GetMissionName();
-			// TODO: Move to utility function - END
-
-			SourcePin->PinName = FName(*PinName);
-
-
-			// TODO: Move to utility function - START
-			//  Updating Mission branch data to reflect the new node
-			FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(SourceMissionNode->SelectedMissionRowName);
-			if (RowHandlePtr)
-			{
-				FPDMissionRow* MissionRowPtr = RowHandlePtr->GetRow<FPDMissionRow>("FPDMissionGraphConnectionDrawingPolicy::DrawConnection");
-				if (MissionRowPtr && MissionRowPtr->ProgressRules.NextMissionBranch.Branches.IsValidIndex(OutPinIdx))
-				{
-					FPDMissionBranchElement& BranchElem = MissionRowPtr->ProgressRules.NextMissionBranch.Branches[OutPinIdx];
-					// BranchElem.bIsDirectBranch; // TODO handle this visually somehow, need to think about how though
-					// BranchElem.BranchConditions; // TODO handle this visually somehow, need to think about how though
-					if (FDataTableRowHandle* TargetRowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(TargetMissionNode->SelectedMissionRowName))
-					{
-						BranchElem.Target = *TargetRowHandlePtr;
-					}
-					// BranchElem.TargetBehaviour; // TODO handle this visually somehow, need to think about how though
-
-
-				}
-			}
-			// TODO: Move to utility function - END
-
+			SourcePin->PinName = FName(*UPDMissionStatics::NodeOp::BuildPinName(OutPinIdx, TargetMissionNode->GetMissionName()));
+			UPDMissionStatics::RowOp::SetValuesOnBranchTargetAtIndex(SourceMissionNode->SelectedMissionRowName, OutPinIdx, TargetMissionNode->SelectedMissionRowName, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection"));
 		}
 	}
 

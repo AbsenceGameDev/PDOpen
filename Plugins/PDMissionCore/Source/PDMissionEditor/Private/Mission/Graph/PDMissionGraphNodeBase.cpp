@@ -144,11 +144,7 @@ void UPDMissionGraphNode::CreateOutputBranchPins()
 			int32 BranchIdx = 0;
 			for (FPDMissionBranchElement& Branch : SelectedMissionRow->ProgressRules.NextMissionBranch.Branches)
 			{
-				// TODO: Move to utility function - START
-				const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchIdx);
-				const FString PinName = PinPrio + FString{Branch.Target.RowName != NAME_None ? Branch.Target.RowName.ToString() : TEXT("CONNECT ME")};
-				// TODO: Move to utility function - END
-				
+				const FString PinName = UPDMissionStatics::NodeOp::BuildPinName(BranchIdx, Branch);
 				CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, *PinName);
 				++BranchIdx;
 
@@ -349,16 +345,7 @@ void UPDMissionGraphNode::OnPinRemoved(UEdGraphPin* PinToRemove)
 			FPDMissionRow* MissionRow = RowHandlePtr->GetRow<FPDMissionRow>(TEXT("UPDMissionGraphNode::OnPinRemoved"));
 			if (MissionRow)
 			{
-				// TODO: Move to utility function - START
-				// Reference: TEXT("Prio %i : ")
-				FString PinStr = PinToRemove->PinName.ToString();
-				const int32 PrioTextIndex = FString(TEXT("Prio ")).Len();
-				const int32 ColonTextIndex = PinStr.Find(FString(TEXT(" : ")));
-				PinStr = PinStr.Left(ColonTextIndex); // Prio 54 :  a  s  d  a öekad  ->  Prio 54
-				PinStr = PinStr.Right(PinStr.Len() - PrioTextIndex);
-				const int32 BranchIdx = FCString::Atoi(*PinStr);
-				// TODO: Move to utility function - END
-				
+				const int32 BranchIdx = UPDMissionStatics::NodeOp::GetBranchIdxFromPinName(PinToRemove);
 				TArray<FPDMissionBranchElement>& Branches = MissionRow->ProgressRules.NextMissionBranch.Branches;
 				if (Branches.IsValidIndex(BranchIdx))
 				{
@@ -582,30 +569,7 @@ void UPDMissionGraphNode::RemoveBranchPin(UEdGraphPin* Pin)
 		}
 
 		UEdGraphPin* OutPin = RemainderOutPins[OutPinIdx];
-
-		// TODO: Move to utility function - START
-		// Reference: TEXT("Prio %i : ")
-		FString PinStr = OutPin->PinName.ToString();
-		const int32 PrioTextIndex = FString(TEXT("Prio ")).Len();
-		const int32 ColonTextIndex = PinStr.Find(FString(TEXT(" : ")));
-		PinStr = PinStr.Left(ColonTextIndex); // Prio 54 :  a  s  d  a öekad  ->  Prio 54
-		PinStr = PinStr.Right(PinStr.Len() - PrioTextIndex);
-		const int32 BranchIdx = FCString::Atoi(*PinStr);
-		// TODO: Move to utility function - END
-
-		const int32 NewBranchIdx = BranchIdx - 1;
-		if (NewBranchIdx >= 0)
-		{
-			// TODO: Move to utility function - START
-			const int32 MissionTextIndex = FString(TEXT(" : ")).Len();
-			const FString MissionNamePart = OutPin->PinName.ToString().RightChop(ColonTextIndex + MissionTextIndex);
-			const FString PinPrio = FString::Printf(TEXT("Prio %i : "), NewBranchIdx);
-			const FString PinName = PinPrio + MissionNamePart;
-			// TODO: Move to utility function - END		
-			
-			OutPin->PinName = FName(*PinName);
-		}
-
+		UPDMissionStatics::NodeOp::OffsetPinName(OutPin);
 	};
 
 	UEdGraph* ParentGraph = GetGraph();

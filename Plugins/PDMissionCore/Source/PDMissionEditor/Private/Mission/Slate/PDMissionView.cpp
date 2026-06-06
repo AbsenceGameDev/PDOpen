@@ -402,15 +402,11 @@ FReply SMissionGraphNode::OnAddPin()
 	UPDMissionGraphNode* MissionNode = CastChecked<UPDMissionGraphNode>(GraphNode);
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
 
-	// TODO: Move to utility function - START
-	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(MissionNode->SelectedMissionRowName);
-	const bool bNoValidMission = nullptr == RowHandlePtr;
-	// TODO: Move to utility function - END
-	if (bNoValidMission)
+	FDataTableRowHandle* RowHandlePtr = nullptr;
+	if (false == UPDMissionStatics::RowOp::IsMissionValid(MissionNode->SelectedMissionRowName, RowHandlePtr))
 	{
 		return FReply::Handled();
 	}
-
 
 	const FScopedTransaction Transaction( NSLOCTEXT("Kismet", "AddExecutionPin", "Add Execution Pin") );
 	MissionNode->Modify();
@@ -418,21 +414,10 @@ FReply SMissionGraphNode::OnAddPin()
 	const TArray<UEdGraphPin*> OutPins = MissionNode->Pins.FilterByPredicate([](const UEdGraphPin* PinElem) -> bool {return PinElem->Direction != EEdGraphPinDirection::EGPD_Input;});
 	const int32 BranchPrio = OutPins.Num();
 	
-	// TODO: Move to utility function - START
-	const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchPrio);
-	const FString PinName = PinPrio + FString{TEXT("CONNECT ME")};	
-	// TODO: Move to utility function - END
-	
+	const FString PinName = UPDMissionStatics::NodeOp::BuildPinName(BranchPrio, NAME_None);
 	MissionNode->CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, *PinName);
 
-	// TODO: Move to utility function - START
-	//  Updating Mission branch data to reflect the new node
-	FPDMissionRow* MissionRowPtr = RowHandlePtr->GetRow<FPDMissionRow>("SMissionGraphNode::OnAddPin()");
-	if (MissionRowPtr)
-	{
-		MissionRowPtr->ProgressRules.NextMissionBranch.Branches.Emplace(FPDMissionBranchElement{});
-	}
-	// TODO: Move to utility function - END
+	UPDMissionStatics::RowOp::AddBranch(RowHandlePtr);
 
 	UpdateGraphNode();
 	GraphNode->GetGraph()->NotifyNodeChanged(GraphNode);
