@@ -495,6 +495,9 @@ class SPDGenericInputWrapper : public SPDMissionGraphPin
 	TSharedRef<SWidget> GenerateMetadataContent();
 	TSharedRef<SWidget> GenerateBranchesContent();
 
+	TSharedRef<SWidget> GenerateTagCompoundContent();
+	TSharedRef<SWidget> GenerateStateDataContent();
+
 private:
 	FPDMissionRow* GetCurrentMissionRow();
 	TPair<FDetailsViewArgs, FStructureDetailsViewArgs> GetDetailsArgs()

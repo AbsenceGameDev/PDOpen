@@ -242,14 +242,30 @@ struct FPDMissionBranch
  *  @todo Write some type that can handle  
  */
 USTRUCT(BlueprintType)
+struct FPDMissionStateData
+{
+	GENERATED_BODY()
+
+	FPDMissionStateData(): bRepeatable(0) {};
+	FPDMissionStateData(uint8 _bRepeatable)
+		: bRepeatable(_bRepeatable) {};	
+
+	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
+	TEnumAsByte<EPDMissionState> EStartState = EPDMissionState::EInactiveMission; 
+	
+	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
+	uint8 bRepeatable : 1;
+};
+USTRUCT(BlueprintType)
 struct FPDMissionRules
 {
 	GENERATED_BODY()
 
-public:
-	FPDMissionRules(): bRepeatable(0) {};
-	FPDMissionRules(FPDMissionTagCompound _MissionConditionHandler, FPDMissionBranch _NextMissionBranch, uint8 bRepeatable)
-		: MissionConditionHandler(_MissionConditionHandler), NextMissionBranch(_NextMissionBranch) ,bRepeatable(0) {};
+	FPDMissionRules() = default;
+	FPDMissionRules(FPDMissionTagCompound _MissionConditionHandler, FPDMissionBranch _NextMissionBranch)
+		: MissionConditionHandler(_MissionConditionHandler), NextMissionBranch(_NextMissionBranch) {};
 	
 	void IterateStatusHandlers(const FGameplayTag& Tag, FPDFPDMissionModData& OutStatVariables);
 
@@ -261,13 +277,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
 	FPDMissionBranch NextMissionBranch;
 
-	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
-	TEnumAsByte<EPDMissionState> EStartState = EPDMissionState::EInactiveMission; 
-	
-	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
-	uint8 bRepeatable : 1; 
+	// /** @brief State data */
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
+	// FPDMissionControlData ControlData;
 };
 
 /**
@@ -317,6 +329,9 @@ struct PDMISSIONCORE_API FPDMissionRow : public FTableRowBase
 	/** @brief Mission rules, what are the conditions to finish the mission, what are it's sub-objectives, what is the branching possibilities, etc */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
 	FPDMissionRules ProgressRules{};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
+	FPDMissionStateData StateData;
 
 	/** @brief Metadata, Friendly Name & Description */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")

@@ -112,7 +112,7 @@ void FPDMissionUtility::OverwriteMissionDatum(UPDMissionTracker* MissionTracker,
 	ForceDefault = ForceDefault && DefaultMissionBaseDatum != nullptr;
 	FPDMissionNetDatum Datum;
 		Datum.mID = SID;
-		Datum.State.Current = ForceDefault ? DefaultMissionBaseDatum->ProgressRules.EStartState : NewDatum.State.Current;
+		Datum.State.Current = ForceDefault ? DefaultMissionBaseDatum->StateData.EStartState : NewDatum.State.Current;
 		Datum.State.MissionConditionHandler = ForceDefault ? DefaultMissionBaseDatum->ProgressRules.MissionConditionHandler : NewDatum.State.MissionConditionHandler;
 	
 	SetNewMissionDatum(MissionTracker, SID, Datum);
@@ -264,7 +264,7 @@ void FPDMissionUtility::InitializeTracker(const int32 ActorID)
 		const FPDMissionRow* DefaulMission = BaseMission.Value.GetRow<FPDMissionRow>(TEXT(""));
 		if (DefaulMission == nullptr) { continue; }
 		
-		FPDMissionNetDatum Mission{DefaulMission->Base.mID, FPDMissionState{DefaulMission->ProgressRules.EStartState, DefaulMission->ProgressRules.MissionConditionHandler}};
+		FPDMissionNetDatum Mission{DefaulMission->Base.mID, FPDMissionState{DefaulMission->StateData.EStartState, DefaulMission->ProgressRules.MissionConditionHandler}};
 		MissionTracker->AddMissionDatum(Mission);
 	}
 }
