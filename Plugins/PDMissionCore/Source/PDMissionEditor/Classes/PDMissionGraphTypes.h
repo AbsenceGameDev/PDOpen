@@ -319,6 +319,140 @@ struct PDMISSIONEDITOR_API FPDAssociativeMissionEditingRow : public FTableRowBas
 	FPDMissionRow UpdateRowData{};
 };
 
+
+
+/**
+ *	@brief Static functions exposed to blueprint
+ */
+UCLASS(BlueprintType)
+class PDMISSIONEDITOR_API UPDMissionEditorStatics : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	typedef struct NodeOp
+	{
+		static FORCEINLINE int32 GetBranchIdxFromPinName(UEdGraphPin* Pin) 
+		{
+			FString PinStr = Pin->PinName.ToString();
+			const int32 PrioTextIndex = FString(TEXT("Prio ")).Len();
+			const int32 ColonTextIndex = PinStr.Find(FString(TEXT(" : ")));
+			PinStr = PinStr.Left(ColonTextIndex); // Prio 54 :  a  s  d  a öekad  ->  Prio 54
+			PinStr = PinStr.Right(PinStr.Len() - PrioTextIndex);
+			return FCString::Atoi(*PinStr);
+		}
+	
+		static FORCEINLINE void OffsetPinName(UEdGraphPin* Pin) 
+		{
+			FString PinStr = Pin->PinName.ToString();
+			const int32 ColonTextIndex = PinStr.Find(FString(TEXT(" : ")));
+			const int32 BranchIdx = GetBranchIdxFromPinName(Pin);
+	
+			const int32 NewBranchIdx = BranchIdx - 1;
+			if (NewBranchIdx >= 0)
+			{
+				const int32 MissionTextIndex = FString(TEXT(" : ")).Len();
+				const FString MissionNamePart = Pin->PinName.ToString().RightChop(ColonTextIndex + MissionTextIndex);
+				const FString PinPrio = FString::Printf(TEXT("Prio %i : "), NewBranchIdx);
+				const FString PinName = PinPrio + MissionNamePart;
+				
+				Pin->PinName = FName(*PinName);
+			}
+		}	
+	
+		static FORCEINLINE FString BuildPinName(int32 BranchIdx, const FName& MissionName)
+		{
+			const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchIdx);
+			const FString PinName = PinPrio + FString{MissionName != NAME_None ? MissionName.ToString() : TEXT("CONNECT ME")};
+			return PinName;
+		}
+		static FORCEINLINE FString BuildPinName(int32 BranchIdx, const FString& MissionName)
+		{
+			const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchIdx);
+			const FString PinName = PinPrio + FString{false == MissionName.IsEmpty() ? MissionName : TEXT("CONNECT ME")};
+			return PinName;
+		}
+		static FORCEINLINE FString BuildPinName(int32 BranchIdx, const FPDMissionBranchElement& Branch)
+		{
+			const FName& MissionName = Branch.Target.RowName;
+			const FString PinPrio = FString::Printf(TEXT("Prio %i : "), BranchIdx);
+			const FString PinName = PinPrio + FString{MissionName != NAME_None ? MissionName.ToString() : TEXT("CONNECT ME")};
+			return PinName;
+		}
+
+		static FORCEINLINE int32 FindDirectionIndex(const UEdGraphPin* SourcePin, const TArray<UEdGraphPin*>& NodePins, EEdGraphPinDirection CountDirection)
+		{
+			int32 DirPinIdx = INDEX_NONE;
+			for(UEdGraphPin* PinIt : NodePins)
+			{
+				switch(CountDirection)
+				{
+					case EGPD_Input:
+					DirPinIdx += PinIt->Direction == EEdGraphPinDirection::EGPD_Input;
+					break;
+
+					case EGPD_Output: case EGPD_MAX:
+					DirPinIdx += PinIt->Direction > EEdGraphPinDirection::EGPD_Input;
+					break;
+				}
+
+				if (SourcePin == PinIt)
+				{
+					break;
+				}
+			}
+			return DirPinIdx;
+		}
+		
+		static PDMISSIONEDITOR_API class UPDMissionGraphNode* ResolveMissionNodeFromKnot(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir);
+		static PDMISSIONEDITOR_API bool IsRowBasedMissionNode(UEdGraphNode* Node);
+	};
+
+	//  Updating Mission branch data to reflect the new node
+	typedef struct RowOp
+	{
+		static FORCEINLINE void AddBranch(FPDMissionRow* MissionRowPtr, const FPDMissionBranchElement& OptionalValue = FPDMissionBranchElement{})
+		{
+			if (MissionRowPtr) {MissionRowPtr->ProgressRules.NextMissionBranch.Branches.Emplace(OptionalValue);}
+		}
+		static FORCEINLINE void RemoveBranch(FPDMissionRow* MissionRowPtr, int32 RemoveIdx)
+		{
+			if (MissionRowPtr && MissionRowPtr->ProgressRules.NextMissionBranch.Branches.IsValidIndex(RemoveIdx)) 
+			{
+				MissionRowPtr->ProgressRules.NextMissionBranch.Branches.Emplace(FPDMissionBranchElement{});
+			}
+		}		
+		static FORCEINLINE void UpdateBranch(FPDMissionRow* MissionRowPtr,  int32 UpdateIdx, const FPDMissionBranchElement& NewValue)
+		{
+			if (MissionRowPtr && MissionRowPtr->ProgressRules.NextMissionBranch.Branches.IsValidIndex(UpdateIdx)) 
+			{
+				MissionRowPtr->ProgressRules.NextMissionBranch.Branches[UpdateIdx] = NewValue;
+			}
+		}		
+
+		static FORCEINLINE void AddBranch(FDataTableRowHandle* RowHandlePtr, const FString Ctxt = TEXT(""))
+		{
+			AddBranch(RowHandlePtr->GetRow<FPDMissionRow>(Ctxt));
+		}
+		static FORCEINLINE void RemoveBranch(FDataTableRowHandle* RowHandlePtr, int32 RemoveIdx, const FString Ctxt = TEXT(""))
+		{
+			RemoveBranch(RowHandlePtr->GetRow<FPDMissionRow>(Ctxt), RemoveIdx);
+		}
+		static FORCEINLINE void UpdateBranch(FDataTableRowHandle* RowHandlePtr, int32 UpdateIdx, const FPDMissionBranchElement& NewValue, const FString Ctxt = TEXT(""))
+		{
+			UpdateBranch(RowHandlePtr->GetRow<FPDMissionRow>(Ctxt), UpdateIdx, NewValue);
+		}
+
+		static PDMISSIONEDITOR_API bool IsMissionValid(const FName& SelectedMissionRowName, FDataTableRowHandle*& OutRowHandlePtr);
+		static PDMISSIONEDITOR_API void SetValuesOnBranchTargetAtIndex(const FName& SourceMissionRowName, int32 BranchIdx, const FName& BranchTargetMissionName, const FString Ctxt = TEXT(""));
+
+	private:
+	};
+};
+
+
+
+
 /**
 Business Source License 1.1
 

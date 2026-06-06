@@ -403,7 +403,7 @@ FReply SMissionGraphNode::OnAddPin()
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
 
 	FDataTableRowHandle* RowHandlePtr = nullptr;
-	if (false == UPDMissionStatics::RowOp::IsMissionValid(MissionNode->SelectedMissionRowName, RowHandlePtr))
+	if (false == UPDMissionEditorStatics::RowOp::IsMissionValid(MissionNode->SelectedMissionRowName, RowHandlePtr))
 	{
 		return FReply::Handled();
 	}
@@ -414,10 +414,10 @@ FReply SMissionGraphNode::OnAddPin()
 	const TArray<UEdGraphPin*> OutPins = MissionNode->Pins.FilterByPredicate([](const UEdGraphPin* PinElem) -> bool {return PinElem->Direction != EEdGraphPinDirection::EGPD_Input;});
 	const int32 BranchPrio = OutPins.Num();
 	
-	const FString PinName = UPDMissionStatics::NodeOp::BuildPinName(BranchPrio, NAME_None);
+	const FString PinName = UPDMissionEditorStatics::NodeOp::BuildPinName(BranchPrio, NAME_None);
 	MissionNode->CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, *PinName);
 
-	UPDMissionStatics::RowOp::AddBranch(RowHandlePtr);
+	UPDMissionEditorStatics::RowOp::AddBranch(RowHandlePtr);
 
 	UpdateGraphNode();
 	GraphNode->GetGraph()->NotifyNodeChanged(GraphNode);

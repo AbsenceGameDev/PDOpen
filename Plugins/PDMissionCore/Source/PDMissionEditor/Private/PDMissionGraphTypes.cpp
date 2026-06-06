@@ -58,6 +58,67 @@ const FText FPDMissionGraphTypes::NodeText_EventMission(LOCTEXT("Missions","Even
 
 
 
+UPDMissionGraphNode* UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(UEdGraphPin* PinOnPotentialKnot, const EEdGraphPinDirection PinDir)
+{
+	const bool bStartAsInputPin = PinDir == EEdGraphPinDirection::EGPD_Input;
+
+	UPDMissionGraphNode* ResolvedNode = nullptr;
+	if (UPDMissionGraphNode_Knot* TopLevelNodeAsKnot = Cast<UPDMissionGraphNode_Knot>(PinOnPotentialKnot->GetOwningNode()))
+	{
+		UEdGraphPin* KnotInPin = bStartAsInputPin ? TopLevelNodeAsKnot->GetInputPin() : TopLevelNodeAsKnot->GetOutputPin();
+		for (; nullptr != KnotInPin;)
+		{
+			if (KnotInPin->LinkedTo.IsEmpty())
+			{
+				KnotInPin = nullptr;
+				break;
+			}
+			
+			UPDMissionGraphNode* KnotSourceAsMissionNode = Cast<UPDMissionGraphNode>(KnotInPin->LinkedTo[0]->GetOwningNode());
+			UPDMissionGraphNode_Knot* KnotSourceAsKnot = Cast<UPDMissionGraphNode_Knot>(KnotSourceAsMissionNode);
+			if (KnotSourceAsMissionNode && nullptr == KnotSourceAsKnot)
+			{
+				ResolvedNode = KnotSourceAsMissionNode;
+				KnotInPin = nullptr;
+			}
+			else if (KnotSourceAsKnot)
+			{
+				KnotInPin = bStartAsInputPin ? KnotSourceAsKnot->GetInputPin() : KnotSourceAsKnot->GetOutputPin();
+			}
+		}
+	}
+
+	return ResolvedNode;
+}
+
+bool UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(UEdGraphNode* Node)
+{
+	return Cast<UPDMissionGraphNode>(Node) && nullptr == Cast<UPDMissionGraphNode_Knot>(Node) && nullptr == Cast<UPDMissionTransitionNode>(Node);
+}
+
+
+bool UPDMissionEditorStatics::RowOp::IsMissionValid(const FName& SelectedMissionRowName, FDataTableRowHandle*& OutRowHandlePtr)
+{
+	OutRowHandlePtr = UPDMissionStatics::GetMissionSubsystem()->Utility.MissionLookupViaRowName.Find(SelectedMissionRowName);
+	return nullptr != OutRowHandlePtr;
+}
+void UPDMissionEditorStatics::RowOp::SetValuesOnBranchTargetAtIndex(const FName& SourceMissionRowName, int32 BranchIdx, const FName& BranchTargetMissionName, const FString Ctxt)
+{
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	FPDMissionBranchElement NewTargetBranchElem;
+	NewTargetBranchElem.Target;
+	// BranchElem.bIsDirectBranch; // TODO handle this visually somehow, need to think about how though
+	// BranchElem.BranchConditions; // TODO handle this visually somehow, need to think about how though
+	if (FDataTableRowHandle* TargetRowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(BranchTargetMissionName))
+	{
+		NewTargetBranchElem.Target = *TargetRowHandlePtr;
+	}
+	// BranchElem.TargetBehaviour; // TODO handle this visually somehow, need to think about how though
+	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(SourceMissionRowName);
+	UpdateBranch(RowHandlePtr, BranchIdx, NewTargetBranchElem, Ctxt);
+}
+
+
 FPDMissionNodeData::FPDMissionNodeData(UClass* InClass) :
 	bIsHidden(0),
 	bHideParent(0),
@@ -447,23 +508,36 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 {
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
 
-	UEdGraphPin* SourcePin = Params.AssociatedPin1;
-	UEdGraphPin* TargetPin = Params.AssociatedPin2;
+	UEdGraphPin* SourcePin = Params.AssociatedPin1; // ex: Node
+	UEdGraphPin* TargetPin = Params.AssociatedPin2; // ex: Knot
 	if (SourcePin && TargetPin)
 	{
-		UPDMissionGraphNode* SourceMissionNode = Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode());
-		UPDMissionGraphNode* TargetMissionNode = Cast<UPDMissionGraphNode>(TargetPin->GetOwningNode());
-		if (SourceMissionNode && TargetMissionNode)
+
+		// TODO Handle/resolve from/to knots 
+		UPDMissionGraphNode* SourceMissionNode = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(SourcePin, EEdGraphPinDirection::EGPD_Input);
+		if (nullptr == SourceMissionNode)
 		{
-			const int32 OutPinIdx = UPDMissionStatics::NodeOp::FindDirectionIndex(SourcePin, SourceMissionNode->Pins, EEdGraphPinDirection::EGPD_Output);
+			SourceMissionNode = Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode());
+		}
+
+		UPDMissionGraphNode* TargetMissionNode = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(TargetPin, EEdGraphPinDirection::EGPD_Output);
+		if (nullptr == TargetMissionNode)
+		{
+			TargetMissionNode = Cast<UPDMissionGraphNode>(TargetPin->GetOwningNode());
+		}
+
+		if (UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(SourceMissionNode) 
+			&& UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(TargetMissionNode))
+		{
+			const int32 OutPinIdx = UPDMissionEditorStatics::NodeOp::FindDirectionIndex(SourcePin, SourceMissionNode->Pins, EEdGraphPinDirection::EGPD_Output);
 			if (INDEX_NONE == OutPinIdx)
 			{
 				UE_LOG(LogTemp, Error, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection - Could not find valid output pin index for the source node"))
 				return;
 			}
 
-			SourcePin->PinName = FName(*UPDMissionStatics::NodeOp::BuildPinName(OutPinIdx, TargetMissionNode->GetMissionName()));
-			UPDMissionStatics::RowOp::SetValuesOnBranchTargetAtIndex(SourceMissionNode->SelectedMissionRowName, OutPinIdx, TargetMissionNode->SelectedMissionRowName, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection"));
+			SourcePin->PinName = FName(*UPDMissionEditorStatics::NodeOp::BuildPinName(OutPinIdx, TargetMissionNode->GetMissionName()));
+			UPDMissionEditorStatics::RowOp::SetValuesOnBranchTargetAtIndex(SourceMissionNode->SelectedMissionRowName, OutPinIdx, TargetMissionNode->SelectedMissionRowName, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection"));
 		}
 	}
 

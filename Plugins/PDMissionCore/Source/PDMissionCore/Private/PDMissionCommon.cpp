@@ -27,28 +27,6 @@ FDataTableRowHandle UPDMissionStatics::CreateRowHandle(UDataTable* Table, FName 
 }
 
 
-bool UPDMissionStatics::RowOp::IsMissionValid(const FName& SelectedMissionRowName, FDataTableRowHandle*& OutRowHandlePtr)
-{
-	OutRowHandlePtr = UPDMissionStatics::GetMissionSubsystem()->Utility.MissionLookupViaRowName.Find(SelectedMissionRowName);
-	return nullptr != OutRowHandlePtr;
-}
-void UPDMissionStatics::RowOp::SetValuesOnBranchTargetAtIndex(const FName& SourceMissionRowName, int32 BranchIdx, const FName& BranchTargetMissionName, const FString Ctxt)
-{
-	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
-	FPDMissionBranchElement NewTargetBranchElem;
-	NewTargetBranchElem.Target;
-	// BranchElem.bIsDirectBranch; // TODO handle this visually somehow, need to think about how though
-	// BranchElem.BranchConditions; // TODO handle this visually somehow, need to think about how though
-	if (FDataTableRowHandle* TargetRowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(BranchTargetMissionName))
-	{
-		NewTargetBranchElem.Target = *TargetRowHandlePtr;
-	}
-	// BranchElem.TargetBehaviour; // TODO handle this visually somehow, need to think about how though
-	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(SourceMissionRowName);
-	UpdateBranch(RowHandlePtr, BranchIdx, NewTargetBranchElem, Ctxt);
-}
-
-
 //
 // Mission delay functor
 FPDDelayMissionFunctor::FPDDelayMissionFunctor(UPDMissionTracker* Tracker, const FDataTableRowHandle& Target, const FPDMissionBranchBehaviour& TargetBehaviour)

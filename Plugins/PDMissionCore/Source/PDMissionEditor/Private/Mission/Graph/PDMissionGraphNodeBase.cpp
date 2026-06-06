@@ -144,7 +144,7 @@ void UPDMissionGraphNode::CreateOutputBranchPins()
 			int32 BranchIdx = 0;
 			for (FPDMissionBranchElement& Branch : SelectedMissionRow->ProgressRules.NextMissionBranch.Branches)
 			{
-				const FString PinName = UPDMissionStatics::NodeOp::BuildPinName(BranchIdx, Branch);
+				const FString PinName = UPDMissionEditorStatics::NodeOp::BuildPinName(BranchIdx, Branch);
 				CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, *PinName);
 				++BranchIdx;
 
@@ -345,7 +345,7 @@ void UPDMissionGraphNode::OnPinRemoved(UEdGraphPin* PinToRemove)
 			FPDMissionRow* MissionRow = RowHandlePtr->GetRow<FPDMissionRow>(TEXT("UPDMissionGraphNode::OnPinRemoved"));
 			if (MissionRow)
 			{
-				const int32 BranchIdx = UPDMissionStatics::NodeOp::GetBranchIdxFromPinName(PinToRemove);
+				const int32 BranchIdx = UPDMissionEditorStatics::NodeOp::GetBranchIdxFromPinName(PinToRemove);
 				TArray<FPDMissionBranchElement>& Branches = MissionRow->ProgressRules.NextMissionBranch.Branches;
 				if (Branches.IsValidIndex(BranchIdx))
 				{
@@ -569,7 +569,7 @@ void UPDMissionGraphNode::RemoveBranchPin(UEdGraphPin* Pin)
 		}
 
 		UEdGraphPin* OutPin = RemainderOutPins[OutPinIdx];
-		UPDMissionStatics::NodeOp::OffsetPinName(OutPin);
+		UPDMissionEditorStatics::NodeOp::OffsetPinName(OutPin);
 	};
 
 	UEdGraph* ParentGraph = GetGraph();
