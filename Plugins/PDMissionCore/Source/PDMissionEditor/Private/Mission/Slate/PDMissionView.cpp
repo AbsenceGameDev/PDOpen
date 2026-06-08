@@ -23,10 +23,12 @@
 #include <Framework/Views/TableViewMetadata.h>
 
 #include <SGraphPanel.h>
+#include <SGraphNode.h>
 #include <Widgets/Input/STextComboBox.h>
 #include <Widgets/Views/STreeView.h>
 #include <Widgets/Text/SInlineEditableTextBlock.h>
-#include "Widgets/Input/SSlider.h"
+#include <Widgets/Input/SSlider.h>
+#include <Widgets/Images/SImage.h>
 
 #include <Editor/GraphEditor/Private/DragConnection.h>
 #include <Framework/Commands/GenericCommands.h>
@@ -661,6 +663,68 @@ void SMissionGraphNode::SetOwner(const TSharedRef<SGraphPanel>& OwnerPanel)
 }
 
 //
+// Mission transition condition node
+void SGraphNodeMissionCondition::Construct(const FArguments& InArgs, UPDMissionGraphNode_Knot* InNode)
+{
+	this->GraphNode = InNode;
+	this->UpdateGraphNode();
+}
+
+void SGraphNodeMissionCondition::UpdateGraphNode()
+{
+	// SGraphNodeKnot::UpdateGraphNode();
+
+	InputPins.Empty();
+	OutputPins.Empty();
+
+	// Reset variables that are going to be exposed, in case we are refreshing an already setup node.
+	RightNodeBox.Reset();
+	LeftNodeBox.Reset();
+
+	this->ContentScale.Bind( this, &SGraphNode::GetContentScale );
+	this->GetOrAddSlot( ENodeZone::Center )
+		.HAlign(HAlign_Center)
+		.VAlign(VAlign_Center)
+		[
+			SNew(SOverlay)
+			+SOverlay::Slot()
+			[
+				SNew(SImage)
+				.Image( FAppStyle::GetBrush("Graph.TransitionNode.ColorSpill") )
+				.ColorAndOpacity( this, &SGraphNodeMissionCondition::GetTransitionColor )
+			]
+			+SOverlay::Slot()
+			[
+				SNew(SImage)
+				.Image( this, &SGraphNodeMissionCondition::GetTransitionIconImage )
+			]
+		];
+}
+
+FLinearColor SGraphNodeMissionCondition::StaticGetTransitionColor(bool bIsHovered)
+{
+	//@TODO: Make configurable by styling
+	const FLinearColor ActiveColor(1.0f, 0.4f, 0.3f, 1.0f);
+	const FLinearColor HoverColor(0.724f, 0.256f, 0.0f, 1.0f);
+	FLinearColor BaseColor(0.9f, 0.9f, 0.9f, 1.0f);
+	return bIsHovered ? HoverColor : BaseColor;
+}
+
+FSlateColor SGraphNodeMissionCondition::GetTransitionColor() const
+{	
+	// Highlight the transition node when the node is hovered or when the previous state is hovered
+	UPDMissionGraphNode_ConditionNode* TransNode = CastChecked<UPDMissionGraphNode_ConditionNode>(GraphNode);
+	return StaticGetTransitionColor(IsHovered());
+}
+
+const FSlateBrush* SGraphNodeMissionCondition::GetTransitionIconImage() const
+{
+	UPDMissionGraphNode_ConditionNode* TransNode = CastChecked<UPDMissionGraphNode_ConditionNode>(GraphNode);
+	return FAppStyle::GetBrush("Graph.TransitionNode.Icon");
+}
+
+
+//
 // Mission Transition Node(s)
 
 void SGraphNodeMissionTransition::Construct(const FArguments& InArgs, UPDMissionTransitionNode* InNode)
@@ -1218,8 +1282,23 @@ TPair<FDetailsViewArgs, FStructureDetailsViewArgs> GetDetailsArgs()
 	RetDetailsViewArgs.bSearchInitialKeyFocus = false;
 	RetDetailsViewArgs.bUpdatesFromSelection = false;
 	RetDetailsViewArgs.bShowOptions = false;
+	RetDetailsViewArgs.bShowObjectLabel = false;
+
+	// Some other options, leaving here as a reference with their default values
+	// RetDetailsViewArgs.ColumnWidth = 6;
+	// RetDetailsViewArgs.RightColumnMinWidth = 22;
+	// RetDetailsViewArgs.bShowDifferingPropertiesOption = false;
+	// RetDetailsViewArgs.bCustomNameAreaLocation = false;
+	// RetDetailsViewArgs.bCustomFilterAreaLocation = false;
+	// RetDetailsViewArgs.bAllowFavoriteSystem = false;	
+	// RetDetailsViewArgs.bAllowMultipleTopLevelObjects = false;
+	// RetDetailsViewArgs.bForceHiddenPropertyVisibility = false;
+	// RetDetailsViewArgs.bShowCustomFilterOption = false;
+	// RetDetailsViewArgs.bShowSectionSelector = false;
+	// RetDetailsViewArgs.bShowScrollBar = true;
+
 	FStructureDetailsViewArgs RetStructureDetailsViewArgs;
-	RetStructureDetailsViewArgs.bShowObjects = true;
+	RetStructureDetailsViewArgs.bShowObjects = false;
 	return TPair<FDetailsViewArgs, FStructureDetailsViewArgs>{RetDetailsViewArgs, RetStructureDetailsViewArgs};
 }
 

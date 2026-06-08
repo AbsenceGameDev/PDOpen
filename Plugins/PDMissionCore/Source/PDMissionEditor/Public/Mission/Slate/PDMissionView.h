@@ -2,40 +2,41 @@
 #pragma once
 
 
-#include "CoreMinimal.h"
+#include <CoreMinimal.h>
 
-#include "SGraphPin.h"
-#include "SGraphNode.h"
-#include "SNodePanel.h"
-#include "Widgets/SWidget.h"
-#include "Widgets/DeclarativeSyntaxSupport.h"
-#include "Widgets/SBoxPanel.h"
+#include <SGraphPin.h>
+#include <SGraphNode.h>
+#include <SGraphNodeKnot.h>
+#include <SNodePanel.h>
+#include <Widgets/SWidget.h>
+#include <Widgets/DeclarativeSyntaxSupport.h>
+#include <Widgets/SBoxPanel.h>
 
-#include "EdGraphUtilities.h"
-#include "Layout/Visibility.h"
-#include "Styling/SlateColor.h"
+#include <EdGraphUtilities.h>
+#include <Layout/Visibility.h>
+#include <Styling/SlateColor.h>
 
-#include "GameplayTagContainer.h"
-#include "BlueprintUtilities.h"
-#include "SGraphNodeDefault.h"
-#include "Widgets/SCompoundWidget.h"
-#include "Misc/NotifyHook.h"
-#include "Misc/Attribute.h"
-#include "Templates/SharedPointer.h"
-#include "Delegates/Delegate.h"
+#include <GameplayTagContainer.h>
+#include <BlueprintUtilities.h>
+#include <SGraphNodeDefault.h>
+#include <Widgets/SCompoundWidget.h>
+#include <Misc/NotifyHook.h>
+#include <Misc/Attribute.h>
+#include <Templates/SharedPointer.h>
+#include <Delegates/Delegate.h>
 
-#include "Math/Color.h"
-#include "Math/Vector2D.h"
+#include <Math/Color.h>
+#include <Math/Vector2D.h>
 
-#include "HAL/Platform.h"
-#include "Input/DragAndDrop.h"
-#include "Input/Reply.h"
-#include "Editor/GraphEditor/Private/DragNode.h"
-#include "Internationalization/Text.h"
-#include "Containers/Array.h"
-#include "Containers/Map.h"
-#include "Containers/UnrealString.h"
-#include "DetailsViewArgs.h"
+#include <HAL/Platform.h>
+#include <Input/DragAndDrop.h>
+#include <Input/Reply.h>
+#include <Editor/GraphEditor/Private/DragNode.h>
+#include <Internationalization/Text.h>
+#include <Containers/Array.h>
+#include <Containers/Map.h>
+#include <Containers/UnrealString.h>
+#include <DetailsViewArgs.h>
 
 #include "PDMissionCommon.h"
 
@@ -215,13 +216,33 @@ protected:
 	TSharedPtr<class SPDLODBranchNode> TitleLODNode;
 };
 
-class SGraphNodeMissionTransition : public SGraphNode
+class SGraphNodeMissionCondition : public SGraphNodeKnot 
+{
+public:
+	SLATE_BEGIN_ARGS(SGraphNodeMissionCondition){}
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs, class UPDMissionGraphNode_Knot* InNode);
+
+	// SGraphNode interface
+	virtual void UpdateGraphNode() override;
+	// End of SGraphNode interface
+
+	static FLinearColor StaticGetTransitionColor(bool bIsHovered);
+
+private:
+	FSlateColor GetTransitionColor() const;
+	const FSlateBrush* GetTransitionIconImage() const;
+
+};
+
+class SGraphNodeMissionTransition : public SGraphNode // Wrote this ages ago, I might just trash and rewrite, 
 {
 public:
 	SLATE_BEGIN_ARGS(SGraphNodeMissionTransition){}
 	SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs, UPDMissionTransitionNode* InNode);
+	void Construct(const FArguments& InArgs, class UPDMissionTransitionNode* InNode);
 
 	// SNodePanel::SNode interface
 	virtual void GetNodeInfoPopups(FNodeInfoContext* Context, TArray<FGraphInformationPopupInfo>& Popups) const override;

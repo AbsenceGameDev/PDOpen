@@ -212,6 +212,46 @@ public:
 };
 
 
+
+UCLASS(MinimalAPI)
+class UPDMissionGraphNode_ConditionNode : public UPDMissionGraphNode_Knot
+{
+	GENERATED_UCLASS_BODY()
+
+public:
+	// UEdGraphNode interface
+	// virtual void AllocateDefaultPins() override;
+	// virtual FText GetTooltipText() const override;
+	// virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
+	// virtual bool ShouldOverridePinNames() const override;
+	// virtual FText GetPinNameOverride(const UEdGraphPin& Pin) const override;
+	// virtual void OnRenameNode(const FString& NewName) override;
+	// virtual TSharedPtr<class INameValidatorInterface> MakeNameValidator() const override;
+	// virtual bool CanSplitPin(const UEdGraphPin* Pin) const override { return false;}
+	// virtual bool IsCompilerRelevant() const override { return false; }
+	// virtual UEdGraphPin* GetPassThroughPin(const UEdGraphPin* FromPin) const override;
+	virtual TSharedPtr<SGraphNode> CreateVisualWidget() override final;
+	virtual bool ShouldDrawNodeAsControlPointOnly(int32& Out_InputPinIndex, int32& Out_OutputPinIndex) const override { Out_InputPinIndex = 0; Out_OutputPinIndex = 1; return false; }
+	// virtual bool CanCreateUnderSpecifiedSchema(const UEdGraphSchema* Schema) const override;
+	// virtual bool ShouldDrawNodeAsControlPointOnly(int32& Out_InputPinIndex, int32& Out_OutputPinIndex) const override { Out_InputPinIndex = 0; Out_OutputPinIndex = 1; return true; }
+	// virtual void GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override {}
+
+	virtual bool ShowVisualWarning() const override {return true;}
+	// End of UEdGraphNode interface
+	
+	virtual UEdGraphPin* GetInputPin(int32 Index = 0) const override
+	{
+		return Pins[0];
+	}
+
+	virtual UEdGraphPin* GetOutputPin(int32 Index = 0) const override
+	{
+		return Pins[1];
+	}
+
+};
+
+
 UCLASS(MinimalAPI, config=Editor)
 class UPDMissionTransitionNode : public UPDMissionGraphNode
 {

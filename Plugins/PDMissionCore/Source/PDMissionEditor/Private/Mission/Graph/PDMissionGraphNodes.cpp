@@ -104,6 +104,27 @@ bool UPDMissionGraphNode_Knot::CanCreateUnderSpecifiedSchema(const UEdGraphSchem
 }
 
 
+//
+// // Knot As Transition (Test)
+UPDMissionGraphNode_ConditionNode::UPDMissionGraphNode_ConditionNode(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+	bCanRenameNode = false;
+}
+
+
+TSharedPtr<SGraphNode> UPDMissionGraphNode_ConditionNode::CreateVisualWidget()
+{
+	return SNew(SMissionGraphNode /*TODO Finish or remove: SMissionGraphNodeKnot*/, this);
+}
+
+
+
+//
+// // Transition Node
+
+
+
 UPDMissionTransitionNode::UPDMissionTransitionNode(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
