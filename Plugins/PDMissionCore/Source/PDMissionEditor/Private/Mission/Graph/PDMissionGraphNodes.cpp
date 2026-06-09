@@ -115,7 +115,11 @@ UPDMissionGraphNode_ConditionNode::UPDMissionGraphNode_ConditionNode(const FObje
 
 TSharedPtr<SGraphNode> UPDMissionGraphNode_ConditionNode::CreateVisualWidget()
 {
-	return SNew(SMissionGraphNode /*TODO Finish or remove: SMissionGraphNodeKnot*/, this);
+	TSharedPtr<SGraphNodeMissionCondition> KnotNode = SNew(SGraphNodeMissionCondition, this);
+
+	//Reserved
+	
+	return KnotNode;
 }
 
 

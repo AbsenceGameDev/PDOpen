@@ -672,19 +672,12 @@ void SGraphNodeMissionCondition::Construct(const FArguments& InArgs, UPDMissionG
 
 void SGraphNodeMissionCondition::UpdateGraphNode()
 {
-	// SGraphNodeKnot::UpdateGraphNode();
-
-	InputPins.Empty();
-	OutputPins.Empty();
-
-	// Reset variables that are going to be exposed, in case we are refreshing an already setup node.
-	RightNodeBox.Reset();
-	LeftNodeBox.Reset();
-
+	SGraphNodeKnot::UpdateGraphNode();
 	this->ContentScale.Bind( this, &SGraphNode::GetContentScale );
-	this->GetOrAddSlot( ENodeZone::Center )
+	this->GetOrAddSlot( ENodeZone::BottomCenter)
+		.SlotOffset(FVector2D{8.0, 16.0})
 		.HAlign(HAlign_Center)
-		.VAlign(VAlign_Center)
+		.VAlign(VAlign_Top)
 		[
 			SNew(SOverlay)
 			+SOverlay::Slot()
@@ -720,7 +713,7 @@ FSlateColor SGraphNodeMissionCondition::GetTransitionColor() const
 const FSlateBrush* SGraphNodeMissionCondition::GetTransitionIconImage() const
 {
 	UPDMissionGraphNode_ConditionNode* TransNode = CastChecked<UPDMissionGraphNode_ConditionNode>(GraphNode);
-	return FAppStyle::GetBrush("Graph.TransitionNode.Icon");
+	return FAppStyle::GetBrush("Graph.TransitionNode.Icon_Inertialization");
 }
 
 

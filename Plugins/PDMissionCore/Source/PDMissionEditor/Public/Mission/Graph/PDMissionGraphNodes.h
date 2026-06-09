@@ -231,7 +231,7 @@ public:
 	// virtual bool IsCompilerRelevant() const override { return false; }
 	// virtual UEdGraphPin* GetPassThroughPin(const UEdGraphPin* FromPin) const override;
 	virtual TSharedPtr<SGraphNode> CreateVisualWidget() override final;
-	virtual bool ShouldDrawNodeAsControlPointOnly(int32& Out_InputPinIndex, int32& Out_OutputPinIndex) const override { Out_InputPinIndex = 0; Out_OutputPinIndex = 1; return false; }
+	virtual bool ShouldDrawNodeAsControlPointOnly(int32& Out_InputPinIndex, int32& Out_OutputPinIndex) const override { Out_InputPinIndex = 0; Out_OutputPinIndex = 1; return true; }
 	// virtual bool CanCreateUnderSpecifiedSchema(const UEdGraphSchema* Schema) const override;
 	// virtual bool ShouldDrawNodeAsControlPointOnly(int32& Out_InputPinIndex, int32& Out_OutputPinIndex) const override { Out_InputPinIndex = 0; Out_OutputPinIndex = 1; return true; }
 	// virtual void GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override {}
