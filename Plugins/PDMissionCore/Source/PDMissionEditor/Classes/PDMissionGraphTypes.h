@@ -323,6 +323,7 @@ struct PDMISSIONEDITOR_API FPDAssociativeMissionEditingRow : public FTableRowBas
 
 /**
  *	@brief Static functions exposed to blueprint
+ *  @note Many of these pinname manipulations are unsafe due to no bounds checking. Use very responsibly and only when you know a branch pin exists
  */
 UCLASS(BlueprintType)
 class PDMISSIONEDITOR_API UPDMissionEditorStatics : public UObject

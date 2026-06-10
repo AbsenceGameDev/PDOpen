@@ -662,6 +662,58 @@ void SMissionGraphNode::SetOwner(const TSharedRef<SGraphPanel>& OwnerPanel)
 	}
 }
 
+
+
+TPair<FDetailsViewArgs, FStructureDetailsViewArgs> GetDetailsArgs()
+{
+	FDetailsViewArgs RetDetailsViewArgs;
+	RetDetailsViewArgs.bAllowSearch = false;
+	RetDetailsViewArgs.bHideSelectionTip = true;
+	RetDetailsViewArgs.bLockable = false;
+	RetDetailsViewArgs.bSearchInitialKeyFocus = false;
+	RetDetailsViewArgs.bUpdatesFromSelection = false;
+	RetDetailsViewArgs.bShowOptions = false;
+	RetDetailsViewArgs.bShowObjectLabel = false;
+
+	FStructureDetailsViewArgs RetStructureDetailsViewArgs;
+	RetStructureDetailsViewArgs.bShowObjects = false;
+	return TPair<FDetailsViewArgs, FStructureDetailsViewArgs>{RetDetailsViewArgs, RetStructureDetailsViewArgs};
+}
+
+
+FPDMissionRow* GetCurrentMission(FName MissionRowName)
+{
+
+	UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET"));
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	FPDMissionUtility* Utility = MissionSubsystem ? &MissionSubsystem->Utility : nullptr;
+	if (Utility)
+	{
+		const FDataTableRowHandle& MissionHandle = Utility->MissionLookupViaRowName.FindRef(MissionRowName);
+		if (MissionHandle.DataTable)
+		{
+			return MissionHandle.GetRow<FPDMissionRow>("");
+		}
+	}
+	return nullptr;
+}
+
+
+TSharedRef<SWidget> GenerateBranchElementContent(FPDMissionRow* MissionRow, int32 BranchIdx, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+{
+	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
+	if(MissionRow && MissionRow->ProgressRules.NextMissionBranch.Branches.IsValidIndex(BranchIdx))
+	{
+		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
+		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionTagCompound::StaticStruct(), (uint8*)&MissionRow->ProgressRules.NextMissionBranch.Branches[BranchIdx]);
+		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+		DetailsView = StructureDetailsView->GetWidget();
+	}
+	return DetailsView.ToSharedRef();
+}
+
+
 //
 // Mission transition condition node
 void SGraphNodeMissionCondition::Construct(const FArguments& InArgs, UPDMissionGraphNode_Knot* InNode)
@@ -670,6 +722,80 @@ void SGraphNodeMissionCondition::Construct(const FArguments& InArgs, UPDMissionG
 	this->UpdateGraphNode();
 }
 
+UPDMissionGraphNode* SGraphNodeMissionCondition::GetSourceNode(UEdGraphPin*& OutSourcePin) const
+{
+	if (InputPins.IsEmpty())
+	{
+		// TODO: create an actual log category for these slate widgets
+		UE_LOG(LogTemp, Error, TEXT("SGraphNodeMissionCondition::GetSourceNode - Nothing connected"))
+		return nullptr;
+	}
+
+	if (InputPins.IsEmpty())
+	{
+		// TODO: create an actual log category for these slate widgets
+		UE_LOG(LogTemp, Error, TEXT("SGraphNodeMissionCondition::GetSourceNode - Nothing connected"))
+		return nullptr;
+	}
+
+	UEdGraphPin* SourcePin = InputPins[0]->GetPinObj();
+	UPDMissionGraphNode* SourceNode = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(SourcePin, EEdGraphPinDirection::EGPD_Input);
+	SourceNode = SourceNode ? SourceNode : Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode());
+	if (false == UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(SourceNode) || SourcePin->LinkedTo.IsEmpty())
+	{
+		UE_LOG(LogTemp, Error, TEXT("SGraphNodeMissionCondition::GetSourceNode - No valid connected source mission"))
+		return nullptr;
+	}
+
+	OutSourcePin = SourcePin;
+	return SourceNode;	
+}
+bool SGraphNodeMissionCondition::IsEnabled() const
+{
+	UEdGraphPin* OutSourcePinDummy = nullptr;
+	return GetSourceNode(OutSourcePinDummy) != nullptr;
+}
+FReply SGraphNodeMissionCondition::OnClicked()
+{
+	UEdGraphPin* FinalSourcePin = nullptr;
+	UPDMissionGraphNode* SourceNode = GetSourceNode(FinalSourcePin);
+	if (nullptr == SourceNode)
+	{
+		return FReply::Unhandled();
+	}
+
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(FName(*SourceNode->GetMissionName()));
+	
+	FPDMissionRow* MissionRow = nullptr == RowHandlePtr ? nullptr : RowHandlePtr->GetRow<FPDMissionRow>(TEXT("SGraphNodeMissionCondition::OnClicked"));
+	if (nullptr == MissionRow)
+	{
+		UE_LOG(LogTemp, Error, TEXT("SGraphNodeMissionCondition::IsEnabled - No valid source mission row(%s)"), *SourceNode->GetMissionName())
+		return FReply::Unhandled();
+	}
+	
+	UEdGraphPin* SourceBranchPin = FinalSourcePin->LinkedTo[0];
+	const int32 BranchIdx = UPDMissionEditorStatics::NodeOp::GetBranchIdxFromPinName(SourceBranchPin);
+	if (false == MissionRow->ProgressRules.NextMissionBranch.Branches.IsValidIndex(BranchIdx))
+	{
+		UE_LOG(LogTemp, Error, TEXT("SGraphNodeMissionCondition::IsEnabled - No valid branch index(%i) at mission(%s)"), BranchIdx, *SourceNode->GetMissionName())
+		return FReply::Unhandled();
+	}
+
+
+	TSharedRef<SWidget> BranchElementAsPopup = GenerateBranchElementContent(MissionRow, BranchIdx, StructureDetailsView);
+	const FVector2D MousePosition = FSlateApplication::Get().GetCursorPos();
+	FSlateApplication::Get().PushMenu(
+		SharedThis(this), 
+		FWidgetPath(),
+		BranchElementAsPopup,
+		MousePosition,
+		FPopupTransitionEffect(FPopupTransitionEffect::ContextMenu)
+	);	
+
+
+	return FReply::Handled();
+}
 void SGraphNodeMissionCondition::UpdateGraphNode()
 {
 	SGraphNodeKnot::UpdateGraphNode();
@@ -688,8 +814,14 @@ void SGraphNodeMissionCondition::UpdateGraphNode()
 			]
 			+SOverlay::Slot()
 			[
-				SNew(SImage)
-				.Image( this, &SGraphNodeMissionCondition::GetTransitionIconImage )
+				SNew(SButton)
+				.IsEnabled_Raw(this, &SGraphNodeMissionCondition::IsEnabled)
+				.OnClicked_Raw(this, &SGraphNodeMissionCondition::OnClicked)
+				.Content()
+				[
+					SNew(SImage)
+					.Image( this, &SGraphNodeMissionCondition::GetTransitionIconImage )
+				]
 			]
 		];
 }
@@ -1259,41 +1391,7 @@ void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* In
 	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
 }
 
-	// /** @brief mission tag */	
-	
-	// /** @brief Mission rules, what are the conditions to finish the mission, what are it's sub-objectives, what is the branching possibilities, etc */
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
-	// FPDMissionRules ProgressRules{};
 
-
-TPair<FDetailsViewArgs, FStructureDetailsViewArgs> GetDetailsArgs()
-{
-	FDetailsViewArgs RetDetailsViewArgs;
-	RetDetailsViewArgs.bAllowSearch = false;
-	RetDetailsViewArgs.bHideSelectionTip = true;
-	RetDetailsViewArgs.bLockable = false;
-	RetDetailsViewArgs.bSearchInitialKeyFocus = false;
-	RetDetailsViewArgs.bUpdatesFromSelection = false;
-	RetDetailsViewArgs.bShowOptions = false;
-	RetDetailsViewArgs.bShowObjectLabel = false;
-
-	// Some other options, leaving here as a reference with their default values
-	// RetDetailsViewArgs.ColumnWidth = 6;
-	// RetDetailsViewArgs.RightColumnMinWidth = 22;
-	// RetDetailsViewArgs.bShowDifferingPropertiesOption = false;
-	// RetDetailsViewArgs.bCustomNameAreaLocation = false;
-	// RetDetailsViewArgs.bCustomFilterAreaLocation = false;
-	// RetDetailsViewArgs.bAllowFavoriteSystem = false;	
-	// RetDetailsViewArgs.bAllowMultipleTopLevelObjects = false;
-	// RetDetailsViewArgs.bForceHiddenPropertyVisibility = false;
-	// RetDetailsViewArgs.bShowCustomFilterOption = false;
-	// RetDetailsViewArgs.bShowSectionSelector = false;
-	// RetDetailsViewArgs.bShowScrollBar = true;
-
-	FStructureDetailsViewArgs RetStructureDetailsViewArgs;
-	RetStructureDetailsViewArgs.bShowObjects = false;
-	return TPair<FDetailsViewArgs, FStructureDetailsViewArgs>{RetDetailsViewArgs, RetStructureDetailsViewArgs};
-}
 
 template<typename TStructType>
 TSharedRef<SWidget> GenerateSettingsContent(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
@@ -1400,22 +1498,6 @@ TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBranch>(FPDMissionRow* Mis
 	return DetailsView.ToSharedRef();
 }
 
-FPDMissionRow* GetCurrentMission(FName MissionRowName)
-{
-
-	UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET"));
-	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
-	FPDMissionUtility* Utility = MissionSubsystem ? &MissionSubsystem->Utility : nullptr;
-	if (Utility)
-	{
-		const FDataTableRowHandle& MissionHandle = Utility->MissionLookupViaRowName.FindRef(MissionRowName);
-		if (MissionHandle.DataTable)
-		{
-			return MissionHandle.GetRow<FPDMissionRow>("");
-		}
-	}
-	return nullptr;
-}
 
 FPDMissionRow* SPDGenericInputWrapper::GetCurrentMissionRow(){return GetCurrentMission(MissionRowName);}
 TSharedRef<SWidget> SPDGenericInputWrapper::GenerateBaseSettingsContent(){return GenerateSettingsContent<FPDMissionBase>(GetCurrentMissionRow(), StructureDetailsView);}
@@ -1726,8 +1808,8 @@ TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget()
 		}
 		if (SubCategoryObject.Get() == MissionRulesStruct)
 		{
-			// return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionRules>(GetCurrentMission(MissionRowName), StructureDetailsView));
-			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionTagCompound>(GetCurrentMission(MissionRowName), StructureDetailsView));
+			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionRules>(GetCurrentMission(MissionRowName), StructureDetailsView));
+			// return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionTagCompound>(GetCurrentMission(MissionRowName), StructureDetailsView));
 		}
 		if (SubCategoryObject.Get() == MissionStateDataStruct)
 		{

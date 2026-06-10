@@ -105,7 +105,6 @@ struct PDMISSIONCORE_API FPDMissionTagCompound
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Mission|Datum")
 	TSet<FGameplayTag> OptionalUserTags{};
 
-private:
 	/** @brief Missing-tags that need to exist on the actor requesting this mission for it to be approved */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Datum", Meta = (AllowPrivateAccess="true"))
 	TSet<FGameplayTag> RequiredMissionTags{};	

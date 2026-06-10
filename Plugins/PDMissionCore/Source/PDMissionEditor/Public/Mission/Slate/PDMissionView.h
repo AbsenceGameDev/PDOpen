@@ -228,12 +228,18 @@ public:
 	virtual void UpdateGraphNode() override;
 	// End of SGraphNode interface
 
+	UPDMissionGraphNode* GetSourceNode(UEdGraphPin*& OutSourcePin) const;
+	bool IsEnabled() const;
+	FReply OnClicked();
+
+
 	static FLinearColor StaticGetTransitionColor(bool bIsHovered);
 
 private:
 	FSlateColor GetTransitionColor() const;
 	const FSlateBrush* GetTransitionIconImage() const;
 
+	TSharedPtr<class IStructureDetailsView> StructureDetailsView;	
 };
 
 class SGraphNodeMissionTransition : public SGraphNode // Wrote this ages ago, I might just trash and rewrite, 

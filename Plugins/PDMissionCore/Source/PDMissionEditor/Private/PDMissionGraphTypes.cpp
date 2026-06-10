@@ -79,6 +79,7 @@ UPDMissionGraphNode* UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot
 			if (KnotSourceAsMissionNode && nullptr == KnotSourceAsKnot)
 			{
 				ResolvedNode = KnotSourceAsMissionNode;
+				PinOnPotentialKnot = KnotInPin; 
 				KnotInPin = nullptr;
 			}
 			else if (KnotSourceAsKnot)
@@ -508,8 +509,8 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 {
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
 
-	UEdGraphPin* SourcePin = Params.AssociatedPin1; // ex: Node
-	UEdGraphPin* TargetPin = Params.AssociatedPin2; // ex: Knot
+	UEdGraphPin* SourcePin = Params.AssociatedPin1; 
+	UEdGraphPin* TargetPin = Params.AssociatedPin2; 
 	if (SourcePin && TargetPin)
 	{
 
