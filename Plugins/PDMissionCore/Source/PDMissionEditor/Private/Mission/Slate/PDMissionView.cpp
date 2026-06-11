@@ -706,7 +706,7 @@ TSharedRef<SWidget> GenerateBranchElementContent(FPDMissionRow* MissionRow, int3
 	{
 		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
 		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionTagCompound::StaticStruct(), (uint8*)&MissionRow->ProgressRules.NextMissionBranch.Branches[BranchIdx]);
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionTagCompound::StaticStruct(), (uint8*)&MissionRow->ProgressRules.NextMissionBranch.Branches[BranchIdx].BranchConditions);
 		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
 		DetailsView = StructureDetailsView->GetWidget();
 	}
@@ -782,16 +782,27 @@ FReply SGraphNodeMissionCondition::OnClicked()
 		return FReply::Unhandled();
 	}
 
-
 	TSharedRef<SWidget> BranchElementAsPopup = GenerateBranchElementContent(MissionRow, BranchIdx, StructureDetailsView);
 	const FVector2D MousePosition = FSlateApplication::Get().GetCursorPos();
-	FSlateApplication::Get().PushMenu(
-		SharedThis(this), 
-		FWidgetPath(),
+
+	FWidgetPath CondWidgetPath;
+	FSlateApplication::Get().GeneratePathToWidgetUnchecked(this->GetSlot(ENodeZone::BottomCenter)->GetWidget(), CondWidgetPath);
+
+	CondPopup = FSlateApplication::Get().PushMenu(
+		FSlateApplication::Get().GetActiveTopLevelWindow().ToSharedRef(),
+		CondWidgetPath,
 		BranchElementAsPopup,
 		MousePosition,
-		FPopupTransitionEffect(FPopupTransitionEffect::ContextMenu)
-	);	
+		FPopupTransitionEffect(FPopupTransitionEffect::None),
+		true,
+		FVector2D(0.f,0.f),
+		EPopupMethod::CreateNewWindow,
+		false);
+    
+	CondPopup->GetOnMenuDismissed().AddLambda([this](TSharedRef<IMenu> DismissedMenu) 
+	{
+		CondPopup.Reset();
+	});
 
 
 	return FReply::Handled();
@@ -838,13 +849,13 @@ FLinearColor SGraphNodeMissionCondition::StaticGetTransitionColor(bool bIsHovere
 FSlateColor SGraphNodeMissionCondition::GetTransitionColor() const
 {	
 	// Highlight the transition node when the node is hovered or when the previous state is hovered
-	UPDMissionGraphNode_ConditionNode* TransNode = CastChecked<UPDMissionGraphNode_ConditionNode>(GraphNode);
+	UPDMissionGraphNode_ConditionNode* TransNode = CastChecked<UPDMissionGraphNode_ConditionNode>(GraphNode); // Reserved for later potential use, kept as a reminder
 	return StaticGetTransitionColor(IsHovered());
 }
 
 const FSlateBrush* SGraphNodeMissionCondition::GetTransitionIconImage() const
 {
-	UPDMissionGraphNode_ConditionNode* TransNode = CastChecked<UPDMissionGraphNode_ConditionNode>(GraphNode);
+	UPDMissionGraphNode_ConditionNode* TransNode = CastChecked<UPDMissionGraphNode_ConditionNode>(GraphNode); // Reserved for later potential use, kept as a reminder
 	return FAppStyle::GetBrush("Graph.TransitionNode.Icon_Inertialization");
 }
 

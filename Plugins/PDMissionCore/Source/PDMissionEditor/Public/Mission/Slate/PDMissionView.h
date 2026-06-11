@@ -232,7 +232,8 @@ public:
 	bool IsEnabled() const;
 	FReply OnClicked();
 
-
+	TSharedPtr<class IMenu> CondPopup;
+	
 	static FLinearColor StaticGetTransitionColor(bool bIsHovered);
 
 private:
