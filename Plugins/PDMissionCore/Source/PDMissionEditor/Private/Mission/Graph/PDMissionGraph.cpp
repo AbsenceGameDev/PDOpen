@@ -31,6 +31,9 @@ void UPDMissionGraph::UpdateData(int32 UpdateFlags)
 {
 	if (bHaltRefresh) { return; }
 
+
+	UPDMissionEditorSubsystem::Get()->SpawnConditionNodes();
+
 	// Fix up the parent node pointers (which are marked transient for some reason)
 	for (UEdGraphNode* Node : Nodes)
 	{

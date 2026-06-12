@@ -5,6 +5,7 @@
 
 #include "Mission/FPDMissionEditor.h"
 #include "Mission/Graph/PDMissionGraphNodes.h"
+#include "Mission/Graph/PDMissionGraphNodes.h"
 #include "Mission/Slate/PDMissionView.h"
 #include "Subsystems/PDMissionSubsystem.h"
 #include "Subsystems/PDMissionUtility.h"
@@ -83,6 +84,25 @@ bool FindConditionNode(UEdGraphPin*& SourcePin, const bool bStartAsInputPin)
 		}
 	}
 	return false;
+}
+
+
+UPDMissionGraphNode* UPDMissionEditorStatics::NodeOp::ResolveNextNode(const UEdGraphPin* PinOnPotentialKnot)
+{
+	UEdGraphPin* InPin = PinOnPotentialKnot->LinkedTo.IsEmpty() ? nullptr : PinOnPotentialKnot->LinkedTo[0];
+	if  (nullptr == InPin)
+	{
+		return nullptr;
+	}
+
+		
+	UPDMissionGraphNode* KnotSourceAsMissionNode = Cast<UPDMissionGraphNode>(InPin->GetOwningNode());
+	if (KnotSourceAsMissionNode)
+	{
+		return KnotSourceAsMissionNode;
+	}
+
+	return nullptr;
 }
 
 
@@ -592,8 +612,16 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 			const bool bNodePathHasCondition = UPDMissionEditorStatics::NodeOp::DoesNodePathContainConditionNode(SourcePin, EEdGraphPinDirection::EGPD_Output);
 			if (false == bNodePathHasCondition)
 			{
-				// TODO: Spawn new node here or mark new node for spawning
-
+				FPDPendingConditionNode NodeSpawnData;
+				NodeSpawnData.SourceNode = SourceMissionNode;
+				NodeSpawnData.SourceBranchPinIdx = Params.AssociatedPin1->GetOwningNode()->Pins.IndexOfByPredicate([Params](const UEdGraphPin*PinElem) -> bool {return PinElem == Params.AssociatedPin1;});
+				NodeSpawnData.TargetNode =  UPDMissionEditorStatics::NodeOp::ResolveNextNode(Params.AssociatedPin1);
+				NodeSpawnData.TargetGraph = SourceMissionNode->GetGraph();
+				NodeSpawnData.SpawnLocation = 
+				FVector2D{static_cast<double>(NodeSpawnData.TargetNode->NodePosX),static_cast<double>(NodeSpawnData.TargetNode->NodePosY)}
+					- FVector2D{static_cast<double>(SourceMissionNode->NodePosX), static_cast<double>(SourceMissionNode->NodePosY)} 
+					;
+				UPDMissionEditorSubsystem::Get()->QueueConditionNode(NodeSpawnData);
 			}
 
 
@@ -830,6 +858,67 @@ void FAssetTypeActions_MissionEditor::OpenInDefaults(UDataTable* OldBank, UDataT
 	FAssetToolsModule& AssetToolsModule = FModuleManager::Get().LoadModuleChecked<FAssetToolsModule>("AssetTools");
 	// AssetToolsModule.Get().CreateDiffProcess(DiffCommand, OldTextFilename, NewTextFilename); // @todo
 }
+
+UPDMissionEditorSubsystem* UPDMissionEditorSubsystem::Get()
+{
+	return GEngine->GetEngineSubsystem<UPDMissionEditorSubsystem>();
+}
+
+
+// TODO: Move this logic into the plugins editor module, forgot I was in the plugins game module
+void UPDMissionEditorSubsystem::QueueConditionNode(const FPDPendingConditionNode& PendingConditionNode)
+{
+	check(PendingConditionNode.SourceNode.IsValid())
+
+	// TODO/NOTE: If I run into any threading errors then add a RWLock for the queue
+	PendingNodesToCreate.Emplace(PendingConditionNode.SourceNode.Get(), PendingConditionNode);
+}
+void UPDMissionEditorSubsystem::SpawnConditionNodes()
+{
+	for (const auto&[Key, PendingConditionNode] : PendingNodesToCreate)
+	{
+		const FScopedTransaction Transaction(FText::FromString("Auto Insert Node from Wire State"));
+		PendingConditionNode.TargetGraph->Modify();		
+
+		UPDMissionGraphNode_ConditionNode* NewConditionNode = NewObject<UPDMissionGraphNode_ConditionNode>(PendingConditionNode.TargetGraph);
+		NewConditionNode->CreateNewGuid();
+
+
+		NewConditionNode->NodePosX = PendingConditionNode.SpawnLocation.X;
+		NewConditionNode->NodePosY = PendingConditionNode.SpawnLocation.Y;
+		PendingConditionNode.TargetGraph->AddNode(NewConditionNode, true, true);
+		NewConditionNode->PostPlacedNewNode();
+		NewConditionNode->AllocateDefaultPins();
+
+
+		UPDMissionGraphNode* SourceNode = Cast<UPDMissionGraphNode>(PendingConditionNode.SourceNode);
+		if (SourceNode && SourceNode->Pins.IsValidIndex(PendingConditionNode.SourceBranchPinIdx))
+		{
+			NewConditionNode->GetInputPin()->MakeLinkTo(SourceNode->Pins[PendingConditionNode.SourceBranchPinIdx]);
+		}
+
+
+		UPDMissionGraphNode* TargetNode = Cast<UPDMissionGraphNode>(PendingConditionNode.TargetNode);
+		UPDMissionGraphNode* TargetNodeAsKnot = Cast<UPDMissionGraphNode_Knot>(PendingConditionNode.TargetNode);
+		if(TargetNode && nullptr == TargetNodeAsKnot && TargetNode->Pins.IsValidIndex(1))
+		{
+			// TODO: For reference, I need to actually search for the logical path and pick that pin, whichever it is. Doing it next commit
+			TargetNode->Pins[1]->BreakAllPinLinks(); 
+			NewConditionNode->GetOutputPin()->MakeLinkTo(TargetNode->Pins[1]);
+		}
+		else if (TargetNodeAsKnot)
+		{
+			TargetNodeAsKnot->GetInputPin()->BreakAllPinLinks();
+			NewConditionNode->GetOutputPin()->MakeLinkTo(TargetNodeAsKnot->GetInputPin());
+		}
+
+		// TODO: Connect to neighbours 
+
+		PendingConditionNode.TargetGraph->NotifyGraphChanged();		
+	}
+	PendingNodesToCreate.Empty();
+}
+
 
 #undef LOCTEXT_NAMESPACE
 

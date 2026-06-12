@@ -405,6 +405,7 @@ public:
 			return DirPinIdx;
 		}
 		
+		static PDMISSIONEDITOR_API class UPDMissionGraphNode* ResolveNextNode(const UEdGraphPin* PinOnPotentialKnot);
 		static PDMISSIONEDITOR_API class UPDMissionGraphNode* ResolveMissionNodeFromKnot(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir);
 		static PDMISSIONEDITOR_API bool DoesNodePathContainConditionNode(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir);
 		static PDMISSIONEDITOR_API bool IsRowBasedMissionNode(UEdGraphNode* Node);
@@ -452,6 +453,51 @@ public:
 	};
 };
 
+
+
+
+/**
+ * @brief 
+ * @todo move to new file
+ */
+struct PDMISSIONEDITOR_API FPDPendingConditionNode
+{
+	UPROPERTY()
+	UEdGraph* TargetGraph = nullptr;
+	UPROPERTY()
+	FVector2D SpawnLocation = {};
+
+	UPROPERTY()
+	TWeakObjectPtr<UEdGraphNode> SourceNode = nullptr;
+	UPROPERTY()
+	int32 SourceBranchPinIdx = INDEX_NONE;
+	UPROPERTY()
+	TWeakObjectPtr<UEdGraphNode> TargetNode = nullptr;
+};
+
+
+/**
+ * @brief 
+ * @todo move to new file
+ */
+UCLASS(Blueprintable)
+class PDMISSIONEDITOR_API UPDMissionEditorSubsystem : public UEngineSubsystem
+{
+	GENERATED_BODY()
+public:
+
+	static UPDMissionEditorSubsystem* Get();
+
+	
+	void QueueConditionNode(const FPDPendingConditionNode& PendingConditionNode);
+	void SpawnConditionNodes();	
+
+private:
+	// TQueue<FPDPendingConditionNode> PendingNodesToCreate;
+	TMap<UEdGraphNode*, FPDPendingConditionNode> PendingNodesToCreate;
+
+
+};
 
 
 
