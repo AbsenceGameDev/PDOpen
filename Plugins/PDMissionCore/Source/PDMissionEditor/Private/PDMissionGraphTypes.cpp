@@ -58,6 +58,34 @@ const FText FPDMissionGraphTypes::NodeText_EventMission(LOCTEXT("Missions","Even
 
 
 
+bool FindConditionNode(UEdGraphPin*& SourcePin, const bool bStartAsInputPin)
+{
+	for (;nullptr != SourcePin;)
+	{
+		if (SourcePin->LinkedTo.IsEmpty())
+		{
+			return false;
+		}
+		UPDMissionGraphNode* KnotSourceAsMissionNode = Cast<UPDMissionGraphNode>(SourcePin->LinkedTo[0]->GetOwningNode());
+		UPDMissionGraphNode_Knot* KnotSourceAsKnot = Cast<UPDMissionGraphNode_Knot>(KnotSourceAsMissionNode);
+		UPDMissionGraphNode_ConditionNode* KnotSourceAsCondition = Cast<UPDMissionGraphNode_ConditionNode>(KnotSourceAsMissionNode);
+		if (KnotSourceAsKnot)
+		{
+			SourcePin = bStartAsInputPin ? KnotSourceAsKnot->GetInputPin() : KnotSourceAsKnot->GetOutputPin();
+		}
+		else if (KnotSourceAsCondition)
+		{
+			return true;
+		}
+		else 
+		{
+			return false;
+		}
+	}
+	return false;
+}
+
+
 UPDMissionGraphNode* UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(UEdGraphPin* PinOnPotentialKnot, const EEdGraphPinDirection PinDir)
 {
 	const bool bStartAsInputPin = PinDir == EEdGraphPinDirection::EGPD_Input;
@@ -65,32 +93,55 @@ UPDMissionGraphNode* UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot
 	UPDMissionGraphNode* ResolvedNode = nullptr;
 	if (UPDMissionGraphNode_Knot* TopLevelNodeAsKnot = Cast<UPDMissionGraphNode_Knot>(PinOnPotentialKnot->GetOwningNode()))
 	{
-		UEdGraphPin* KnotInPin = bStartAsInputPin ? TopLevelNodeAsKnot->GetInputPin() : TopLevelNodeAsKnot->GetOutputPin();
-		for (; nullptr != KnotInPin;)
+		UEdGraphPin* InPin_Knot = bStartAsInputPin ? TopLevelNodeAsKnot->GetInputPin() : TopLevelNodeAsKnot->GetOutputPin();
+		for (; nullptr != InPin_Knot;)
 		{
-			if (KnotInPin->LinkedTo.IsEmpty())
+			if (InPin_Knot->LinkedTo.IsEmpty())
 			{
-				KnotInPin = nullptr;
+				InPin_Knot = nullptr;
 				break;
 			}
 			
-			UPDMissionGraphNode* KnotSourceAsMissionNode = Cast<UPDMissionGraphNode>(KnotInPin->LinkedTo[0]->GetOwningNode());
+			UPDMissionGraphNode* KnotSourceAsMissionNode = Cast<UPDMissionGraphNode>(InPin_Knot->LinkedTo[0]->GetOwningNode());
 			UPDMissionGraphNode_Knot* KnotSourceAsKnot = Cast<UPDMissionGraphNode_Knot>(KnotSourceAsMissionNode);
 			if (KnotSourceAsMissionNode && nullptr == KnotSourceAsKnot)
 			{
 				ResolvedNode = KnotSourceAsMissionNode;
-				PinOnPotentialKnot = KnotInPin; 
-				KnotInPin = nullptr;
+				PinOnPotentialKnot = InPin_Knot; 
+				InPin_Knot = nullptr;
 			}
 			else if (KnotSourceAsKnot)
 			{
-				KnotInPin = bStartAsInputPin ? KnotSourceAsKnot->GetInputPin() : KnotSourceAsKnot->GetOutputPin();
+				InPin_Knot = bStartAsInputPin ? KnotSourceAsKnot->GetInputPin() : KnotSourceAsKnot->GetOutputPin();
 			}
 		}
 	}
 
 	return ResolvedNode;
 }
+
+bool UPDMissionEditorStatics::NodeOp::DoesNodePathContainConditionNode(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir)
+{
+	if (UPDMissionGraphNode_ConditionNode* TopLevelNodeAsCondition = Cast<UPDMissionGraphNode_ConditionNode>(SourcePin->GetOwningNode()))
+	{
+		return true;
+	}
+
+	const bool bStartAsInputPin = PinDir == EEdGraphPinDirection::EGPD_Input;
+	if(UPDMissionGraphNode_Knot* TopLevelNodeAsKnot = Cast<UPDMissionGraphNode_Knot>(SourcePin->GetOwningNode()))
+	{
+		UEdGraphPin* InPin_Knot = bStartAsInputPin ? TopLevelNodeAsKnot->GetInputPin() : TopLevelNodeAsKnot->GetOutputPin();
+		return FindConditionNode(InPin_Knot, bStartAsInputPin);
+	}
+	else if(UPDMissionGraphNode* TopLevelNodeAsMission = Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode()))
+	{
+		UEdGraphPin* InPin = SourcePin;
+		return FindConditionNode(InPin, bStartAsInputPin);
+	}
+		
+	return false;
+}
+
 
 bool UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(UEdGraphNode* Node)
 {
@@ -505,6 +556,7 @@ void FPDMissionGraphConnectionDrawingPolicy::Draw(TMap<TSharedRef<SWidget>, FArr
 	FConnectionDrawingPolicy::Draw(InPinGeometries, ArrangedNodes);
 }
 
+// I am pretty certain this always parses 'left' to 'right' in the graph, and it would probably break if it read any other way, source pin would break, good to keep in mind if epic ever changes the graph parsing logic. Also consider rewriting
 void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const FVector2D& Start, const FVector2D& End, const FConnectionParams& Params)
 {
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
@@ -536,6 +588,14 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 				UE_LOG(LogTemp, Error, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection - Could not find valid output pin index for the source node"))
 				return;
 			}
+			
+			const bool bNodePathHasCondition = UPDMissionEditorStatics::NodeOp::DoesNodePathContainConditionNode(SourcePin, EEdGraphPinDirection::EGPD_Output);
+			if (false == bNodePathHasCondition)
+			{
+				// TODO: Spawn new node here or mark new node for spawning
+
+			}
+
 
 			SourcePin->PinName = FName(*UPDMissionEditorStatics::NodeOp::BuildPinName(OutPinIdx, TargetMissionNode->GetMissionName()));
 			UPDMissionEditorStatics::RowOp::SetValuesOnBranchTargetAtIndex(SourceMissionNode->SelectedMissionRowName, OutPinIdx, TargetMissionNode->SelectedMissionRowName, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection"));

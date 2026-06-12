@@ -406,6 +406,7 @@ public:
 		}
 		
 		static PDMISSIONEDITOR_API class UPDMissionGraphNode* ResolveMissionNodeFromKnot(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir);
+		static PDMISSIONEDITOR_API bool DoesNodePathContainConditionNode(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir);
 		static PDMISSIONEDITOR_API bool IsRowBasedMissionNode(UEdGraphNode* Node);
 	};
 
