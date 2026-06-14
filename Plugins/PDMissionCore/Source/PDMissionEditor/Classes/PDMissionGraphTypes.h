@@ -431,7 +431,16 @@ public:
 			{
 				MissionRowPtr->ProgressRules.NextMissionBranch.Branches[UpdateIdx] = NewValue;
 			}
-		}		
+		}
+		static FORCEINLINE const FPDMissionBranchElement& GetBranch(FPDMissionRow* MissionRowPtr,  int32 BranchIdx)
+		{
+			static const FPDMissionBranchElement Dummy{};
+			if (MissionRowPtr && MissionRowPtr->ProgressRules.NextMissionBranch.Branches.IsValidIndex(BranchIdx)) 
+			{
+				return MissionRowPtr->ProgressRules.NextMissionBranch.Branches[BranchIdx];
+			}
+			return Dummy;
+		}
 
 		static FORCEINLINE void AddBranch(FDataTableRowHandle* RowHandlePtr, const FString Ctxt = TEXT(""))
 		{
@@ -445,7 +454,10 @@ public:
 		{
 			UpdateBranch(RowHandlePtr->GetRow<FPDMissionRow>(Ctxt), UpdateIdx, NewValue);
 		}
-
+		static FORCEINLINE const FPDMissionBranchElement& GetBranch(FDataTableRowHandle* RowHandlePtr, int32 BranchIdx, const FString Ctxt = TEXT(""))
+		{
+			return GetBranch(RowHandlePtr->GetRow<FPDMissionRow>(Ctxt), BranchIdx);
+		}
 		static PDMISSIONEDITOR_API bool IsMissionValid(const FName& SelectedMissionRowName, FDataTableRowHandle*& OutRowHandlePtr);
 		static PDMISSIONEDITOR_API void SetValuesOnBranchTargetAtIndex(const FName& SourceMissionRowName, int32 BranchIdx, const FName& BranchTargetMissionName, const FString Ctxt = TEXT(""));
 

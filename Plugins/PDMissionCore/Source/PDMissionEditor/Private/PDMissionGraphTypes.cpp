@@ -65,24 +65,29 @@ bool FindConditionNode(UEdGraphPin*& SourcePin, const bool bStartAsInputPin)
 	{
 		if (SourcePin->LinkedTo.IsEmpty())
 		{
+			// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - No linked pins anymore  "))
 			return false;
 		}
 		UPDMissionGraphNode* KnotSourceAsMissionNode = Cast<UPDMissionGraphNode>(SourcePin->LinkedTo[0]->GetOwningNode());
 		UPDMissionGraphNode_Knot* KnotSourceAsKnot = Cast<UPDMissionGraphNode_Knot>(KnotSourceAsMissionNode);
 		UPDMissionGraphNode_ConditionNode* KnotSourceAsCondition = Cast<UPDMissionGraphNode_ConditionNode>(KnotSourceAsMissionNode);
-		if (KnotSourceAsKnot)
+		if (KnotSourceAsKnot && nullptr == KnotSourceAsCondition)
 		{
+			// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - Found knot, keep searching path  "))
 			SourcePin = bStartAsInputPin ? KnotSourceAsKnot->GetInputPin() : KnotSourceAsKnot->GetOutputPin();
 		}
 		else if (KnotSourceAsCondition)
 		{
+			// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - Found Condition, SUCCESS"))
 			return true;
 		}
 		else 
 		{
+			// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - Found Mission, FAIL"))
 			return false;
 		}
 	}
+	// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - No valid starting pin, FAIL"))
 	return false;
 }
 
@@ -142,23 +147,30 @@ UPDMissionGraphNode* UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot
 
 bool UPDMissionEditorStatics::NodeOp::DoesNodePathContainConditionNode(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir)
 {
+	// UE_LOG(LogTemp, Warning, TEXT("=========================CONDTEST========================="))
+	// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - SourcePin(%s)"), *SourcePin->PinName.ToString())
+	// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - PinDir(%s)"), PinDir == EEdGraphPinDirection::EGPD_Input ? *FString(TEXT("Input")) : *FString(TEXT("Output")) )
 	if (UPDMissionGraphNode_ConditionNode* TopLevelNodeAsCondition = Cast<UPDMissionGraphNode_ConditionNode>(SourcePin->GetOwningNode()))
 	{
+		// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - Top level node is cond - SUCCESS"))
 		return true;
 	}
 
 	const bool bStartAsInputPin = PinDir == EEdGraphPinDirection::EGPD_Input;
 	if(UPDMissionGraphNode_Knot* TopLevelNodeAsKnot = Cast<UPDMissionGraphNode_Knot>(SourcePin->GetOwningNode()))
 	{
+		// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - Case: Top Level as Knot "))
 		UEdGraphPin* InPin_Knot = bStartAsInputPin ? TopLevelNodeAsKnot->GetInputPin() : TopLevelNodeAsKnot->GetOutputPin();
 		return FindConditionNode(InPin_Knot, bStartAsInputPin);
 	}
 	else if(UPDMissionGraphNode* TopLevelNodeAsMission = Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode()))
 	{
+		// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - Case: Top Level as Mission "))
 		UEdGraphPin* InPin = SourcePin;
 		return FindConditionNode(InPin, bStartAsInputPin);
 	}
 		
+	// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - No node in line is cond - FAIL"))
 	return false;
 }
 
@@ -177,17 +189,18 @@ bool UPDMissionEditorStatics::RowOp::IsMissionValid(const FName& SelectedMission
 void UPDMissionEditorStatics::RowOp::SetValuesOnBranchTargetAtIndex(const FName& SourceMissionRowName, int32 BranchIdx, const FName& BranchTargetMissionName, const FString Ctxt)
 {
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
-	FPDMissionBranchElement NewTargetBranchElem;
-	NewTargetBranchElem.Target;
+	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(SourceMissionRowName);
+	FPDMissionBranchElement UpdatedBranchElement = GetBranch(RowHandlePtr, BranchIdx, Ctxt);
+
 	// BranchElem.bIsDirectBranch; // TODO handle this visually somehow, need to think about how though
 	// BranchElem.BranchConditions; // TODO handle this visually somehow, need to think about how though
+	// BranchElem.TargetBehaviour; // TODO handle this visually somehow, need to think about how though
 	if (FDataTableRowHandle* TargetRowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(BranchTargetMissionName))
 	{
-		NewTargetBranchElem.Target = *TargetRowHandlePtr;
+		UpdatedBranchElement.Target = *TargetRowHandlePtr;
 	}
-	// BranchElem.TargetBehaviour; // TODO handle this visually somehow, need to think about how though
-	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(SourceMissionRowName);
-	UpdateBranch(RowHandlePtr, BranchIdx, NewTargetBranchElem, Ctxt);
+
+	UpdateBranch(RowHandlePtr, BranchIdx, UpdatedBranchElement, Ctxt);
 }
 
 
@@ -576,22 +589,21 @@ void FPDMissionGraphConnectionDrawingPolicy::Draw(TMap<TSharedRef<SWidget>, FArr
 	FConnectionDrawingPolicy::Draw(InPinGeometries, ArrangedNodes);
 }
 
-// I am pretty certain this always parses 'left' to 'right' in the graph, and it would probably break if it read any other way, source pin would break, good to keep in mind if epic ever changes the graph parsing logic. Also consider rewriting
+// NEW NOTE 0: Sometimes we fail to generate a new branch it seems like, not sure why it happens and as it happens sporadically have been hard to debug but seems like it could be a datarace, 
+// 		TODO: Remember to set up the the RW lock on modfying the branch data
+// NEW NOTE 1: This does in fact not only iterate one direction, but I've blocked off my custom logic unless source is made from a valid mission row type
+// OLD NOTE: I am pretty certain this always parses 'left' to 'right' in the graph, and it would probably break if it read any other way, source pin would break, good to keep in mind if epic ever changes the graph parsing logic. Also consider rewriting
 void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const FVector2D& Start, const FVector2D& End, const FConnectionParams& Params)
 {
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
 
+	// TODO In the middle or remaking this, but need to push and commit as I need to head out
 	UEdGraphPin* SourcePin = Params.AssociatedPin1; 
-	UEdGraphPin* TargetPin = Params.AssociatedPin2; 
-	if (SourcePin && TargetPin)
+	UEdGraphPin* TargetPin = Params.AssociatedPin2;
+	 
+	if (SourcePin && TargetPin && UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode())))
 	{
-
-		// TODO Handle/resolve from/to knots 
-		UPDMissionGraphNode* SourceMissionNode = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(SourcePin, EEdGraphPinDirection::EGPD_Input);
-		if (nullptr == SourceMissionNode)
-		{
-			SourceMissionNode = Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode());
-		}
+		UPDMissionGraphNode* SourceMissionNode = Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode());
 
 		UPDMissionGraphNode* TargetMissionNode = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(TargetPin, EEdGraphPinDirection::EGPD_Output);
 		if (nullptr == TargetMissionNode)
@@ -605,7 +617,6 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 			const int32 OutPinIdx = UPDMissionEditorStatics::NodeOp::FindDirectionIndex(SourcePin, SourceMissionNode->Pins, EEdGraphPinDirection::EGPD_Output);
 			if (INDEX_NONE == OutPinIdx)
 			{
-				UE_LOG(LogTemp, Error, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection - Could not find valid output pin index for the source node"))
 				return;
 			}
 			
@@ -619,11 +630,9 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 				NodeSpawnData.TargetGraph = SourceMissionNode->GetGraph();
 				NodeSpawnData.SpawnLocation = 
 				FVector2D{static_cast<double>(NodeSpawnData.TargetNode->NodePosX),static_cast<double>(NodeSpawnData.TargetNode->NodePosY)}
-					- FVector2D{static_cast<double>(SourceMissionNode->NodePosX), static_cast<double>(SourceMissionNode->NodePosY)} 
-					;
+					- FVector2D{static_cast<double>(SourceMissionNode->NodePosX), static_cast<double>(SourceMissionNode->NodePosY)} ;
 				UPDMissionEditorSubsystem::Get()->QueueConditionNode(NodeSpawnData);
 			}
-
 
 			SourcePin->PinName = FName(*UPDMissionEditorStatics::NodeOp::BuildPinName(OutPinIdx, TargetMissionNode->GetMissionName()));
 			UPDMissionEditorStatics::RowOp::SetValuesOnBranchTargetAtIndex(SourceMissionNode->SelectedMissionRowName, OutPinIdx, TargetMissionNode->SelectedMissionRowName, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection"));
@@ -900,11 +909,24 @@ void UPDMissionEditorSubsystem::SpawnConditionNodes()
 
 		UPDMissionGraphNode* TargetNode = Cast<UPDMissionGraphNode>(PendingConditionNode.TargetNode);
 		UPDMissionGraphNode* TargetNodeAsKnot = Cast<UPDMissionGraphNode_Knot>(PendingConditionNode.TargetNode);
-		if(TargetNode && nullptr == TargetNodeAsKnot && TargetNode->Pins.IsValidIndex(1))
+		if(TargetNode && nullptr == TargetNodeAsKnot)
 		{
-			// TODO: For reference, I need to actually search for the logical path and pick that pin, whichever it is. Doing it next commit
-			TargetNode->Pins[1]->BreakAllPinLinks(); 
-			NewConditionNode->GetOutputPin()->MakeLinkTo(TargetNode->Pins[1]);
+			UEdGraphPin** TargetPin = TargetNode->Pins.FindByPredicate([](const UEdGraphPin* PinElem)
+			{ 
+				return
+					PinElem->Direction == EEdGraphPinDirection::EGPD_Input
+					&& PinElem->PinType.PinCategory == FPDMissionGraphTypes::PinCategory_LogicalPath;
+			});
+
+			if (TargetPin && *TargetPin)
+			{
+				(*TargetPin)->BreakAllPinLinks(); 
+				NewConditionNode->GetOutputPin()->MakeLinkTo(TargetNode->Pins[1]);
+			}
+			else 
+			{
+				UE_LOG(LogTemp, Error, TEXT("UPDMissionEditorSubsystem::SpawnConditionNodes - Could not find valid traget pin to connect to"))
+			}
 		}
 		else if (TargetNodeAsKnot)
 		{
