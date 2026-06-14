@@ -628,9 +628,15 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 				NodeSpawnData.SourceBranchPinIdx = Params.AssociatedPin1->GetOwningNode()->Pins.IndexOfByPredicate([Params](const UEdGraphPin*PinElem) -> bool {return PinElem == Params.AssociatedPin1;});
 				NodeSpawnData.TargetNode =  UPDMissionEditorStatics::NodeOp::ResolveNextNode(Params.AssociatedPin1);
 				NodeSpawnData.TargetGraph = SourceMissionNode->GetGraph();
-				NodeSpawnData.SpawnLocation = 
-				FVector2D{static_cast<double>(NodeSpawnData.TargetNode->NodePosX),static_cast<double>(NodeSpawnData.TargetNode->NodePosY)}
-					- FVector2D{static_cast<double>(SourceMissionNode->NodePosX), static_cast<double>(SourceMissionNode->NodePosY)} ;
+
+				constexpr int32 NodeOffsetLarge = 512 + 256;
+				constexpr int32 NodeOffsetSmall = 32;
+				constexpr int32 BranchOffsetMultiplier = 3;
+				const int32 NodeOffsetY = NodeOffsetSmall + (NodeOffsetSmall * BranchOffsetMultiplier * OutPinIdx);
+				const int32 NewNodePostionX = SourceMissionNode->NodePosX + (SourceMissionNode->NodeWidth == 0 ? NodeOffsetLarge : SourceMissionNode->NodeWidth + NodeOffsetSmall);
+				const int32 NewNodePostionY = SourceMissionNode->NodePosY + NodeOffsetY;
+				
+				NodeSpawnData.SpawnLocation = FIntVector2{NewNodePostionX, NewNodePostionY};
 				UPDMissionEditorSubsystem::Get()->QueueConditionNode(NodeSpawnData);
 			}
 

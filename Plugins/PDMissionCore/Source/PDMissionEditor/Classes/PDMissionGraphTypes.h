@@ -476,8 +476,7 @@ struct PDMISSIONEDITOR_API FPDPendingConditionNode
 {
 	UPROPERTY()
 	UEdGraph* TargetGraph = nullptr;
-	UPROPERTY()
-	FVector2D SpawnLocation = {};
+	FIntVector2 SpawnLocation = {};
 
 	UPROPERTY()
 	TWeakObjectPtr<UEdGraphNode> SourceNode = nullptr;
