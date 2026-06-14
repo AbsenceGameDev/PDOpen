@@ -798,9 +798,10 @@ FReply SGraphNodeMissionCondition::OnClicked()
 		FVector2D(0.f,0.f),
 		EPopupMethod::CreateNewWindow,
 		false);
-    
+    bOpenedNode = true;
 	CondPopup->GetOnMenuDismissed().AddLambda([this](TSharedRef<IMenu> DismissedMenu) 
 	{
+	    bOpenedNode = false;
 		CondPopup.Reset();
 	});
 
@@ -813,6 +814,7 @@ void SGraphNodeMissionCondition::UpdateGraphNode()
 	this->ContentScale.Bind( this, &SGraphNode::GetContentScale );
 	this->GetOrAddSlot( ENodeZone::BottomCenter)
 		.SlotOffset(FVector2D{8.0, 16.0})
+		.SlotSize(FVector2D{75.0f, 50.0f})
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Top)
 		[
@@ -828,6 +830,7 @@ void SGraphNodeMissionCondition::UpdateGraphNode()
 				SNew(SButton)
 				.IsEnabled_Raw(this, &SGraphNodeMissionCondition::IsEnabled)
 				.OnClicked_Raw(this, &SGraphNodeMissionCondition::OnClicked)
+				.ButtonColorAndOpacity_Raw(this, &SGraphNodeMissionCondition::GetTransitionColor)
 				.Content()
 				[
 					SNew(SImage)
@@ -837,20 +840,24 @@ void SGraphNodeMissionCondition::UpdateGraphNode()
 		];
 }
 
-FLinearColor SGraphNodeMissionCondition::StaticGetTransitionColor(bool bIsHovered)
+FLinearColor SGraphNodeMissionCondition::StaticGetTransitionColor(bool bIsOpened, bool bIsHovered)
 {
 	//@TODO: Make configurable by styling
-	const FLinearColor ActiveColor(1.0f, 0.4f, 0.3f, 1.0f);
-	const FLinearColor HoverColor(0.724f, 0.256f, 0.0f, 1.0f);
-	FLinearColor BaseColor(0.9f, 0.9f, 0.9f, 1.0f);
-	return bIsHovered ? HoverColor : BaseColor;
+	const FLinearColor ActiveColor(10.0f, 4.0f, 3.0f, 1.0f); // If opened
+	const FLinearColor HoverColor(7.24f, 2.56f, 0.0f, 1.0f);
+	FLinearColor BaseColor(0.0f, 10.9f, 10.9f, 1.0f);
+	return bIsOpened 
+		? ActiveColor 
+		: bIsHovered 
+			? HoverColor 
+			: BaseColor;
 }
 
 FSlateColor SGraphNodeMissionCondition::GetTransitionColor() const
 {	
 	// Highlight the transition node when the node is hovered or when the previous state is hovered
 	UPDMissionGraphNode_ConditionNode* TransNode = CastChecked<UPDMissionGraphNode_ConditionNode>(GraphNode); // Reserved for later potential use, kept as a reminder
-	return StaticGetTransitionColor(IsHovered());
+	return StaticGetTransitionColor(bOpenedNode, IsHovered());
 }
 
 const FSlateBrush* SGraphNodeMissionCondition::GetTransitionIconImage() const

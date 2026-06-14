@@ -234,13 +234,15 @@ public:
 
 	TSharedPtr<class IMenu> CondPopup;
 	
-	static FLinearColor StaticGetTransitionColor(bool bIsHovered);
+	static FLinearColor StaticGetTransitionColor(bool bIsOpened, bool bIsHovered);
 
 private:
 	FSlateColor GetTransitionColor() const;
 	const FSlateBrush* GetTransitionIconImage() const;
 
 	TSharedPtr<class IStructureDetailsView> StructureDetailsView;	
+
+	bool bOpenedNode = false;
 };
 
 class SGraphNodeMissionTransition : public SGraphNode // Wrote this ages ago, I might just trash and rewrite, 
