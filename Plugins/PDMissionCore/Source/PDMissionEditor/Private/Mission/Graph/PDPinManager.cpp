@@ -159,7 +159,7 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 			|| StructProperty->Struct == TickBehaviourStruct
 			|| StructProperty->Struct == MissionRulesStruct
 			|| StructProperty->Struct == MissionMetadataStruct
-			|| StructProperty->Struct == MissionStateDataStruct
+			//|| StructProperty->Struct == MissionStateDataStruct
 				? EPDPinCustomizer::SKIPPAST
 				: EPDPinCustomizer::CONTINUE;
 		}

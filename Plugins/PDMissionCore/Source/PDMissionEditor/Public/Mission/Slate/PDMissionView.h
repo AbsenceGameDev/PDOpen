@@ -179,7 +179,7 @@ public:
 	virtual void UpdateGraphNode() override;
 	virtual bool UseLowDetailNodeTitles() const override;
 	virtual TSharedRef<SWidget> CreateNodeContentArea();
-
+	virtual void SetDefaultTitleAreaWidget(TSharedRef<SOverlay> DefaultTitleAreaWidget) override;
 	/** Override this to create a button to add pins on the output side of the node */
 	virtual void CreateOutputSideAddButton(TSharedPtr<SVerticalBox> OutputBox) override;
 	/** Adds a new UEdGraph output pin and adds a new branch entry in the missionrow to boot */
@@ -209,6 +209,8 @@ protected:
 	virtual FText GetPreviewCornerText() const;
 	virtual const FSlateBrush* GetNameIcon() const;	
 
+	TSharedPtr<class IStructureDetailsView> StructureDetailsView;
+	TSharedPtr<class IDetailsView> DetailsView;
 	
 protected:
 	TArray< TSharedPtr<SGraphNode> > SubNodes;

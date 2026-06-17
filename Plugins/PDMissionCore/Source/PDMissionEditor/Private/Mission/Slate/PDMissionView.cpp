@@ -289,6 +289,7 @@ void SMissionGraphNode::Construct(const FArguments& InArgs, UPDMissionGraphNode*
 	SetCursor(EMouseCursor::CardinalCross);
 
 	GraphNode = InNode;
+
 	UpdateGraphNode();
 
 	bDragMarkerVisible = false;	
@@ -357,6 +358,124 @@ void SMissionGraphNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 }
 
 
+FPDMissionRow* GetCurrentMission(FName MissionRowName)
+{
+
+	UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET"));
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	FPDMissionUtility* Utility = MissionSubsystem ? &MissionSubsystem->Utility : nullptr;
+	if (Utility)
+	{
+		const FDataTableRowHandle& MissionHandle = Utility->MissionLookupViaRowName.FindRef(MissionRowName);
+		if (MissionHandle.DataTable)
+		{
+			return MissionHandle.GetRow<FPDMissionRow>("");
+		}
+	}
+	return nullptr;
+}
+
+template<typename TStructType>
+TSharedRef<SWidget> GenerateSettingsContent(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+{
+	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
+	return DetailsView.ToSharedRef();
+}
+// template<>
+// TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBase>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+// {
+// 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
+// 	if(MissionRow)
+// 	{
+// 		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
+// 		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+// 		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionBase::StaticStruct(), (uint8*)&MissionRow->Base);
+// 		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+// 		DetailsView = StructureDetailsView->GetWidget();
+// 	}
+// 	return DetailsView.ToSharedRef();
+// }
+
+
+
+void SMissionGraphNode::SetDefaultTitleAreaWidget(TSharedRef<SOverlay> DefaultTitleAreaWidget)
+{
+	UPDMissionGraphNode* MissionNode = Cast<UPDMissionGraphNode>(GetNodeObj());
+	if (MissionNode)
+	{
+		GetCurrentMission(FName(*MissionNode->GetMissionName()));
+
+		// TODO finish tomorrow
+		// GenerateSettingsContent<>(GetCurrentMission(MissionNode->GetMissionName()), StructureDetailsView);
+	}
+
+	// Write out 10 times by hand tomorrow to fully commit of this into my longterm memory
+	DefaultTitleAreaWidget->ClearChildren();
+	TSharedPtr<SNodeTitle> NodeTitle = SNew(SNodeTitle, GraphNode);
+	DefaultTitleAreaWidget->AddSlot()
+	.HAlign(HAlign_Fill)
+	.VAlign(VAlign_Center)
+	[
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.FillWidth(0.1f)
+		[
+			SNew(STextBlock).Text(FText::AsCultureInvariant(FString{TEXT("TODO: CHECKBOX PROP")}))
+		]
+		+ SHorizontalBox::Slot()
+		.FillWidth(0.1f)
+		[
+			SNew(STextBlock).Text(FText::AsCultureInvariant(FString{TEXT("TODO: STATE SELECTOR")}))
+		]		
+		+ SHorizontalBox::Slot()
+		.HAlign(HAlign_Fill)
+		[
+			SNew(SBorder)
+			.BorderImage(FAppStyle::GetBrush("NoBorder"))
+			[
+				SNew(SHorizontalBox)
+				+ SHorizontalBox::Slot()
+				[
+					SNew(SVerticalBox)
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					.HAlign(HAlign_Center)
+					[
+						CreateTitleWidget(NodeTitle)
+					]
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					[
+						NodeTitle.ToSharedRef()
+					]
+				]
+			]
+		]
+		+ SHorizontalBox::Slot()
+		.HAlign(HAlign_Right)
+		.VAlign(VAlign_Center)
+		.Padding(0, 0, 5, 0)
+		.AutoWidth()
+		[
+			CreateTitleRightWidget()
+		]
+	];
+	DefaultTitleAreaWidget->AddSlot()
+	.VAlign(VAlign_Top)
+	[
+		SNew(SBorder)
+		.Visibility(EVisibility::HitTestInvisible)
+		.BorderImage( FAppStyle::GetBrush( "Graph.Node.TitleHighlight" ) )
+		.BorderBackgroundColor( this, &SGraphNode::GetNodeTitleIconColor )
+		[
+			SNew(SSpacer)
+			.Size(FVector2D(20,20))
+		]
+	];
+
+}
+
+
 TSharedRef<SWidget> SMissionGraphNode::CreateNodeContentArea()
 {
 	return SNew(SBorder)
@@ -365,18 +484,27 @@ TSharedRef<SWidget> SMissionGraphNode::CreateNodeContentArea()
 		.VAlign(VAlign_Top)
 		.Padding(FMargin(24,24))
 		[
-			SNew(SHorizontalBox)
-			+SHorizontalBox::Slot()
-			.HAlign(HAlign_Left)
-			.FillWidth(1.0f)
+			SNew(SVerticalBox)
+			+SVerticalBox::Slot()
+			.FillHeight(0.05)
 			[
-				SAssignNew(LeftNodeBox, SVerticalBox)
+				SNew(STextBlock).Text(FText::AsCultureInvariant(FString{TEXT("TODO: REPLACE ME")}))
 			]
-			+SHorizontalBox::Slot()
-			.AutoWidth()
-			.HAlign(HAlign_Right)
+			+SVerticalBox::Slot()
 			[
-				SAssignNew(RightNodeBox, SVerticalBox)
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				.HAlign(HAlign_Left)
+				.FillWidth(1.0f)
+				[
+					SAssignNew(LeftNodeBox, SVerticalBox)
+				]
+				+SHorizontalBox::Slot()
+				.AutoWidth()
+				.HAlign(HAlign_Right)
+				[
+					SAssignNew(RightNodeBox, SVerticalBox)
+				]
 			]
 		];	
 }
@@ -681,23 +809,6 @@ TPair<FDetailsViewArgs, FStructureDetailsViewArgs> GetDetailsArgs()
 }
 
 
-FPDMissionRow* GetCurrentMission(FName MissionRowName)
-{
-
-	UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET"));
-	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
-	FPDMissionUtility* Utility = MissionSubsystem ? &MissionSubsystem->Utility : nullptr;
-	if (Utility)
-	{
-		const FDataTableRowHandle& MissionHandle = Utility->MissionLookupViaRowName.FindRef(MissionRowName);
-		if (MissionHandle.DataTable)
-		{
-			return MissionHandle.GetRow<FPDMissionRow>("");
-		}
-	}
-	return nullptr;
-}
-
 
 TSharedRef<SWidget> GenerateBranchElementContent(FPDMissionRow* MissionRow, int32 BranchIdx, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
@@ -706,7 +817,7 @@ TSharedRef<SWidget> GenerateBranchElementContent(FPDMissionRow* MissionRow, int3
 	{
 		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
 		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionTagCompound::StaticStruct(), (uint8*)&MissionRow->ProgressRules.NextMissionBranch.Branches[BranchIdx].BranchConditions);
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionBranchElement::StaticStruct(), (uint8*)&MissionRow->ProgressRules.NextMissionBranch.Branches[BranchIdx]);
 		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
 		DetailsView = StructureDetailsView->GetWidget();
 	}
@@ -1411,12 +1522,6 @@ void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* In
 
 
 
-template<typename TStructType>
-TSharedRef<SWidget> GenerateSettingsContent(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
-{
-	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
-	return DetailsView.ToSharedRef();
-}
 template<>
 TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBase>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
@@ -1812,7 +1917,7 @@ TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget()
 	static UScriptStruct* MissionMetadataStruct = TBaseStructure<FPDMissionMetadata>::Get();
 
 	static UScriptStruct* MissionTagCompoundStruct = TBaseStructure<FPDMissionTagCompound>::Get();
-	static UScriptStruct* MissionStateDataStruct = TBaseStructure<FPDMissionStateData>::Get();
+	// static UScriptStruct* MissionStateDataStruct = TBaseStructure<FPDMissionStateData>::Get();
 
 	if (SubCategoryObject != nullptr)
 	{
@@ -1826,13 +1931,13 @@ TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget()
 		}
 		if (SubCategoryObject.Get() == MissionRulesStruct)
 		{
-			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionRules>(GetCurrentMission(MissionRowName), StructureDetailsView));
-			// return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionTagCompound>(GetCurrentMission(MissionRowName), StructureDetailsView));
+			// return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionRules>(GetCurrentMission(MissionRowName), StructureDetailsView));
+			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionTagCompound>(GetCurrentMission(MissionRowName), StructureDetailsView));
 		}
-		if (SubCategoryObject.Get() == MissionStateDataStruct)
-		{
-			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionStateData>(GetCurrentMission(MissionRowName), StructureDetailsView));
-		}		
+		// if (SubCategoryObject.Get() == MissionStateDataStruct)
+		// {
+		// 	return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionStateData>(GetCurrentMission(MissionRowName), StructureDetailsView));
+		// }
 		if (SubCategoryObject.Get() == MissionMetadataStruct)
 		{
 			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionMetadata>(GetCurrentMission(MissionRowName), StructureDetailsView));

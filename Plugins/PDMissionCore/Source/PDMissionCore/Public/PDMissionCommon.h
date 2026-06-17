@@ -197,6 +197,29 @@ struct PDMISSIONCORE_API FPDDelayMissionFunctor
 
 
 /**
+ *  @brief Structure that defines mission rules.
+ *  @done Write some form of type (FPDMissionTagCompound) that handles comparing the the mission tags with the user tags
+ *  @todo Write some type that can handle  
+ */
+USTRUCT(BlueprintType)
+struct FPDMissionStateData
+{
+	GENERATED_BODY()
+
+	FPDMissionStateData(): bRepeatable(0) {};
+	FPDMissionStateData(uint8 _bRepeatable)
+		: bRepeatable(_bRepeatable) {};	
+
+	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
+	TEnumAsByte<EPDMissionState> EStartState = EPDMissionState::EInactiveMission; 
+	
+	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
+	uint8 bRepeatable : 1;
+};
+
+/**
  * @brief 
  */
 USTRUCT(Blueprintable)
@@ -219,6 +242,9 @@ struct FPDMissionBranchElement
 	/** @brief Tells us how we want to treat the branch */
 	UPROPERTY(EditAnywhere, Category = "Mission Subsystem")
 	FPDMissionBranchBehaviour TargetBehaviour;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
+	FPDMissionStateData TargetStartState;	
 };
 
 /**
@@ -235,28 +261,6 @@ struct FPDMissionBranch
 };
 
 
-/**
- *  @brief Structure that defines mission rules.
- *  @done Write some form of type (FPDMissionTagCompound) that handles comparing the the mission tags with the user tags
- *  @todo Write some type that can handle  
- */
-USTRUCT(BlueprintType)
-struct FPDMissionStateData
-{
-	GENERATED_BODY()
-
-	FPDMissionStateData(): bRepeatable(0) {};
-	FPDMissionStateData(uint8 _bRepeatable)
-		: bRepeatable(_bRepeatable) {};	
-
-	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
-	TEnumAsByte<EPDMissionState> EStartState = EPDMissionState::EInactiveMission; 
-	
-	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
-	uint8 bRepeatable : 1;
-};
 USTRUCT(BlueprintType)
 struct FPDMissionRules
 {
@@ -275,10 +279,6 @@ struct FPDMissionRules
 	/** @brief Branching conditions for this mission  */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
 	FPDMissionBranch NextMissionBranch;
-
-	// /** @brief State data */
-	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
-	// FPDMissionControlData ControlData;
 };
 
 /**
