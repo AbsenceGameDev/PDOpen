@@ -16,6 +16,18 @@ public class PDMissionCore : ModuleRules
 				// ... add other private include paths required here ...
 			}
 		);
+
+		// Note: Having to add this I realize that I have written a bunch of my slate editor code in the core module 
+		if (Target.bBuildEditor)
+		{			
+			PublicDependencyModuleNames.AddRange(
+				new string[]
+				{
+					"PropertyEditor",
+				}
+				);
+			
+		}
 		
 		
 		PublicDependencyModuleNames.AddRange(

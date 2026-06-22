@@ -186,6 +186,15 @@ public:
 	virtual FReply OnAddPin() override;
 	//~ End SGraphNode Interface
 
+
+	const FPDMissionRow* GetMissionRowPtr() const;
+	static FLinearColor StaticGetTransitionColor(bool bIsOpened, bool bIsHovered);
+	bool IsExtraDataEnabled() const;
+	FReply OnExtraDataClicked();
+	FSlateColor GetExtraDataColor() const;
+	const FSlateBrush* GetExtraDataIconImage() const;
+
+
 	/** handle mouse down on the node */
 	FReply OnMouseDown(const FGeometry& SenderGeometry, const FPointerEvent& MouseEvent);
 
@@ -209,12 +218,15 @@ protected:
 	virtual FText GetPreviewCornerText() const;
 	virtual const FSlateBrush* GetNameIcon() const;	
 
-	TSharedPtr<class IStructureDetailsView> StructureDetailsView;
-	TSharedPtr<class IDetailsView> DetailsView;
+	TSharedPtr<class IStructureDetailsView> StructureDetailsViewMetaData;
+	TSharedPtr<class IStructureDetailsView> StructureDetailsViewStateData;
+	TSharedPtr<SWidget> ExtraDataButton;
+	TSharedPtr<class IMenu> ExtraDataPopup;
 	
 protected:
+	bool bOpenedNode = false; 
+	bool bDragMarkerVisible = false;
 	TArray< TSharedPtr<SGraphNode> > SubNodes;
-	uint32 bDragMarkerVisible : 1;
 	TSharedPtr<class SPDLODBranchNode> TitleLODNode;
 };
 

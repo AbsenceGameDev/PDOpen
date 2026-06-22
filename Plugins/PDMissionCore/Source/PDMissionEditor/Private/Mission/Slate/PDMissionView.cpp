@@ -375,58 +375,74 @@ FPDMissionRow* GetCurrentMission(FName MissionRowName)
 	return nullptr;
 }
 
+
+
+TPair<FDetailsViewArgs, FStructureDetailsViewArgs> GetDetailsArgs()
+{
+	FDetailsViewArgs RetDetailsViewArgs;
+	RetDetailsViewArgs.bAllowSearch = false;
+	RetDetailsViewArgs.bHideSelectionTip = true;
+	RetDetailsViewArgs.bLockable = false;
+	RetDetailsViewArgs.bSearchInitialKeyFocus = false;
+	RetDetailsViewArgs.bUpdatesFromSelection = false;
+	RetDetailsViewArgs.bShowOptions = false;
+	RetDetailsViewArgs.bShowObjectLabel = false;
+
+	FStructureDetailsViewArgs RetStructureDetailsViewArgs;
+	RetStructureDetailsViewArgs.bShowObjects = false;
+	return TPair<FDetailsViewArgs, FStructureDetailsViewArgs>{RetDetailsViewArgs, RetStructureDetailsViewArgs};
+}
+
 template<typename TStructType>
-TSharedRef<SWidget> GenerateSettingsContent(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+TSharedRef<SWidget> GenerateSettingsContent(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
 	return DetailsView.ToSharedRef();
 }
-// template<>
-// TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBase>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
-// {
-// 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
-// 	if(MissionRow)
-// 	{
-// 		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
-// 		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-// 		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionBase::StaticStruct(), (uint8*)&MissionRow->Base);
-// 		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
-// 		DetailsView = StructureDetailsView->GetWidget();
-// 	}
-// 	return DetailsView.ToSharedRef();
-// }
 
+template<>
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionStateData>(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+{
+	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
+	if(MissionRow)
+	{
+		auto[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
+
+		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionStateData::StaticStruct(), (uint8*)&MissionRow->StateData);
+		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+		DetailsView = StructureDetailsView->GetWidget();
+	}	
+	return DetailsView.ToSharedRef();
+}
+
+template<>
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionMetadata>(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+{
+	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
+	if(MissionRow)
+	{
+		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
+		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionMetadata::StaticStruct(), (uint8*)&MissionRow->Metadata);
+		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+		DetailsView = StructureDetailsView->GetWidget();
+	}	
+	return DetailsView.ToSharedRef();
+}
 
 
 void SMissionGraphNode::SetDefaultTitleAreaWidget(TSharedRef<SOverlay> DefaultTitleAreaWidget)
 {
-	UPDMissionGraphNode* MissionNode = Cast<UPDMissionGraphNode>(GetNodeObj());
-	if (MissionNode)
-	{
-		GetCurrentMission(FName(*MissionNode->GetMissionName()));
-
-		// TODO finish tomorrow
-		// GenerateSettingsContent<>(GetCurrentMission(MissionNode->GetMissionName()), StructureDetailsView);
-	}
-
-	// Write out 10 times by hand tomorrow to fully commit of this into my longterm memory
 	DefaultTitleAreaWidget->ClearChildren();
-	TSharedPtr<SNodeTitle> NodeTitle = SNew(SNodeTitle, GraphNode);
+	TSharedPtr<SNodeTitle> NodeTitle = SNew(SNodeTitle, GraphNode);	
+	
+	// Write out 10 times by hand tomorrow to fully commit of this into my longterm memory
 	DefaultTitleAreaWidget->AddSlot()
 	.HAlign(HAlign_Fill)
 	.VAlign(VAlign_Center)
 	[
 		SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.FillWidth(0.1f)
-		[
-			SNew(STextBlock).Text(FText::AsCultureInvariant(FString{TEXT("TODO: CHECKBOX PROP")}))
-		]
-		+ SHorizontalBox::Slot()
-		.FillWidth(0.1f)
-		[
-			SNew(STextBlock).Text(FText::AsCultureInvariant(FString{TEXT("TODO: STATE SELECTOR")}))
-		]		
 		+ SHorizontalBox::Slot()
 		.HAlign(HAlign_Fill)
 		[
@@ -475,21 +491,117 @@ void SMissionGraphNode::SetDefaultTitleAreaWidget(TSharedRef<SOverlay> DefaultTi
 
 }
 
+const FPDMissionRow* SMissionGraphNode::GetMissionRowPtr() const
+{
+	UPDMissionGraphNode* MissionNode = Cast<UPDMissionGraphNode>(GetNodeObj());
+	if (nullptr == MissionNode)
+	{
+		return nullptr;
+	}
+
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	check(MissionSubsystem)
+
+	FDataTableRowHandle* RowHandlePtr = MissionSubsystem->Utility.MissionLookupViaRowName.Find(FName(*MissionNode->GetMissionName()));
+	if (nullptr == RowHandlePtr)
+	{
+		return nullptr;
+	}
+
+	return  RowHandlePtr->GetRow<FPDMissionRow>(TEXT("SMissionGraphNode::OnExtraDataClicked"));
+}
+
+bool SMissionGraphNode::IsExtraDataEnabled() const
+{
+	return nullptr != GetMissionRowPtr();
+}
+
+FReply SMissionGraphNode::OnExtraDataClicked()
+{
+	const FPDMissionRow* MissionRow = GetMissionRowPtr();
+	if (nullptr == MissionRow)
+	{
+		return FReply::Unhandled();
+	}
+
+	TSharedRef<SWidget> MetaDataWidget = GenerateSettingsContent<FPDMissionMetadata>(MissionRow, StructureDetailsViewMetaData);
+	TSharedRef<SWidget> StateDataWidget = GenerateSettingsContent<FPDMissionStateData>(MissionRow, StructureDetailsViewStateData);
+	TSharedRef<SWidget> BorderWidget = 
+		SNew(SBorder)
+		.Content()
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			[
+				MetaDataWidget
+			]
+			+ SHorizontalBox::Slot()
+			[
+				StateDataWidget
+			]
+		];
+
+	FSlateApplication& SlateApp = FSlateApplication::Get();
+	FWidgetPath ButtonPath;
+	SlateApp.GeneratePathToWidgetUnchecked(ExtraDataButton.ToSharedRef(), ButtonPath);
+
+	ExtraDataPopup = SlateApp.PushMenu(
+		SlateApp.GetActiveTopLevelWindow().ToSharedRef(),
+		ButtonPath,
+		BorderWidget,
+		SlateApp.GetCursorPos(),
+		FPopupTransitionEffect(FPopupTransitionEffect::None),
+		true,
+		FVector2D(0.f, 0.f),
+		EPopupMethod::CreateNewWindow,
+		false);
+
+	bOpenedNode = true;
+	
+	ExtraDataPopup->GetOnMenuDismissed().AddLambda(
+		[this](TSharedRef<IMenu> DismissedMenu)
+		{
+			bOpenedNode = false;
+			ExtraDataPopup.Reset();
+		}
+	);
+
+	return FReply::Handled();
+}
+
+
+//@TODO: Make configurable by styling, given that this is the 3rd or 4th time I copy and paste this function and applying it to a different types with some different configs, 
+// TODO Cont.: I need to move to a table and use as source
+FLinearColor SMissionGraphNode::StaticGetTransitionColor(bool bIsOpened, bool bIsHovered)
+{
+	const FLinearColor ActiveColor(10.0f, 4.0f, 3.0f, 1.0f); // If opened
+	const FLinearColor HoverColor(7.24f, 2.56f, 0.0f, 1.0f);
+	FLinearColor BaseColor(0.0f, 10.9f, 10.9f, 1.0f);
+	return bIsOpened 
+		? ActiveColor 
+		: bIsHovered 
+			? HoverColor 
+			: BaseColor;
+}
+
+FSlateColor SMissionGraphNode::GetExtraDataColor() const
+{
+	return StaticGetTransitionColor(bOpenedNode, IsHovered());	
+}
+const FSlateBrush* SMissionGraphNode::GetExtraDataIconImage() const
+{
+	return FAppStyle::GetBrush("Graph.TransitionNode.Icon_Inertialization");
+}
 
 TSharedRef<SWidget> SMissionGraphNode::CreateNodeContentArea()
 {
-	return SNew(SBorder)
+	TSharedRef<SBorder> ToplevelWidget =  SNew(SBorder)
 		.BorderImage( FAppStyle::GetBrush("NoBorder") )
 		.HAlign(HAlign_Fill)
 		.VAlign(VAlign_Top)
 		.Padding(FMargin(24,24))
 		[
 			SNew(SVerticalBox)
-			+SVerticalBox::Slot()
-			.FillHeight(0.05)
-			[
-				SNew(STextBlock).Text(FText::AsCultureInvariant(FString{TEXT("TODO: REPLACE ME")}))
-			]
 			+SVerticalBox::Slot()
 			[
 				SNew(SHorizontalBox)
@@ -506,7 +618,44 @@ TSharedRef<SWidget> SMissionGraphNode::CreateNodeContentArea()
 					SAssignNew(RightNodeBox, SVerticalBox)
 				]
 			]
-		];	
+		];
+
+	ExtraDataButton =
+		SNew(SOverlay)
+		+SOverlay::Slot()
+		[
+			SNew(SImage)
+			.Image(FAppStyle::GetBrush("Graph.TransitionNode.ColorSpill"))
+			.ColorAndOpacity(this, &SMissionGraphNode::GetExtraDataColor)
+		]
+		+SOverlay::Slot()
+		[
+			SNew(SButton)
+			.IsEnabled_Raw(this, &SMissionGraphNode::IsExtraDataEnabled)
+			.OnClicked_Raw(this, &SMissionGraphNode::OnExtraDataClicked)
+			.ButtonColorAndOpacity_Raw(this, &SMissionGraphNode::GetExtraDataColor)
+			.Content()
+			[
+				SNew(SImage)
+				.Image(this, &SMissionGraphNode::GetExtraDataIconImage)
+			]
+		];
+
+	LeftNodeBox->AddSlot()
+	.HAlign(HAlign_Fill)
+	.VAlign(VAlign_Top)
+	.AutoHeight()
+	//.FillHeight(4.0f)
+	[
+		SNew(SBox)
+		.MinDesiredHeight(24.0f)
+		[
+			ExtraDataButton.ToSharedRef()
+		]
+	];
+
+
+	return ToplevelWidget;
 }
 
 void SMissionGraphNode::CreateOutputSideAddButton(TSharedPtr<SVerticalBox> OutputBox)
@@ -791,25 +940,6 @@ void SMissionGraphNode::SetOwner(const TSharedRef<SGraphPanel>& OwnerPanel)
 }
 
 
-
-TPair<FDetailsViewArgs, FStructureDetailsViewArgs> GetDetailsArgs()
-{
-	FDetailsViewArgs RetDetailsViewArgs;
-	RetDetailsViewArgs.bAllowSearch = false;
-	RetDetailsViewArgs.bHideSelectionTip = true;
-	RetDetailsViewArgs.bLockable = false;
-	RetDetailsViewArgs.bSearchInitialKeyFocus = false;
-	RetDetailsViewArgs.bUpdatesFromSelection = false;
-	RetDetailsViewArgs.bShowOptions = false;
-	RetDetailsViewArgs.bShowObjectLabel = false;
-
-	FStructureDetailsViewArgs RetStructureDetailsViewArgs;
-	RetStructureDetailsViewArgs.bShowObjects = false;
-	return TPair<FDetailsViewArgs, FStructureDetailsViewArgs>{RetDetailsViewArgs, RetStructureDetailsViewArgs};
-}
-
-
-
 TSharedRef<SWidget> GenerateBranchElementContent(FPDMissionRow* MissionRow, int32 BranchIdx, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
@@ -868,6 +998,22 @@ bool SGraphNodeMissionCondition::IsEnabled() const
 }
 FReply SGraphNodeMissionCondition::OnClicked()
 {
+	// TODO: Pseudo code, thoughts to explore later
+	// UEdGraphPin* FinalSourcePin = nullptr;
+	// UPDMissionGraphNode* SourceNode = GetSourceNode(FinalSourcePin);
+	// if (false)
+	// {
+	// 	FPDWidgetCreationDelegate Delegate = FPDWidgetCreationDelegate::CreateLambda(
+	// 	[this](FPDCreationDelegateParams Params) -> TSharedRef<SWidget>
+	// 	{
+	// 		return GenerateBranchElementContent(Params.MissionRow, Params.OptionalBranchIndex, Params.StructureDetailsView);
+	// 	}); 
+	// 	FPDCreationDelegateParams MutableParams;
+	// 	MutableParams.CondPopup = CondPopup;
+	// 	MutableParams.StructureDetailsView = StructureDetailsView;
+	// 	return UPDMissionEditorStatics::NodeOp::GenericOnClicked(bOpenedNode, SourceNode, FinalSourcePin, this->GetSlot(ENodeZone::BottomCenter)->GetWidget(), true, Delegate, MutableParams);
+	// }
+
 	UEdGraphPin* FinalSourcePin = nullptr;
 	UPDMissionGraphNode* SourceNode = GetSourceNode(FinalSourcePin);
 	if (nullptr == SourceNode)
@@ -1101,8 +1247,8 @@ void SGraphNodeMissionTransition::UpdateGraphNode()
 	RightNodeBox.Reset();
 	LeftNodeBox.Reset();
 
-	this->ContentScale.Bind( this, &SGraphNode::GetContentScale );
-	this->GetOrAddSlot( ENodeZone::Center )
+	this->ContentScale.Bind(this, &SGraphNode::GetContentScale);
+	this->GetOrAddSlot(ENodeZone::Center)
 		.HAlign(HAlign_Center)
 		.VAlign(VAlign_Center)
 		[
@@ -1110,13 +1256,13 @@ void SGraphNodeMissionTransition::UpdateGraphNode()
 			+SOverlay::Slot()
 			[
 				SNew(SImage)
-				.Image( FAppStyle::GetBrush("Graph.TransitionNode.ColorSpill") )
-				.ColorAndOpacity( this, &SGraphNodeMissionTransition::GetTransitionColor )
+				.Image( FAppStyle::GetBrush("Graph.TransitionNode.ColorSpill"))
+				.ColorAndOpacity( this, &SGraphNodeMissionTransition::GetTransitionColor)
 			]
 			+SOverlay::Slot()
 			[
 				SNew(SImage)
-				.Image( this, &SGraphNodeMissionTransition::GetTransitionIconImage )
+				.Image(this, &SGraphNodeMissionTransition::GetTransitionIconImage)
 			]
 		];
 }
@@ -1523,7 +1669,7 @@ void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* In
 
 
 template<>
-TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBase>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBase>(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
 	if(MissionRow)
@@ -1537,7 +1683,7 @@ TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBase>(FPDMissionRow* Missi
 	return DetailsView.ToSharedRef();
 }
 template<>
-TSharedRef<SWidget> GenerateSettingsContent<FPDMissionTickBehaviour>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionTickBehaviour>(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
 	if(MissionRow)
@@ -1551,7 +1697,7 @@ TSharedRef<SWidget> GenerateSettingsContent<FPDMissionTickBehaviour>(FPDMissionR
 	return DetailsView.ToSharedRef();
 }
 template<>
-TSharedRef<SWidget> GenerateSettingsContent<FPDMissionTagCompound>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionTagCompound>(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
 	if(MissionRow)
@@ -1565,21 +1711,7 @@ TSharedRef<SWidget> GenerateSettingsContent<FPDMissionTagCompound>(FPDMissionRow
 	return DetailsView.ToSharedRef();
 }
 template<>
-TSharedRef<SWidget> GenerateSettingsContent<FPDMissionStateData>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
-{
-	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
-	if(MissionRow)
-	{
-		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
-		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionStateData::StaticStruct(), (uint8*)&MissionRow->StateData);
-		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
-		DetailsView = StructureDetailsView->GetWidget();
-	}	
-	return DetailsView.ToSharedRef();
-}
-template<>
-TSharedRef<SWidget> GenerateSettingsContent<FPDMissionRules>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionRules>(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
 	if(MissionRow)
@@ -1593,21 +1725,7 @@ TSharedRef<SWidget> GenerateSettingsContent<FPDMissionRules>(FPDMissionRow* Miss
 	return DetailsView.ToSharedRef();
 }
 template<>
-TSharedRef<SWidget> GenerateSettingsContent<FPDMissionMetadata>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
-{
-	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
-	if(MissionRow)
-	{
-		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
-		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
-		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionMetadata::StaticStruct(), (uint8*)&MissionRow->Metadata);
-		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
-		DetailsView = StructureDetailsView->GetWidget();
-	}	
-	return DetailsView.ToSharedRef();
-}
-template<>
-TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBranch>(FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBranch>(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
 	if(MissionRow)
@@ -1934,10 +2052,6 @@ TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget()
 			// return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionRules>(GetCurrentMission(MissionRowName), StructureDetailsView));
 			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionTagCompound>(GetCurrentMission(MissionRowName), StructureDetailsView));
 		}
-		// if (SubCategoryObject.Get() == MissionStateDataStruct)
-		// {
-		// 	return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionStateData>(GetCurrentMission(MissionRowName), StructureDetailsView));
-		// }
 		if (SubCategoryObject.Get() == MissionMetadataStruct)
 		{
 			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionMetadata>(GetCurrentMission(MissionRowName), StructureDetailsView));

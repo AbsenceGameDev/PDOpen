@@ -228,22 +228,22 @@ struct FPDMissionBranchElement
 	GENERATED_BODY()
 
 	/** @brief  'Target' is the mission we might branch to */
-	UPROPERTY(EditAnywhere, Category = "Mission Subsystem", Meta = (RowType="/Script/PDMissionCore.PDMissionRow"))
+	UPROPERTY(EditAnywhere, Category = "Branch Rule", Meta = (RowType="/Script/PDMissionCore.PDMissionRow"))
 	FDataTableRowHandle Target;
 
 	/** @brief Actual condition to be able to branch to the target */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mission|Datum")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Branch Rule")
 	FPDMissionTagCompound BranchConditions;
 
 	/** @brief true means it's a direct branch, i.e. 'same questline', false means it's a new questline */
-	UPROPERTY(EditAnywhere, Category = "Mission Subsystem")
-	uint8 bIsDirectBranch : 1;
+	UPROPERTY(EditAnywhere, Category = "Branch Rule")
+	uint8 bIsNewQuestline : 1;
 
 	/** @brief Tells us how we want to treat the branch */
-	UPROPERTY(EditAnywhere, Category = "Mission Subsystem")
+	UPROPERTY(EditAnywhere, Category = "Branch Rule")
 	FPDMissionBranchBehaviour TargetBehaviour;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Branch Rule")
 	FPDMissionStateData TargetStartState;	
 };
 

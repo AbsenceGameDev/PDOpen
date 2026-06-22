@@ -319,6 +319,18 @@ struct PDMISSIONEDITOR_API FPDAssociativeMissionEditingRow : public FTableRowBas
 	FPDMissionRow UpdateRowData{};
 };
 
+// TODO: Pseudo code, thoughts to explore later
+// USTRUCT()
+// struct PDMISSIONEDITOR_API FPDCreationDelegateParams
+// {
+// 	GENERATED_BODY()
+// 	FPDMissionRow* MissionRow = nullptr;
+// 	int32 OptionalBranchIndex = INDEX_NONE;
+// 	TSharedPtr<class IStructureDetailsView> StructureDetailsView;
+// 	TSharedPtr<class IMenu> CondPopup;
+// };
+//
+// DECLARE_DELEGATE_RetVal_OneParam(TSharedRef<SWidget>, FPDWidgetCreationDelegate, FPDCreationDelegateParams)
 
 
 /**
@@ -409,6 +421,11 @@ public:
 		static PDMISSIONEDITOR_API class UPDMissionGraphNode* ResolveMissionNodeFromKnot(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir);
 		static PDMISSIONEDITOR_API bool DoesNodePathContainConditionNode(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir);
 		static PDMISSIONEDITOR_API bool IsRowBasedMissionNode(UEdGraphNode* Node);
+
+
+		// TODO: Thoughts to explore later
+		// static PDMISSIONEDITOR_API FReply GenericOnClicked(bool& bOpenedNodeOutParam, UPDMissionGraphNode* SourceNode, UEdGraphPin* FinalSourcePin,TSharedRef<const SWidget> SpawnWidgetPathSource, bool bLookForBranch, FPDWidgetCreationDelegate Delegate, FPDCreationDelegateParams& MutableParams);
+
 	};
 
 	//  Updating Mission branch data to reflect the new node
@@ -460,7 +477,6 @@ public:
 		}
 		static PDMISSIONEDITOR_API bool IsMissionValid(const FName& SelectedMissionRowName, FDataTableRowHandle*& OutRowHandlePtr);
 		static PDMISSIONEDITOR_API void SetValuesOnBranchTargetAtIndex(const FName& SourceMissionRowName, int32 BranchIdx, const FName& BranchTargetMissionName, const FString Ctxt = TEXT(""));
-
 	private:
 	};
 };
@@ -502,6 +518,7 @@ public:
 	
 	void QueueConditionNode(const FPDPendingConditionNode& PendingConditionNode);
 	void SpawnConditionNodes();	
+	
 
 private:
 	// TQueue<FPDPendingConditionNode> PendingNodesToCreate;
