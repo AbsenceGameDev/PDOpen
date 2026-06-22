@@ -508,7 +508,7 @@ const FPDMissionRow* SMissionGraphNode::GetMissionRowPtr() const
 		return nullptr;
 	}
 
-	return  RowHandlePtr->GetRow<FPDMissionRow>(TEXT("SMissionGraphNode::OnExtraDataClicked"));
+	return  RowHandlePtr->GetRow<FPDMissionRow>(TEXT("SMissionGraphNode::GetMissionRowPtr"));
 }
 
 bool SMissionGraphNode::IsExtraDataEnabled() const
@@ -590,7 +590,7 @@ FSlateColor SMissionGraphNode::GetExtraDataColor() const
 }
 const FSlateBrush* SMissionGraphNode::GetExtraDataIconImage() const
 {
-	return FAppStyle::GetBrush("Graph.TransitionNode.Icon_Inertialization");
+	return FAppStyle::GetBrush("EditorViewportToolBar.MenuDropdown");
 }
 
 TSharedRef<SWidget> SMissionGraphNode::CreateNodeContentArea()
@@ -642,7 +642,7 @@ TSharedRef<SWidget> SMissionGraphNode::CreateNodeContentArea()
 		];
 
 	LeftNodeBox->AddSlot()
-	.HAlign(HAlign_Fill)
+	.HAlign(HAlign_Left)
 	.VAlign(VAlign_Top)
 	.AutoHeight()
 	//.FillHeight(4.0f)
