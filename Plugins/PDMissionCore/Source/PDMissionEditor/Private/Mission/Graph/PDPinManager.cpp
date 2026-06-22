@@ -141,12 +141,11 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 		// ignore but step past these:
 		static UScriptStruct* MissionBaseStruct = TBaseStructure<FPDMissionBase>::Get();
 		static UScriptStruct* TickBehaviourStruct = TBaseStructure<FPDMissionTickBehaviour>::Get();
-		static UScriptStruct* MissionMetadataStruct = TBaseStructure<FPDMissionMetadata>::Get();
 		static UScriptStruct* MissionRulesStruct = TBaseStructure<FPDMissionRules>::Get();
-
-		static UScriptStruct* MissionStateDataStruct = TBaseStructure<FPDMissionStateData>::Get();
 		
 		// ignore and don't step further:
+		static UScriptStruct* MissionStateDataStruct = TBaseStructure<FPDMissionStateData>::Get();
+		static UScriptStruct* MissionMetadataStruct = TBaseStructure<FPDMissionMetadata>::Get();
 		static UScriptStruct* TagMetadataStruct = TBaseStructure<FGameplayTag>::Get();
 
 		// Filtering out the top-level datatypes and the low level datataype 
@@ -158,7 +157,7 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 			StructProperty->Struct == MissionBaseStruct
 			|| StructProperty->Struct == TickBehaviourStruct
 			|| StructProperty->Struct == MissionRulesStruct
-			|| StructProperty->Struct == MissionMetadataStruct
+			// || StructProperty->Struct == MissionMetadataStruct
 			//|| StructProperty->Struct == MissionStateDataStruct
 				? EPDPinCustomizer::SKIPPAST
 				: EPDPinCustomizer::CONTINUE;

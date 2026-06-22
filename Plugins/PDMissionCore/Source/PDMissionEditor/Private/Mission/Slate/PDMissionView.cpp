@@ -2032,10 +2032,8 @@ TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget()
 	static UScriptStruct* MissionBaseStruct = TBaseStructure<FPDMissionBase>::Get();
 	static UScriptStruct* TickBehaviourStruct = TBaseStructure<FPDMissionTickBehaviour>::Get();
 	static UScriptStruct* MissionRulesStruct = TBaseStructure<FPDMissionRules>::Get();
-	static UScriptStruct* MissionMetadataStruct = TBaseStructure<FPDMissionMetadata>::Get();
-
+	
 	static UScriptStruct* MissionTagCompoundStruct = TBaseStructure<FPDMissionTagCompound>::Get();
-	// static UScriptStruct* MissionStateDataStruct = TBaseStructure<FPDMissionStateData>::Get();
 
 	if (SubCategoryObject != nullptr)
 	{
@@ -2051,10 +2049,6 @@ TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget()
 		{
 			// return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionRules>(GetCurrentMission(MissionRowName), StructureDetailsView));
 			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionTagCompound>(GetCurrentMission(MissionRowName), StructureDetailsView));
-		}
-		if (SubCategoryObject.Get() == MissionMetadataStruct)
-		{
-			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionMetadata>(GetCurrentMission(MissionRowName), StructureDetailsView));
 		}
 	}
 
