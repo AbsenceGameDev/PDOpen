@@ -52,11 +52,11 @@ struct PDMISSIONCORE_API FPDMissionMetadata
 	GENERATED_BODY()
 
 	/**< @brief */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Metadata")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Metadata")
 	FText Name {};
 
 	/**< @brief */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Metadata")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Metadata")
 	FText Descriptor {};
 };
 
@@ -211,11 +211,11 @@ struct FPDMissionStateData
 		: bRepeatable(_bRepeatable) {};	
 
 	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Start State")
 	TEnumAsByte<EPDMissionState> EStartState = EPDMissionState::EInactiveMission; 
 	
 	/** @brief If we get the mission again after finishing it, are we allowed to retrigger it? */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Start State")
 	uint8 bRepeatable : 1;
 };
 
