@@ -33,7 +33,7 @@ void UPDMissionSubsystem::SetMission(int32 ActorID, const FPDMissionBase& Persis
 
 bool UPDMissionSubsystem::FinishMission(int32 ActorID, const FPDMissionBase& PersistentDatum)
 {
-	const FPDMissionRow* DefaultData = Utility.GetDefaultBase(PersistentDatum.mID);
+	const FPDMissionRow* DefaultData = Utility.GetDefaultBase(PersistentDatum.Ext.mID);
 	UPDMissionTracker* Tracker = Utility.GetActorTracker(ActorID);
 	const AActor* TrackerOwner = Tracker != nullptr ? Tracker->GetOwner() : nullptr;
 	if (DefaultData == nullptr || TrackerOwner  == nullptr)
@@ -49,7 +49,7 @@ bool UPDMissionSubsystem::FinishMission(int32 ActorID, const FPDMissionBase& Per
 		return false;
 	}
 
-	switch (Tracker->GetDatum(PersistentDatum.mID)->State.Current)
+	switch (Tracker->GetDatum(PersistentDatum.Ext.mID)->State.Current)
 	{
 	case ECompletedMission:
 	case EFailedMission:

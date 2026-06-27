@@ -431,6 +431,21 @@ TSharedRef<SWidget> GenerateSettingsContent<FPDMissionMetadata>(const FPDMission
 	return DetailsView.ToSharedRef();
 }
 
+template<>
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBaseExtension>(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+{
+	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
+	if(MissionRow)
+	{
+		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
+		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionBaseExtension::StaticStruct(), (uint8*)&MissionRow->Base.Ext);
+		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+		DetailsView = StructureDetailsView->GetWidget();
+	}
+	return DetailsView.ToSharedRef();
+}
+
 
 void SMissionGraphNode::SetDefaultTitleAreaWidget(TSharedRef<SOverlay> DefaultTitleAreaWidget)
 {
@@ -524,6 +539,7 @@ FReply SMissionGraphNode::OnExtraDataClicked()
 		return FReply::Unhandled();
 	}
 
+	TSharedRef<SWidget> BaseExtWidget = GenerateSettingsContent<FPDMissionBaseExtension>(MissionRow, StructureDetailsViewBaseExt);
 	TSharedRef<SWidget> MetaDataWidget = GenerateSettingsContent<FPDMissionMetadata>(MissionRow, StructureDetailsViewMetaData);
 	TSharedRef<SWidget> StateDataWidget = GenerateSettingsContent<FPDMissionStateData>(MissionRow, StructureDetailsViewStateData);
 	TSharedRef<SWidget> BorderWidget = 
@@ -531,6 +547,10 @@ FReply SMissionGraphNode::OnExtraDataClicked()
 		.Content()
 		[
 			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot()
+			[
+				BaseExtWidget
+			]
 			+ SHorizontalBox::Slot()
 			[
 				MetaDataWidget
@@ -1666,18 +1686,24 @@ void SPDGenericInputWrapper::Construct(const FArguments& InArgs, UEdGraphPin* In
 	SGraphPin::Construct(SGraphPin::FArguments(), InGraphPinObj);
 }
 
-
-
 template<>
 TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBase>(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
 {
 	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
 	if(MissionRow)
 	{
-		const auto&[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
+		auto[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
+		StructureDetailsViewArgs.bShowObjects = StructureDetailsViewArgs.bShowAssets = StructureDetailsViewArgs.bShowClasses = StructureDetailsViewArgs.bShowInterfaces = false;
 		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
 		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionBase::StaticStruct(), (uint8*)&MissionRow->Base);
-		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, nullptr);
+		StructureDetailsView->GetDetailsView()->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateLambda(
+			[](const FPropertyAndParent& PropAndParent) -> bool
+			{
+				return PropAndParent.Property.GetName() != GET_MEMBER_NAME_CHECKED(FPDMissionBase, Ext);
+			}));
+		StructureDetailsView->SetStructureData(StructData);
+
 		DetailsView = StructureDetailsView->GetWidget();
 	}
 	return DetailsView.ToSharedRef();
@@ -2113,7 +2139,7 @@ TSharedPtr<SGraphPin> FPDAttributeGraphPinFactory::CreatePin(UEdGraphPin* InPin)
 		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBranch, Branches)){Type = EGenericInputSelector::ENextMissionBranch;}
 		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionRow, Metadata)){Type = EGenericInputSelector::EMissionMetadata;}
 		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionMetadata, Name)){Type = EGenericInputSelector::EMissionMetadata;}
-		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBase, mID)){Type = EGenericInputSelector::EMissionID;}
+		else if (InnerPropertyName == GET_MEMBER_NAME_CHECKED(FPDMissionBaseExtension, mID)){Type = EGenericInputSelector::EMissionID;}
 
 		UPDMissionGraphNode* AsMissionGraphNode = Cast<UPDMissionGraphNode>(InPin->GetOwningNode());
 		if (AsMissionGraphNode)

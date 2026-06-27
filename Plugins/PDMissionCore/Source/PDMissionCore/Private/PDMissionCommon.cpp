@@ -81,7 +81,7 @@ void FPDMissionRules::IterateStatusHandlers(const FGameplayTag& Tag, FPDFPDMissi
 // Mission base helpers
 void FPDMissionBase::ResolveMissionTypeTag()
 {
-	MissionTypeTag = MissionBaseTag.RequestDirectParent();
+	Ext.MissionTypeTag = MissionBaseTag.RequestDirectParent();
 }
 
 //

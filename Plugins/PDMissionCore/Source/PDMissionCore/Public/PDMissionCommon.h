@@ -69,15 +69,15 @@ struct PDMISSIONCORE_API FPDMissionTickBehaviour
 	GENERATED_BODY()
 	
 	/** @brief Amount to re-generate every 're-generation tick'. 0 disables this behaviour */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Tick") 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tick Settings") 
 	int32 DeltaValue = 0;
 
 	/** @brief Number of seconds between each tick interval. 0 to disable */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Tick") 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tick Settings") 
 	float Interval = 1.0f;
 
 	/** @brief When set the ticker will not tick it's internals */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Tick") 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tick Settings") 
 	bool  bIsPaused = false;
 };
 
@@ -102,11 +102,11 @@ struct PDMISSIONCORE_API FPDMissionTagCompound
 	bool operator==(const FPDMissionTagCompound&& Other) const;
 
 	/** @brief Optional tags that may exist on the actor requesting this mission. Reserved for now. Set to not being editable so they are greyed out from the datatable editor */
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Mission|Datum")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Rule Tags")
 	TSet<FGameplayTag> OptionalUserTags{};
 
 	/** @brief Missing-tags that need to exist on the actor requesting this mission for it to be approved */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Datum", Meta = (AllowPrivateAccess="true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rule Tags", Meta = (AllowPrivateAccess="true"))
 	TSet<FGameplayTag> RequiredMissionTags{};	
 };
 
@@ -123,11 +123,11 @@ struct PDMISSIONCORE_API FPDMissionState
 	FPDMissionState(EPDMissionState _CurrrentState, const FPDMissionTagCompound&_OtherHandler) : Current(_CurrrentState), MissionConditionHandler(_OtherHandler) {};
 	
 	/** @brief Current mission state */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mission|Datum")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
 	TEnumAsByte<EPDMissionState> Current;
 	
 	/** @brief Tags that need to exist on the actor requesting this mission for it to be approved */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mission|Datum")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "State")
 	FPDMissionTagCompound MissionConditionHandler{};
 	
 };
@@ -273,12 +273,36 @@ struct FPDMissionRules
 	void IterateStatusHandlers(const FGameplayTag& Tag, FPDFPDMissionModData& OutStatVariables);
 
 	/** @brief Flags that need to exist on the actor requesting this mission for it to be approved */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Rules")
 	FPDMissionTagCompound MissionConditionHandler{};
 
 	/** @brief Branching conditions for this mission  */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Rules")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rules")
 	FPDMissionBranch NextMissionBranch;
+};
+
+/**
+ *  @brief Base data extension. aplit up like this for allowing use of generated details views in custom slate
+ */
+USTRUCT(BlueprintType, Blueprintable)
+struct PDMISSIONCORE_API FPDMissionBaseExtension
+{
+	GENERATED_BODY()
+
+	FPDMissionBaseExtension(int32 _mID = INDEX_NONE, FGameplayTag _TypeTag = FGameplayTag::EmptyTag)
+		:  mID(_mID), MissionTypeTag(_TypeTag) {}
+
+
+	/** @brief mission ID (mID), generated from the mission tag */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base")
+	int32 mID = 0x0;
+
+private:	
+	/** @brief Type/Category tag. Is the direct parent tag of the MissionBaseTag */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Base", Meta = (AllowPrivateAccess="true"))
+	FGameplayTag MissionTypeTag{};
+
+	friend struct FPDMissionBase;
 };
 
 /**
@@ -290,23 +314,18 @@ struct PDMISSIONCORE_API FPDMissionBase
 	GENERATED_BODY()
 
 	FPDMissionBase(const FGameplayTag& _MissionBaseTag = FGameplayTag::EmptyTag, int32 _mID = INDEX_NONE, int32 _Flags = 0x0)
-		: MissionBaseTag(_MissionBaseTag), mID(_mID), MissionTypeTag(_MissionBaseTag.RequestDirectParent()) {}
+		: MissionBaseTag(_MissionBaseTag), Ext(_mID, _MissionBaseTag.RequestDirectParent()) {}
 	
 	void ResolveMissionTypeTag();
-	const FGameplayTag& GetMissionTypeTag() { return MissionTypeTag; }
+	const FGameplayTag& GetMissionTypeTag() { return Ext.MissionTypeTag; }
 
 	/** @brief mission tag, expected format 'Mission.<DirectParent>.<MissionBaseTag>' DirectParent should be the mission or type */	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data|Base")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base")
 	FGameplayTag MissionBaseTag{};
-	
-	/** @brief mission ID (mID), generated from the mission tag */
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Mission|Data|Base")
-	int32 mID = 0x0;
 
-private:	
-	/** @brief Type/Category tag. Is the direct parent tag of the MissionBaseTag */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Mission|Data|Base", Meta = (AllowPrivateAccess="true"))
-	FGameplayTag MissionTypeTag{};
+	/** @brief mission ID (mID) & Type/Category tag */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Base")
+	FPDMissionBaseExtension Ext;
 };
 
 /**
@@ -318,22 +337,22 @@ struct PDMISSIONCORE_API FPDMissionRow : public FTableRowBase
 	GENERATED_BODY()
 	
 	/** @brief mission tag */	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Base")
 	FPDMissionBase Base{};
 	
 	/** @brief tick settings for this mission */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tick")
 	FPDMissionTickBehaviour TickSettings{};
 	
 	/** @brief Mission rules, what are the conditions to finish the mission, what are it's sub-objectives, what is the branching possibilities, etc */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rules")
 	FPDMissionRules ProgressRules{};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "State")
 	FPDMissionStateData StateData;
 
 	/** @brief Metadata, Friendly Name & Description */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mission|Data")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Metadata")
 	FPDMissionMetadata Metadata {};
 };
 

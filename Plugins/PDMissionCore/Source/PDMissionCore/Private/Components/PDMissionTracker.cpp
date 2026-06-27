@@ -52,7 +52,7 @@ bool UPDMissionTracker::SetMissionDatum(const FGameplayTag& BaseTag, const FPDMi
 		mIDToReplIdMap.Add(mID, AddedDatum.ReplicationID);
 	}
 
-	Server_OnMissionUpdated.Broadcast(DefaultData->Base.mID, NewState.Current);
+	Server_OnMissionUpdated.Broadcast(DefaultData->Base.Ext.mID, NewState.Current);
 
 	return true;
 }
@@ -140,7 +140,7 @@ const FPDMissionNetDatum* UPDMissionTracker::GetDatum(const FGameplayTag& BaseTa
 	const FPDMissionRow* Data = MissionSubsystem->Utility.GetDefaultBaseViaTag(BaseTag);
 	if (Data == nullptr) { return nullptr; }
 	
-	const int32 ArrayIndex = mIDToReplIdMap.Contains(Data->Base.mID) ? *mIDToReplIdMap.Find(Data->Base.mID) - 1 : INDEX_NONE;
+	const int32 ArrayIndex = mIDToReplIdMap.Contains(Data->Base.Ext.mID) ? *mIDToReplIdMap.Find(Data->Base.Ext.mID) - 1 : INDEX_NONE;
 	if (State.Items.IsValidIndex(ArrayIndex) == false) { return nullptr; }
 
 	return &State.Items[ArrayIndex];
@@ -154,7 +154,7 @@ TEnumAsByte<EPDMissionState> UPDMissionTracker::GetStateSelector(const FGameplay
 	const FPDMissionRow* Data = MissionSubsystem->Utility.GetDefaultBaseViaTag(BaseTag);
 	if (Data == nullptr) { return EPDMissionState::EINVALID_MISSIONSTATE; }
 	
-	const int32 ArrayIndex = mIDToReplIdMap.Contains(Data->Base.mID) ? *mIDToReplIdMap.Find(Data->Base.mID) - 1 : INDEX_NONE;
+	const int32 ArrayIndex = mIDToReplIdMap.Contains(Data->Base.Ext.mID) ? *mIDToReplIdMap.Find(Data->Base.Ext.mID) - 1 : INDEX_NONE;
 	if (State.Items.IsValidIndex(ArrayIndex) == false) { return EPDMissionState::EINVALID_MISSIONSTATE; }
 
 	return State.Items[ArrayIndex].State.Current;
@@ -168,6 +168,6 @@ void UPDMissionTracker::OnDatumUpdated(const FPDMissionNetDatum* UpdatedMissionD
 	const FPDMissionRow* DefaultDatum = MissionSubsystem->Utility.GetDefaultBase(UpdatedMissionDatum->mID);
 	if (DefaultDatum == nullptr) { return; }
 	
-	OnMissionUpdated.Broadcast(DefaultDatum->Base.mID, UpdatedMissionDatum->State.Current);
+	OnMissionUpdated.Broadcast(DefaultDatum->Base.Ext.mID, UpdatedMissionDatum->State.Current);
 }
 

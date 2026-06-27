@@ -197,17 +197,17 @@ void FPDMissionUtility::ProcessTablesForFastLookup()
 			bPackageWasDirtied = true;
 
 			// modify the table entry
-			TableRow->Base.mID = ++MissionID;
+			TableRow->Base.Ext.mID = ++MissionID;
 			TableRow->Base.ResolveMissionTypeTag();
 			MissionTable->HandleDataTableChanged(RowMapIter.Key());
 			
 			UE_LOG(LogTemp, Warning, TEXT("TableRow->Base.MissionTag: %s"), *TableRow->Base.MissionBaseTag.ToString())
 			UE_LOG(LogTemp, Warning, TEXT("TableRow->Base.MissionCategory: %s"), *TableRow->Base.GetMissionTypeTag().ToString())
-			UE_LOG(LogTemp, Warning, TEXT("TableRow->Base.mID: %i"), TableRow->Base.mID)
+			UE_LOG(LogTemp, Warning, TEXT("TableRow->Base.mID: %i"), TableRow->Base.Ext.mID)
 			
 			FDataTableRowHandle RowHandle = UPDMissionStatics::CreateRowHandle(MissionTable, RowMapIter.Key());
-			MissionLookup.Add(TableRow->Base.mID, RowHandle);
-			MissionTagToMIDLookup.Add(TableRow->Base.MissionBaseTag, TableRow->Base.mID);
+			MissionLookup.Add(TableRow->Base.Ext.mID, RowHandle);
+			MissionTagToMIDLookup.Add(TableRow->Base.MissionBaseTag, TableRow->Base.Ext.mID);
 			MissionLookupViaRowName.Add(RowHandle.RowName, RowHandle);
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
@@ -264,7 +264,7 @@ void FPDMissionUtility::InitializeTracker(const int32 ActorID)
 		const FPDMissionRow* DefaulMission = BaseMission.Value.GetRow<FPDMissionRow>(TEXT(""));
 		if (DefaulMission == nullptr) { continue; }
 		
-		FPDMissionNetDatum Mission{DefaulMission->Base.mID, FPDMissionState{DefaulMission->StateData.EStartState, DefaulMission->ProgressRules.MissionConditionHandler}};
+		FPDMissionNetDatum Mission{DefaulMission->Base.Ext.mID, FPDMissionState{DefaulMission->StateData.EStartState, DefaulMission->ProgressRules.MissionConditionHandler}};
 		MissionTracker->AddMissionDatum(Mission);
 	}
 }

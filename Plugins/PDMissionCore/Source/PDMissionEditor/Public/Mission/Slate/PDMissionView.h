@@ -218,6 +218,7 @@ protected:
 	virtual FText GetPreviewCornerText() const;
 	virtual const FSlateBrush* GetNameIcon() const;	
 
+	TSharedPtr<class IStructureDetailsView> StructureDetailsViewBaseExt;
 	TSharedPtr<class IStructureDetailsView> StructureDetailsViewMetaData;
 	TSharedPtr<class IStructureDetailsView> StructureDetailsViewStateData;
 	TSharedPtr<SWidget> ExtraDataButton;

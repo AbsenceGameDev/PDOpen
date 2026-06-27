@@ -84,9 +84,9 @@ void FPDPrivateMissionHandler::_GrantMissionToActor(const AActor* CallingActor, 
 
 	int32 mID = INDEX_NONE; 
 	if (MissionTag != FGameplayTag())     { mID = MissionSubsystem->Utility.ResolveMIDViaTag(MissionTag); }
-	else if (FoundMissionData != nullptr) { mID = FoundMissionData->Base.mID; }
+	else if (FoundMissionData != nullptr) { mID = FoundMissionData->Base.Ext.mID; }
 	
-	mID = mID == INDEX_NONE && FoundMissionData != nullptr ? FoundMissionData->Base.mID : INDEX_NONE;
+	mID = mID == INDEX_NONE && FoundMissionData != nullptr ? FoundMissionData->Base.Ext.mID : INDEX_NONE;
 	if (mID == INDEX_NONE) // Are we still INDEX_NONE? Invalid skill 
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s,  Found no mission by the name of '%s'"), *BuildString, *MissionName.ToString());
@@ -136,8 +136,8 @@ void FPDPrivateMissionHandler::_RemoveMissionFromActor(const AActor* CallingActo
 	}
 
 	const int32 PotentialSID = MissionSubsystem->Utility.ResolveMIDViaTag(MissionTag);
-	const int32 mID = MissionTag != FGameplayTag() && PotentialSID != INDEX_NONE ? PotentialSID : FoundMissionDefaultData != nullptr ? FoundMissionDefaultData->Base.mID : INDEX_NONE; 
-	if (mID  == INDEX_NONE)
+	const int32 mID = MissionTag != FGameplayTag() && PotentialSID != INDEX_NONE ? PotentialSID : FoundMissionDefaultData != nullptr ? FoundMissionDefaultData->Base.Ext.mID : INDEX_NONE; 
+	if (mID == INDEX_NONE)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s -- Found no mission by the name of '%s'"), *BaseString, *MissionName.ToString());
 		return;
