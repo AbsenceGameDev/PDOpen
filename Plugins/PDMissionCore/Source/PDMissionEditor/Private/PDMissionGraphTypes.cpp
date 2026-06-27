@@ -111,11 +111,11 @@ UPDMissionGraphNode* UPDMissionEditorStatics::NodeOp::ResolveNextNode(const UEdG
 }
 
 
-UPDMissionGraphNode* UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(UEdGraphPin* PinOnPotentialKnot, const EEdGraphPinDirection PinDir)
+TTuple<UPDMissionGraphNode*, UEdGraphPin*> UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(UEdGraphPin* PinOnPotentialKnot, const EEdGraphPinDirection PinDir)
 {
 	const bool bStartAsInputPin = PinDir == EEdGraphPinDirection::EGPD_Input;
 
-	UPDMissionGraphNode* ResolvedNode = nullptr;
+	TTuple<UPDMissionGraphNode*, UEdGraphPin*> ResolvedNodeAndPin{nullptr, nullptr};
 	if (UPDMissionGraphNode_Knot* TopLevelNodeAsKnot = Cast<UPDMissionGraphNode_Knot>(PinOnPotentialKnot->GetOwningNode()))
 	{
 		UEdGraphPin* InPin_Knot = bStartAsInputPin ? TopLevelNodeAsKnot->GetInputPin() : TopLevelNodeAsKnot->GetOutputPin();
@@ -131,8 +131,8 @@ UPDMissionGraphNode* UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot
 			UPDMissionGraphNode_Knot* KnotSourceAsKnot = Cast<UPDMissionGraphNode_Knot>(KnotSourceAsMissionNode);
 			if (KnotSourceAsMissionNode && nullptr == KnotSourceAsKnot)
 			{
-				ResolvedNode = KnotSourceAsMissionNode;
-				PinOnPotentialKnot = InPin_Knot; 
+				ResolvedNodeAndPin.Key = KnotSourceAsMissionNode;
+				ResolvedNodeAndPin.Value = PinOnPotentialKnot = InPin_Knot; 
 				InPin_Knot = nullptr;
 			}
 			else if (KnotSourceAsKnot)
@@ -142,7 +142,7 @@ UPDMissionGraphNode* UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot
 		}
 	}
 
-	return ResolvedNode;
+	return ResolvedNodeAndPin;
 }
 
 bool UPDMissionEditorStatics::NodeOp::DoesNodePathContainConditionNode(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir)
@@ -170,7 +170,7 @@ bool UPDMissionEditorStatics::NodeOp::DoesNodePathContainConditionNode(UEdGraphP
 		return FindConditionNode(InPin, bStartAsInputPin);
 	}
 		
-	// UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - No node in line is cond - FAIL"))
+	UE_LOG(LogTemp, Warning, TEXT("CONDTEST: DoesNodePathContainConditionNode - No node in line is cond - FAIL"))
 	return false;
 }
 
@@ -598,53 +598,8 @@ void FPDMissionGraphConnectionDrawingPolicy::DrawConnection(int32 LayerId, const
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
 
 	// TODO In the middle or remaking this, but need to push and commit as I need to head out
-	UEdGraphPin* SourcePin = Params.AssociatedPin1; 
-	UEdGraphPin* TargetPin = Params.AssociatedPin2;
-	 
-	if (SourcePin && TargetPin && UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode())))
-	{
-		UPDMissionGraphNode* SourceMissionNode = Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode());
 
-		UPDMissionGraphNode* TargetMissionNode = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(TargetPin, EEdGraphPinDirection::EGPD_Output);
-		if (nullptr == TargetMissionNode)
-		{
-			TargetMissionNode = Cast<UPDMissionGraphNode>(TargetPin->GetOwningNode());
-		}
-
-		if (UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(SourceMissionNode) 
-			&& UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(TargetMissionNode))
-		{
-			const int32 OutPinIdx = UPDMissionEditorStatics::NodeOp::FindDirectionIndex(SourcePin, SourceMissionNode->Pins, EEdGraphPinDirection::EGPD_Output);
-			if (INDEX_NONE == OutPinIdx)
-			{
-				return;
-			}
-			
-			const bool bNodePathHasCondition = UPDMissionEditorStatics::NodeOp::DoesNodePathContainConditionNode(SourcePin, EEdGraphPinDirection::EGPD_Output);
-			if (false == bNodePathHasCondition)
-			{
-				FPDPendingConditionNode NodeSpawnData;
-				NodeSpawnData.SourceNode = SourceMissionNode;
-				NodeSpawnData.SourceBranchPinIdx = Params.AssociatedPin1->GetOwningNode()->Pins.IndexOfByPredicate([Params](const UEdGraphPin*PinElem) -> bool {return PinElem == Params.AssociatedPin1;});
-				NodeSpawnData.TargetNode =  UPDMissionEditorStatics::NodeOp::ResolveNextNode(Params.AssociatedPin1);
-				NodeSpawnData.TargetGraph = SourceMissionNode->GetGraph();
-
-				constexpr int32 NodeOffsetLarge = 512 + 256;
-				constexpr int32 NodeOffsetSmall = 32;
-				constexpr int32 BranchOffsetMultiplier = 3;
-				const int32 NodeOffsetY = NodeOffsetSmall + (NodeOffsetSmall * BranchOffsetMultiplier * OutPinIdx);
-				const int32 NewNodePostionX = SourceMissionNode->NodePosX + (SourceMissionNode->NodeWidth == 0 ? NodeOffsetLarge : SourceMissionNode->NodeWidth + NodeOffsetSmall);
-				const int32 NewNodePostionY = SourceMissionNode->NodePosY + NodeOffsetY;
-				
-				NodeSpawnData.SpawnLocation = FIntVector2{NewNodePostionX, NewNodePostionY};
-				UPDMissionEditorSubsystem::Get()->QueueConditionNode(NodeSpawnData);
-			}
-
-			SourcePin->PinName = FName(*UPDMissionEditorStatics::NodeOp::BuildPinName(OutPinIdx, TargetMissionNode->GetMissionName()));
-			UPDMissionEditorStatics::RowOp::SetValuesOnBranchTargetAtIndex(SourceMissionNode->SelectedMissionRowName, OutPinIdx, TargetMissionNode->SelectedMissionRowName, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection"));
-		}
-	}
-
+	UPDMissionEditorSubsystem::ProcessPinConnection(Params);
 	FConnectionDrawingPolicy::DrawConnection(LayerId, Start, End, Params);
 }
 
@@ -907,9 +862,11 @@ void UPDMissionEditorSubsystem::SpawnConditionNodes()
 
 
 		UPDMissionGraphNode* SourceNode = Cast<UPDMissionGraphNode>(PendingConditionNode.SourceNode);
+		UEdGraphPin* SourcePin = nullptr; 
 		if (SourceNode && SourceNode->Pins.IsValidIndex(PendingConditionNode.SourceBranchPinIdx))
 		{
-			NewConditionNode->GetInputPin()->MakeLinkTo(SourceNode->Pins[PendingConditionNode.SourceBranchPinIdx]);
+			SourcePin = SourceNode->Pins[PendingConditionNode.SourceBranchPinIdx];
+			NewConditionNode->GetInputPin()->MakeLinkTo(SourcePin);
 		}
 
 
@@ -926,8 +883,11 @@ void UPDMissionEditorSubsystem::SpawnConditionNodes()
 
 			if (TargetPin && *TargetPin)
 			{
-				(*TargetPin)->BreakAllPinLinks(); 
-				NewConditionNode->GetOutputPin()->MakeLinkTo(TargetNode->Pins[1]);
+				if (SourcePin)
+				{
+					(*TargetPin)->BreakLinkTo(SourcePin);
+				}
+				NewConditionNode->GetOutputPin()->MakeLinkTo(*TargetPin);
 			}
 			else 
 			{
@@ -936,7 +896,10 @@ void UPDMissionEditorSubsystem::SpawnConditionNodes()
 		}
 		else if (TargetNodeAsKnot)
 		{
-			TargetNodeAsKnot->GetInputPin()->BreakAllPinLinks();
+			if (SourcePin)
+			{
+				TargetNodeAsKnot->GetInputPin()->BreakLinkTo(SourcePin);
+			}
 			NewConditionNode->GetOutputPin()->MakeLinkTo(TargetNodeAsKnot->GetInputPin());
 		}
 
@@ -945,6 +908,57 @@ void UPDMissionEditorSubsystem::SpawnConditionNodes()
 		PendingConditionNode.TargetGraph->NotifyGraphChanged();		
 	}
 	PendingNodesToCreate.Empty();
+}
+
+
+void UPDMissionEditorSubsystem::ProcessPinConnection(const FConnectionParams& Params)
+{
+	UEdGraphPin* SourcePin = Params.AssociatedPin1; 
+	UEdGraphPin* TargetPin = Params.AssociatedPin2;
+	 
+	if (SourcePin && TargetPin && UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode())))
+	{
+		UPDMissionGraphNode* SourceMissionNode = Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode());
+
+		auto[TargetMissionNode, ResolvedTargetPin] = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(TargetPin, EEdGraphPinDirection::EGPD_Output);
+		if (nullptr == TargetMissionNode)
+		{
+			TargetMissionNode = Cast<UPDMissionGraphNode>(TargetPin->GetOwningNode());
+		}
+
+		if (UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(SourceMissionNode) 
+			&& UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(TargetMissionNode))
+		{
+			const int32 OutPinIdx = UPDMissionEditorStatics::NodeOp::FindDirectionIndex(SourcePin, SourceMissionNode->Pins, EEdGraphPinDirection::EGPD_Output);
+			if (INDEX_NONE == OutPinIdx)
+			{
+				return;
+			}
+			
+			const bool bNodePathHasCondition = UPDMissionEditorStatics::NodeOp::DoesNodePathContainConditionNode(SourcePin, EEdGraphPinDirection::EGPD_Output);
+			if (false == bNodePathHasCondition)
+			{
+				FPDPendingConditionNode NodeSpawnData;
+				NodeSpawnData.SourceNode = SourceMissionNode;
+				NodeSpawnData.SourceBranchPinIdx = Params.AssociatedPin1->GetOwningNode()->Pins.IndexOfByPredicate([Params](const UEdGraphPin*PinElem) -> bool {return PinElem == Params.AssociatedPin1;});
+				NodeSpawnData.TargetNode =  UPDMissionEditorStatics::NodeOp::ResolveNextNode(Params.AssociatedPin1);
+				NodeSpawnData.TargetGraph = SourceMissionNode->GetGraph();
+
+				constexpr int32 NodeOffsetLarge = 512 + 256;
+				constexpr int32 NodeOffsetSmall = 32;
+				constexpr int32 BranchOffsetMultiplier = 3;
+				const int32 NodeOffsetY = NodeOffsetSmall + (NodeOffsetSmall * BranchOffsetMultiplier * OutPinIdx);
+				const int32 NewNodePostionX = SourceMissionNode->NodePosX + (SourceMissionNode->NodeWidth == 0 ? NodeOffsetLarge : SourceMissionNode->NodeWidth + NodeOffsetSmall);
+				const int32 NewNodePostionY = SourceMissionNode->NodePosY + NodeOffsetY;
+				
+				NodeSpawnData.SpawnLocation = FIntVector2{NewNodePostionX, NewNodePostionY};
+				UPDMissionEditorSubsystem::Get()->QueueConditionNode(NodeSpawnData);
+			}
+
+			SourcePin->PinName = FName(*UPDMissionEditorStatics::NodeOp::BuildPinName(OutPinIdx, TargetMissionNode->GetMissionName()));
+			UPDMissionEditorStatics::RowOp::SetValuesOnBranchTargetAtIndex(SourceMissionNode->SelectedMissionRowName, OutPinIdx, TargetMissionNode->SelectedMissionRowName, TEXT("FPDMissionGraphConnectionDrawingPolicy::DrawConnection"));
+		}
+	}	
 }
 
 

@@ -32,6 +32,7 @@ class PDMISSIONEDITOR_API UPDMissionGraphSchema : public UEdGraphSchema
 	virtual void BreakSinglePinLink(UEdGraphPin* SourcePin, UEdGraphPin* TargetPin) const override;
 	virtual TSharedPtr<FEdGraphSchemaAction> GetCreateCommentAction() const override;
 	virtual int32 GetNodeSelectionCount(const UEdGraph* Graph) const override;
+	virtual bool TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const override;
 	//~ End EdGraphSchema Interface
 
 	virtual void GetGraphNodeContextActions(FGraphContextMenuBuilder& ContextMenuBuilder, int32 SubNodeFlags) const;
@@ -39,6 +40,7 @@ class PDMISSIONEDITOR_API UPDMissionGraphSchema : public UEdGraphSchema
 	static void AddAndSetupNodeAction(FGraphContextMenuBuilder& ContextMenuBuilder, FCategorizedGraphActionListBuilder& ListBuilder, const TPair<UClass*, FPDMissionNodeData>& NodePair);
 
 protected:
+	// Reserved
 
 public:
 	//~ Begin EdGraphSchema Interface

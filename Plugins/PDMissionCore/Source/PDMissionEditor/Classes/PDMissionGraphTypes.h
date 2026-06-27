@@ -418,7 +418,7 @@ public:
 		}
 		
 		static PDMISSIONEDITOR_API class UPDMissionGraphNode* ResolveNextNode(const UEdGraphPin* PinOnPotentialKnot);
-		static PDMISSIONEDITOR_API class UPDMissionGraphNode* ResolveMissionNodeFromKnot(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir);
+		static PDMISSIONEDITOR_API TTuple<class UPDMissionGraphNode*, UEdGraphPin*> ResolveMissionNodeFromKnot(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir);
 		static PDMISSIONEDITOR_API bool DoesNodePathContainConditionNode(UEdGraphPin* SourcePin, const EEdGraphPinDirection PinDir);
 		static PDMISSIONEDITOR_API bool IsRowBasedMissionNode(UEdGraphNode* Node);
 
@@ -518,6 +518,7 @@ public:
 	
 	void QueueConditionNode(const FPDPendingConditionNode& PendingConditionNode);
 	void SpawnConditionNodes();	
+	static void ProcessPinConnection(const FConnectionParams& Params);	
 	
 
 private:

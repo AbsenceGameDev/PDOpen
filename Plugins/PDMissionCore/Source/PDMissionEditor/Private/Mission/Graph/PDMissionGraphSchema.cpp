@@ -133,6 +133,37 @@ int32 UPDMissionGraphSchema::GetNodeSelectionCount(const UEdGraph* Graph) const
 	return GraphEditorPtr->GetNumberOfSelectedNodes();
 }
 
+ bool UPDMissionGraphSchema::TryCreateConnection(UEdGraphPin* A, UEdGraphPin* B) const
+ {
+	const bool bResult = UEdGraphSchema::TryCreateConnection(A,B);
+	
+	// TODO: Handle reverse direction also? Not sure if I want pins to be moved like that just yey so I'll leave it be for now
+	if (bResult && A->Direction == EEdGraphPinDirection::EGPD_Output)
+	{
+		auto[SourceMissionNode, SourcePin] = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(A, EEdGraphPinDirection::EGPD_Input);
+		if (nullptr == SourceMissionNode)
+		{
+			SourceMissionNode = Cast<UPDMissionGraphNode>(A->GetOwningNode());
+			SourcePin = A;
+		}
+		auto[TargetMissionNode, TargetPin] = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(B, EEdGraphPinDirection::EGPD_Output);
+		if (nullptr == TargetMissionNode)
+		{
+			TargetMissionNode = Cast<UPDMissionGraphNode>(B->GetOwningNode());
+			TargetPin = B;
+		}		
+
+		FConnectionParams Params;
+		Params.AssociatedPin1 = SourcePin;
+		Params.AssociatedPin2 = TargetPin;
+		UPDMissionEditorSubsystem::ProcessPinConnection(Params);
+		
+	}
+	
+	return bResult;
+ }
+
+
 
 void UPDMissionGraphSchema::CreateDefaultNodesForGraph(UEdGraph& Graph) const
 {

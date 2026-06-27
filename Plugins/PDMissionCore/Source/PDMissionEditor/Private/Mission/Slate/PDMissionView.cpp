@@ -1000,7 +1000,7 @@ UPDMissionGraphNode* SGraphNodeMissionCondition::GetSourceNode(UEdGraphPin*& Out
 	}
 
 	UEdGraphPin* SourcePin = InputPins[0]->GetPinObj();
-	UPDMissionGraphNode* SourceNode = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(SourcePin, EEdGraphPinDirection::EGPD_Input);
+	auto[SourceNode, ResolvedSourcePin] = UPDMissionEditorStatics::NodeOp::ResolveMissionNodeFromKnot(SourcePin, EEdGraphPinDirection::EGPD_Input);
 	SourceNode = SourceNode ? SourceNode : Cast<UPDMissionGraphNode>(SourcePin->GetOwningNode());
 	if (false == UPDMissionEditorStatics::NodeOp::IsRowBasedMissionNode(SourceNode) || SourcePin->LinkedTo.IsEmpty())
 	{
