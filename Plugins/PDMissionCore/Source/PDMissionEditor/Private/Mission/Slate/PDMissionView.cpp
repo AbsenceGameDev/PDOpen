@@ -1547,8 +1547,8 @@ TSharedRef<SWidget>	SPDAttributePin::GetDefaultValueWidget()
 	if (MissionSubsystem == nullptr) { return SNew(STextComboBox); }
 	
 	return 
-		SNew(STextComboBox) //note you can display any widget here
-		.OptionsSource(&MissionSubsystem->Utility.MissionRowNameList) 
+		SNew(STextComboBox)
+		.OptionsSource(&MissionSubsystem->Utility.FilterPlacedMissions()) 
 		.OnSelectionChanged(this, &SPDAttributePin::OnAttributeSelected);
 }
 void SPDAttributePin::OnAttributeSelected(TSharedPtr<FString> ItemSelected, ESelectInfo::Type SelectInfo)
@@ -2038,7 +2038,7 @@ TSharedRef<SWidget> MakePinEntry(const TSharedRef<SWidget>& InnerLabel, const TS
 	return SNew(SHorizontalBox) 
 	+ SHorizontalBox::Slot()
 	.FillWidth(0.1)
-	.Padding(FMargin(24,24))
+	.Padding(FMargin(-24,-24))
 	[
 		InnerLabel
 	]

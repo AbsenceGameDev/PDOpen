@@ -350,3 +350,51 @@ void FPDMissionUtility::TrackMissionRow(const FPDMissionRow* MissionRow, FName M
 	= MissionName;	
 #endif // WITH_EDITOR
 }
+
+void FPDMissionUtility::TrackMissionNode(FString MissionName)
+{
+#if WITH_EDITOR
+	CurrentlyPlacedMissionNodes.Add(MissionName);
+#endif
+}
+
+void FPDMissionUtility::UntrackMissionNode(FString MissionName)
+{
+#if WITH_EDITOR
+	CurrentlyPlacedMissionNodes.Remove(MissionName);
+#endif
+}
+
+bool FPDMissionUtility::IsMissionNodeTracked(FString MissionName)
+{
+#if WITH_EDITOR
+	return CurrentlyPlacedMissionNodes.Contains(MissionName);
+#else
+	return false;
+#endif
+}
+
+const TArray<TSharedPtr<FString>>& FPDMissionUtility::FilterPlacedMissions()
+{
+#if WITH_EDITOR
+	FilteredMissionRowNameList = MissionRowNameList;
+	for (FString& MissionNodeName : CurrentlyPlacedMissionNodes)
+	{
+		const auto& Test = FilteredMissionRowNameList;
+		int32 ExistingIndex = Test.IndexOfByPredicate(
+			[MissionNodeName](const TSharedPtr<FString>& Elem) -> bool
+			{
+				return Elem->Equals(MissionNodeName);
+			});
+
+		if (INDEX_NONE != ExistingIndex)
+		{
+			FilteredMissionRowNameList.RemoveAt(ExistingIndex);
+		}
+	}
+	return FilteredMissionRowNameList;
+#else
+	static TArray<TSharedPtr<FString>> Dummy;
+	return Dummy;
+#endif // WITH_EDITOR
+}

@@ -97,7 +97,11 @@ public:
 
 	/** @brief FIlls the cached mission list, body only implemented in editor builds */
 	void FillIntermediaryMissionList(bool bOverwrite);
-	void TrackMissionRow(const FPDMissionRow* MissionRow, FName MissionName);
+	void TrackMissionRow(const FPDMissionRow* MissionRow, FName MissionName); // Tracks rows in the datatable
+	void TrackMissionNode(FString MissionName); // Tracks placed nodes on the screen
+	void UntrackMissionNode(FString MissionName); // Untracks placed nodes on the screen
+	bool IsMissionNodeTracked(FString MissionName); // Untracks placed nodes on the screen
+	const TArray<TSharedPtr<FString>>& FilterPlacedMissions();
 
 public:
 	/** @brief Map associating ActorIDs with their mission tracker  */
@@ -124,6 +128,8 @@ public:
 #if WITH_EDITOR
 	TArray<TSharedPtr<FString>> MissionConcatList;
 	TArray<TSharedPtr<FString>> MissionRowNameList;
+	TArray<TSharedPtr<FString>> FilteredMissionRowNameList;
+	TSet<FString> CurrentlyPlacedMissionNodes;
 	TMap<int32, FName> IndexToName;
 #endif
 

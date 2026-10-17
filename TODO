@@ -1,0 +1,16 @@
+Notes after a 2 month hiatus, going to go through what I find and write it down here
+Note: Will Actually start flagging bugs and ticket with ticket/bug numbers from now on, will start at 001 even though it is far into its commit history
+
+Bugs:
+    BUG#P0001: 
+    If connecting a Mission with another mission, and both are the same Mission Row then it breaks a number of cached values causing a softlock
+    ✔ Solution would be to Modify 'SPDAttributePin::GetDefaultValueWidget()' to ensure that a currenlty placed mission can't be selected there again, as it causes design issues if the same mission is placed multiple times in a graph @done(26-10-17 15:03)
+        @Note: Might need to keep track of each placed node and remove them from tracking if they are removed, then only display those
+        ✔ tracking placed nodes now when added/modified via dropdown,  @done(26-10-17 01:13)
+        ✔ Update Dropdown to reflect available mission to select. @done(26-10-17 01:27) (shows that untracking does not work when changing selected one in the dropdown, fixing tomorow) 
+        ✔ Ensure untracking works (need to update when they are outright deleted also) @done(26-10-17 15:03)
+
+
+Tasks:  
+    TASK#P0001: 
+        ☐ bNewQuestline flag should be replaced with an enum wiht values [ENewQuestline, EMergePoint, EEndOfQuestline], Where MergePoint means it merges back into another questline

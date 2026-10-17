@@ -161,29 +161,16 @@ void UPDMissionGraphNode::RefreshDataRefPins(const FName& MissionRowName)
 	UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: UPDMissionGraphNode::RefreshDataRefPins - %s"), *MissionRowName.ToString());
 
 	SelectedMissionRowName = MissionRowName;
-	if ((MissionRowName.ToString() == TAG_MakeNewMission.GetTag().ToString() || MissionRowName == NAME_None) && GetInputPin(0) != nullptr)
+	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
+	const bool bNewMission = (MissionRowName.ToString() == TAG_MakeNewMission.GetTag().ToString() || MissionRowName == NAME_None) && GetInputPin(0) != nullptr;
+	if (false == bNewMission)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: Attempt create new mission"));
+		MissionSubsystem->Utility.TrackMissionNode(SelectedMissionRowName.ToString());
+	}
 
-		// TODO/NOTE: 
-		//	- This is currenlty unused, dead code basically, or even worse as it actually runs. 
-		//	- Commenting it out and rethinking what we need when we want to create a new mission row
-
-		// // Generate pin. TODO: Try to remember what the hell the plan was here nad then finish or scrap
-		// FEdGraphTerminalType ValueTerminalType;
-		// ValueTerminalType.TerminalCategory = UEdGraphSchema_K2::PC_Struct;
-		// ValueTerminalType.TerminalSubCategory = NAME_None;
-		// ValueTerminalType.TerminalSubCategoryObject = FPDMissionRow::StaticStruct();
-		
-		// UEdGraphNode::FCreatePinParams PinParam;
-		// PinParam.Index = 3;
-		// PinParam.bIsReference = false;
-		// PinParam.ContainerType = EPinContainerType::None;
-		// PinParam.ValueTerminalType = ValueTerminalType;
-
-		// FEdGraphPinType PinType_Key(FPDMissionGraphTypes::PinCategory_MissionRowKeyBuilder, NAME_None, FPDMissionRow::StaticStruct(), PinParam.ContainerType, PinParam.bIsReference, PinParam.ValueTerminalType);
-		// PinType_Key.bIsConst = PinParam.bIsConst;
-		// // CreatePin(EGPD_Input, PinType_Key, TEXT("New data key"), PinParam.Index);
+	if (MissionSubsystem->Utility.IsMissionNodeTracked(PreviousMissionRowName.ToString()))
+	{
+		MissionSubsystem->Utility.UntrackMissionNode(PreviousMissionRowName.ToString());
 	}
 
 	// Always refresh, but TODO: Make it possible to save the state and apply on the new missions pins when 
@@ -493,6 +480,12 @@ void UPDMissionGraphNode::InsertSubNodeAt(UPDMissionGraphNode* SubNode, int32 Dr
 void UPDMissionGraphNode::DestroyNode()
 {
 	if (ParentNode) { ParentNode->RemoveSubNode(this); }
+
+	FPDMissionUtility& MissionUtlity = UPDMissionStatics::GetMissionSubsystem()->Utility;
+	if (MissionUtlity.IsMissionNodeTracked(SelectedMissionRowName.ToString()))
+	{
+		MissionUtlity.UntrackMissionNode(SelectedMissionRowName.ToString());
+	}
 
 	UEdGraphNode::DestroyNode();
 }
