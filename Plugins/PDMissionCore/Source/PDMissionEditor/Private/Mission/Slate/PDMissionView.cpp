@@ -362,7 +362,6 @@ void SMissionGraphNode::AddPin(const TSharedRef<SGraphPin>& PinToAdd)
 
 FPDMissionRow* GetCurrentMission(FName MissionRowName)
 {
-
 	UE_LOG(LogTemp, Verbose, TEXT("MISSIONTEST: NEXT MISSION BRANCH SLATE WIDGET"));
 	UPDMissionSubsystem* MissionSubsystem = UPDMissionStatics::GetMissionSubsystem();
 	FPDMissionUtility* Utility = MissionSubsystem ? &MissionSubsystem->Utility : nullptr;
@@ -376,8 +375,6 @@ FPDMissionRow* GetCurrentMission(FName MissionRowName)
 	}
 	return nullptr;
 }
-
-
 
 TPair<FDetailsViewArgs, FStructureDetailsViewArgs> GetDetailsArgs()
 {
@@ -448,12 +445,32 @@ TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBaseExtension>(const FPDMi
 	return DetailsView.ToSharedRef();
 }
 
+struct FPDMissionBaseUIOverride_Complete{};
+template<>
+TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBaseUIOverride_Complete>(const FPDMissionRow* MissionRow, TSharedPtr<class IStructureDetailsView> StructureDetailsView)
+{
+	TSharedPtr<SWidget> DetailsView = SNew(STextBlock).Text(FText::AsCultureInvariant(TEXT("N/A")));
+	if(MissionRow)
+	{
+		auto[DetailsViewArgs, StructureDetailsViewArgs] = GetDetailsArgs();
+		StructureDetailsViewArgs.bShowObjects = StructureDetailsViewArgs.bShowAssets = StructureDetailsViewArgs.bShowClasses = StructureDetailsViewArgs.bShowInterfaces = false;
+		FPropertyEditorModule& PropertyEditor = FModuleManager::GetModuleChecked<FPropertyEditorModule>("PropertyEditor");
+		TSharedPtr<FStructOnScope> StructData = MakeShared<FStructOnScope>(FPDMissionBase::StaticStruct(), (uint8*)&MissionRow->Base);
+		StructureDetailsView = PropertyEditor.CreateStructureDetailView(DetailsViewArgs, StructureDetailsViewArgs, StructData);
+		DetailsView = StructureDetailsView->GetWidget();
+	}
+	return DetailsView.ToSharedRef();
+}
+
 
 void SMissionGraphNode::SetDefaultTitleAreaWidget(TSharedRef<SOverlay> DefaultTitleAreaWidget)
 {
 	DefaultTitleAreaWidget->ClearChildren();
 	TSharedPtr<SNodeTitle> NodeTitle = SNew(SNodeTitle, GraphNode);	
 	
+	UPDMissionGraphNode* AsMissionNode = CastChecked<UPDMissionGraphNode>(GraphNode);
+	NodeTitle->Updar
+
 	// Write out 10 times by hand tomorrow to fully commit of this into my longterm memory
 	DefaultTitleAreaWidget->AddSlot()
 	.HAlign(HAlign_Fill)
@@ -541,7 +558,8 @@ FReply SMissionGraphNode::OnExtraDataClicked()
 		return FReply::Unhandled();
 	}
 
-	TSharedRef<SWidget> BaseExtWidget = GenerateSettingsContent<FPDMissionBaseExtension>(MissionRow, StructureDetailsViewBaseExt);
+	TSharedRef<SWidget> BaseExtWidget = GenerateSettingsContent<FPDMissionBaseUIOverride_Complete>(MissionRow, StructureDetailsViewBaseExt);
+	// TSharedRef<SWidget> BaseExtWidget = GenerateSettingsContent<FPDMissionBaseExtension>(MissionRow, StructureDetailsViewBaseExt);
 	TSharedRef<SWidget> MetaDataWidget = GenerateSettingsContent<FPDMissionMetadata>(MissionRow, StructureDetailsViewMetaData);
 	TSharedRef<SWidget> StateDataWidget = GenerateSettingsContent<FPDMissionStateData>(MissionRow, StructureDetailsViewStateData);
 	TSharedRef<SWidget> BorderWidget = 
@@ -2055,7 +2073,6 @@ TSharedRef<SWidget> MakePinEntry(const TSharedRef<SWidget>& InnerLabel, const TS
 
 TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget() 
 {
-	static UScriptStruct* MissionBaseStruct = TBaseStructure<FPDMissionBase>::Get();
 	static UScriptStruct* TickBehaviourStruct = TBaseStructure<FPDMissionTickBehaviour>::Get();
 	static UScriptStruct* MissionRulesStruct = TBaseStructure<FPDMissionRules>::Get();
 	
@@ -2063,10 +2080,6 @@ TSharedRef<SWidget>	SPDLabelAsPin::GetDefaultValueWidget()
 
 	if (SubCategoryObject != nullptr)
 	{
-		if (SubCategoryObject.Get() == MissionBaseStruct)
-		{
-			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionBase>(GetCurrentMission(MissionRowName), StructureDetailsView));
-		}
 		if (SubCategoryObject.Get() == TickBehaviourStruct)
 		{
 			return MakePinEntry(SGraphPin::GetDefaultValueWidget(), GenerateSettingsContent<FPDMissionTickBehaviour>(GetCurrentMission(MissionRowName), StructureDetailsView));

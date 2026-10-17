@@ -26,6 +26,16 @@ enum EPDMissionBranchBehaviour
 };
 
 UENUM()
+enum EPDMissionConditionQuestlineState
+{
+	ESameQuestline,  // Stays on the existing questline
+	ENewQuestline,   // Branches out to a new questline
+	EMergePoint,     // Merges back into an existing questline
+	EEndOfQuestline, // Just ends this questline
+	EMAX_TARGET_STATE,  //
+};
+
+UENUM()
 enum EPDMissionState
 {
 	ECompletedMission,      // Finished successfully
@@ -239,7 +249,7 @@ struct FPDMissionBranchElement
 
 	/** @brief true means it's a direct branch, i.e. 'same questline', false means it's a new questline */
 	UPROPERTY(EditAnywhere, Category = "Branch Rule")
-	uint8 bIsNewQuestline : 1;
+	TEnumAsByte<EPDMissionConditionQuestlineState> TargetQuestlineState = EPDMissionConditionQuestlineState::ESameQuestline;
 
 	/** @brief Tells us how we want to treat the branch */
 	UPROPERTY(EditAnywhere, Category = "Branch Rule")

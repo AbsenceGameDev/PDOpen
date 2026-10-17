@@ -13,4 +13,6 @@ Bugs:
 
 Tasks:  
     TASK#P0001: 
-        ☐ bNewQuestline flag should be replaced with an enum wiht values [ENewQuestline, EMergePoint, EEndOfQuestline], Where MergePoint means it merges back into another questline
+        ✔ bNewQuestline flag should be replaced with an enum wiht values [ENewQuestline, EMergePoint, EEndOfQuestline], Where MergePoint means it merges back into another questline @done(26-10-17 17:29)
+    TASK#P0002: 
+        ☐ Override nodetitle in 'SMissionGraphNode::SetDefaultTitleAreaWidget' to reflect actual selected mission @started(26-10-17 17:19)
