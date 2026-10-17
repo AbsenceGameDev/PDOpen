@@ -187,7 +187,7 @@ public:
 	virtual FReply OnAddPin() override;
 	//~ End SGraphNode Interface
 
-
+	FText GetTitleText() const;
 	const FPDMissionRow* GetMissionRowPtr() const;
 	static FLinearColor StaticGetTransitionColor(bool bIsOpened, bool bIsHovered);
 	bool IsExtraDataEnabled() const;

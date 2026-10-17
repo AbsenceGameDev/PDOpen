@@ -462,15 +462,22 @@ TSharedRef<SWidget> GenerateSettingsContent<FPDMissionBaseUIOverride_Complete>(c
 	return DetailsView.ToSharedRef();
 }
 
+FText SMissionGraphNode::GetTitleText() const
+{
+	UPDMissionGraphNode* AsMissionNode = Cast<UPDMissionGraphNode>(GraphNode);
+	const bool bHasRowSelected = AsMissionNode && false == AsMissionNode->SelectedMissionRowName.IsNone();
+	return bHasRowSelected ?  FText::FromName(AsMissionNode->SelectedMissionRowName) : FText::FromString("No mission selected");
+}
+
 
 void SMissionGraphNode::SetDefaultTitleAreaWidget(TSharedRef<SOverlay> DefaultTitleAreaWidget)
 {
 	DefaultTitleAreaWidget->ClearChildren();
-	TSharedPtr<SNodeTitle> NodeTitle = SNew(SNodeTitle, GraphNode);	
-	
-	UPDMissionGraphNode* AsMissionNode = CastChecked<UPDMissionGraphNode>(GraphNode);
-	NodeTitle->Updar
 
+	SNodeTitle::FArguments Args;
+	Args.Text_Raw(this, &SMissionGraphNode::GetTitleText);
+	TSharedPtr<SNodeTitle> NodeTitle =  SArgumentNew(Args, SNodeTitle, GraphNode);
+	
 	// Write out 10 times by hand tomorrow to fully commit of this into my longterm memory
 	DefaultTitleAreaWidget->AddSlot()
 	.HAlign(HAlign_Fill)
