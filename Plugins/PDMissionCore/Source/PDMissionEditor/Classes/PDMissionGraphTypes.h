@@ -14,6 +14,13 @@
 class FSlateWindowElementList;
 class UEdGraph;
 
+UENUM()
+enum class EMissionGraph : uint8
+{
+	MainGraph, // Graph that designs inter-mission flow, flow between missions
+	SubGraph // Graph that designs intra-mission flow, flow inside a mission
+};
+
 /** @brief Selector enum for mission types */
 enum class EMissionGraphSubNodeType : uint8
 {

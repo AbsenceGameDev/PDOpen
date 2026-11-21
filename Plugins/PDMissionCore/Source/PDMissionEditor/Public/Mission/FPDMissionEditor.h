@@ -166,8 +166,10 @@ public:
 	FSimpleMulticastDelegate FocusedGraphEditorChanged;
 	
 	class UPDMissionGraph* GraphObj = nullptr;
+	class UPDMissionGraph* MissionSubGraphObj = nullptr; // active sub-mission graph waiting to be ppulated
 
 protected:
+	TSharedPtr<SHorizontalBox> MissionTreeBox;
 
 	/** Currently focused graph */
 	TWeakPtr<SGraphEditor> FocusGraphEditorPtr;

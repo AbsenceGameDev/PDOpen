@@ -55,6 +55,7 @@ private:
 
 private:
 	UPDMissionGraph* GraphObj = nullptr;
+	UPDMissionGraph* MissionSubGraphObj = nullptr; // active sub-mission graph waiting to be ppulated
 	TSharedPtr<class FUICommandList> PluginCommands;
 	TArray<TSharedPtr<class FAssetTypeActions_Base>> ItemDataAssetTypeActions;
 

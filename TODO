@@ -9,10 +9,94 @@ Bugs:
         ✔ tracking placed nodes now when added/modified via dropdown,  @done(26-10-17 01:13)
         ✔ Update Dropdown to reflect available mission to select. @done(26-10-17 01:27) (shows that untracking does not work when changing selected one in the dropdown, fixing tomorow) 
         ✔ Ensure untracking works (need to update when they are outright deleted also) @done(26-10-17 15:03)
+    
+    BUG#P0002:
+    Saving is broken, or rather never fully implemented, and I need to rethink it.
+        - Think I had written some code for thi ages ago, it is probably broken. Investigate tomorrow
+            Notes adter my investigation: 
+                    "
+                    Places the edit table is being used
+                    FPDMissionEditorModule::CopyMissionTable()
+                    	<- FFPDMissionGraphEditor::SpawnMissionTree()
+                    		<- FPDMissionEditorModule::OnSpawnPluginTab()
 
+                    FPDMissionEditorModule::SaveToMissionTable()
+                    	NEVER USED!!
+
+                    So seems I left this half baked, will try using the save function first and see how cooked my brain was when writing this
+
+                    Plan is to call SaveToMissionTable when teh graph is being saved:
+                        Looks like UPDMissionGraphNode::PreSave is being called on the nodes when a graph is saved, 
+                        will see if I can hook into that flow, worst case I write the trigger in the PreSave but I gate it so a graph doesn't spam the SaveToMissionTable function
+                    "
+        - After fixing the broken saving, I need to also make sure I save the graph nodes position somewhere. 
+            Thinking in the lines of a class named GraphDataInitializer, 
+                * It would store some custom schema that tells what was on the graph and where
+                    Note: When adding a new node in 'UPDMissionGraphSchema::AddAndSetupNodeAction' add it to the above mentioned schema
+                * It would load said schema into a visual graph, 
+                    * if any nodes have tags that are missing, they are generated under a NEW tag source file with a warning screen/modal 
 
 Tasks:  
     TASK#P0001: 
         ✔ bNewQuestline flag should be replaced with an enum wiht values [ENewQuestline, EMergePoint, EEndOfQuestline], Where MergePoint means it merges back into another questline @done(26-10-17 17:29)
     TASK#P0002: 
         ✔ Override nodetitle in 'SMissionGraphNode::SetDefaultTitleAreaWidget' to reflect actual selected mission @done(26-10-17 18:12)
+
+
+
+
+Mission sub-editor:
+    Submission graph (graph PER mission, need a new datatable struct for this)
+    - Double clicking a mission node should open an new tab which holds a graph for that mission
+
+    - Sub-Mission graphs should NOT be able to edit transition rule 
+        (Only Read-write in the Uber-Graph/Parent-Graph, read-only from the Sub-Mission graph)
+
+    - Sub-Mission graphs should contain these elements:
+        - Conversations and Characters 
+            (A table of all characters which is read from to populate bindable characters). 			
+            - Conversations may give/require Tags. Only sourced from tags defined in the mission entry, this can be modified in the Uber-Graph that contains said mission
+            - A mission, must at the end of ALL possible ending paths supply needed Tags 
+                (For example a mission may have 0-N amount of branching paths at the end
+                Each path will have a required set of tags to end there, a terminating 
+                                paths could have a universal END_MISSION tag, the other will be defined 
+                                in the mission transition rules. So in a sub-mission graph we throw an 
+                                error and don't allow compiling/saving unless all possible ends of a 
+                                mission supply at-least on set of valid tags. This means that we will 
+                                need to read this data from the mission table entry ad see which 
+                                transitions it has.)
+
+
+(Example graph)
+
+	                        /[SUBOBECTIVE - TRIGGER::ITEM]>>>\
+- [START - TRIGGER::CONVERSATION]> 				  -> [SUBOBECTIVE - TRIGGER::EVENT] 
+	                        \[SUBOBECTIVE - TRIGGER::CHOICE]>/
+
+-> [END[0] - SUPPLY TAGS VIA DROPDOWN LIST OF SETS]
+-> [END[1] - SUPPLY TAGS VIA DROPDOWN LIST OF SETS]
+-> [END[2] - SUPPLY TAGS VIA DROPDOWN LIST OF SETS]
+
+Notes: 
+    - END[N] limit is dictated by the amount of transition rules
+    - Then furthermore, conversations has their own graphs, in the conversation system, so double clicking a conversation would open said graph
+
+    - Items can have been picked up before reaching the trigger, in that case run a check when the subobjective enables to ensure that the player does now own or carry said item. 
+        - Defined by ItemID, QoL selector that displays name & ID sourced from tables in the project. 
+        - Whenever a new item is picked up check ID against active missions, and update accordingly.
+        - Double clicking said item should just bring the user to the datatable where it is contained.
+
+    - Choices needs to be source from the conversation graph to be read and serialized, and in can the conversation graph changes this need to force update the per-mission definitions, so they don't gor our of sync, 
+        - Mimick the coreredirect stuff, make redirects in an ini, remap and updates a table if 
+            mismatched choices are found and the redirects is valid. 
+        - Maybe i'll code it such an ini is generated upon changes to choices names, and deletions 
+        - and in case a deleted choice is reverted/undeleted, I revert/undelete the deletion-mapping
+
+    - Events may be triggered from world-actions or actions in other missions (or latched to the tail-end of a mission). 
+        - Events should have event-type IDs and maybe an event manager 
+            - SWAPPABLE event managers with a shipped default, 
+            - Allow projects to plug in their own event managers and event_ID interpreter, 
+                - like predicate functionality. Need to think this through further..
+
+- 
+

@@ -14,8 +14,10 @@
 
 #define LOCTEXT_NAMESPACE "FPDMissionBuilder"
 
-UPDMissionGraph* FPDMissionBuilder::CreateNewGraph(const FPDMissionNodeHandle& NodeData, FName GraphName)
+UPDMissionGraph* FPDMissionBuilder::CreateNewGraph(const FPDMissionNodeHandle& NodeData, EMissionGraph GraphType)
 {
+	const FName GraphName = GraphType == EMissionGraph::MainGraph ? "MissionEditor" : "MissionSubEditor";
+
 	UPDMissionGraph* NewGraph = CastChecked<UPDMissionGraph>(FBlueprintEditorUtils::CreateNewGraph(static_cast<UDataTable*>(NodeData.DataTarget.DataTable), GraphName, UPDMissionGraph::StaticClass(), UPDMissionGraphSchema::StaticClass()));
 
 	const UPDMissionGraphSchema* Schema = Cast<UPDMissionGraphSchema>(NewGraph->GetSchema());
@@ -27,8 +29,10 @@ UPDMissionGraph* FPDMissionBuilder::CreateNewGraph(const FPDMissionNodeHandle& N
 }
 
 
-UPDMissionGraph* FPDMissionBuilder::CreateNewGraph(UDataTable* MissionTable, FName GraphName)
+UPDMissionGraph* FPDMissionBuilder::CreateNewGraph(UDataTable* MissionTable, EMissionGraph GraphType)
 {
+	const FName GraphName = GraphType == EMissionGraph::MainGraph ? "MissionEditor" : "MissionSubEditor";
+
 	UPDMissionGraph* NewGraph = CastChecked<UPDMissionGraph>(FBlueprintEditorUtils::CreateNewGraph(MissionTable, GraphName, UPDMissionGraph::StaticClass(), UPDMissionGraphSchema::StaticClass()));
 	const UPDMissionGraphSchema* Schema = Cast<UPDMissionGraphSchema>(NewGraph->GetSchema());
 	Schema->CreateDefaultNodesForGraph(*NewGraph);

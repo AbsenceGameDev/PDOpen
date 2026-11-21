@@ -32,6 +32,7 @@
 #include "Framework/Commands/GenericCommands.h"
 #include "Editor/EditorEngine.h"
 #include "EngineGlobals.h"
+#include "Widgets/Layout/SExpandableArea.h"
 
 #include "HAL/PlatformApplicationMisc.h"
 #include "WorkflowOrientedApp/WorkflowTabManager.h"
@@ -778,7 +779,8 @@ TSharedRef<SWidget> FFPDMissionGraphEditor::SpawnMissionTree()
 	}
 	else
 	{
-		GraphObj = FPDMissionBuilder::CreateNewGraph(Tables[0], "MissionEditor");
+		GraphObj = FPDMissionBuilder::CreateNewGraph(Tables[0], EMissionGraph::MainGraph);
+		MissionSubGraphObj = FPDMissionBuilder::CreateNewGraph(Tables[0], EMissionGraph::SubGraph);
 	}
 	
 	if (GraphObj == nullptr)
@@ -814,10 +816,67 @@ TSharedRef<SWidget> FFPDMissionGraphEditor::SpawnMissionTree()
 	// Add schema to the graph and add the graph to the root
 	GraphObj->Schema = UPDMissionGraphSchema::StaticClass();
 	GraphObj->AddToRoot();
+	MissionSubGraphObj->Schema = UPDMissionGraphSchema::StaticClass();
+	MissionSubGraphObj->AddToRoot();
 
 	TSharedRef<SGraphEditor> GraphEditorDock = CreateGraphEditorWidget(GraphObj);
+
+	SExpandableArea::FArguments ExpandableAreaArgs;
+	ExpandableAreaArgs.AreaTitleFont(FAppStyle::GetFontStyle("DetailsView.CategoryFontStyle"));
+	ExpandableAreaArgs.InitiallyCollapsed(true);
+
+	TSharedRef<SGraphEditor> MissionSubGraph = CreateGraphEditorWidget(MissionSubGraphObj);
+	ExpandableAreaArgs.HeaderContent()
+	[
+		SNew(STextBlock).Text(FText::AsCultureInvariant(FString(TEXT("Sub-graph"))))
+	];
+	ExpandableAreaArgs.BodyContent()
+	[
+		SNew(SOverlay)
+		+ SOverlay::Slot()
+		[
+			MissionSubGraph
+		]
+		+ SOverlay::Slot()
+		[
+			SNew(SImage)
+			.Image(FAppStyle::GetBrush("WhiteBrush"))
+			.ColorAndOpacity(FLinearColor(0.1f, 0.5f, 0.3f, 0.05f))
+			.Visibility(EVisibility::HitTestInvisible)
+		]		
+	];
+
+	TSharedPtr<SExpandableArea> ExpandableArea = SArgumentNew(ExpandableAreaArgs, SExpandableArea)
+		.OnAreaExpansionChanged_Lambda(
+			[&](bool bIsExpanded)
+			{
+				MissionTreeBox->GetSlot(1).SetFillWidth(bIsExpanded ? 2.0f : 0.15f);
+			});
+
+	MissionTreeBox =
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		[
+			GraphEditorDock
+		] 
+		+ SHorizontalBox::Slot()
+		.FillWidth(0.15f)
+		[
+			SNew(SBorder)
+			.Padding(5.0f)
+			[
+				ExpandableArea.ToSharedRef()
+			]
+		];
+
+	TSharedRef<SWidget> MissionTreeTab = SNew(SBox)
+	.Content()
+	[
+		MissionTreeBox.ToSharedRef()
+	];	
+
 	OnGraphEditorFocused(GraphEditorDock);
-	return GraphEditorDock;
+	return MissionTreeTab;
 }
 
 void FFPDMissionGraphEditor::RegisterToolbarTab(const TSharedRef<FTabManager>& InTabManager)

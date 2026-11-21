@@ -711,6 +711,7 @@ void UPDMissionGraphNode::PreSave(FObjectPreSaveContext SaveContext)
 	Super::PreSave(SaveContext);
 
 	// @todo review if needed
+	UE_LOG(LogTemp, Warning, TEXT("================== UPDMissionGraphNode::(%s)::PreSave ==================="), *GetMissionName());
 }
 
 

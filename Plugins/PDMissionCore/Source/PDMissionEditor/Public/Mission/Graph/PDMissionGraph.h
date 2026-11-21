@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PDMissionGraphTypes.h"
+
 #include "EdGraph/EdGraph.h"
 
 #include "Containers/Set.h"
@@ -23,6 +25,7 @@ class PDMISSIONEDITOR_API UPDMissionGraph : public UEdGraph
 {
 	GENERATED_UCLASS_BODY()
 
+public:
 	virtual void OnCreated();
 	virtual void OnLoaded();
 	virtual void Initialize();
@@ -48,8 +51,11 @@ protected:
 	 *  flag allows freezing update during heavy changes like pasting new nodes 
 	 */
 	uint32 bHaltRefresh : 1;
+	EMissionGraph GraphType = EMissionGraph::MainGraph;
 
 	static UEdGraphPin* FindGraphNodePin(UEdGraphNode* Node, EEdGraphPinDirection Dir); // moved to missiongraphhelpers, remove this soon
+
+	friend struct FPDMissionBuilder;
 };
 
 

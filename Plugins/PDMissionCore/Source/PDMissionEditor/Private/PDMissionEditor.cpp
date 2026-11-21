@@ -193,7 +193,8 @@ TSharedRef<SDockTab> FPDMissionEditorModule::OnSpawnPluginTab(const FSpawnTabArg
 	}
 	else
 	{
-		GraphObj = FPDMissionBuilder::CreateNewGraph(Tables[0], "MissionEditor");
+		GraphObj = FPDMissionBuilder::CreateNewGraph(Tables[0], EMissionGraph::MainGraph);
+		MissionSubGraphObj = FPDMissionBuilder::CreateNewGraph(Tables[0], EMissionGraph::SubGraph);
 		// GraphObj =  NewObject<UPDMissionGraph>();
 	}
 	
@@ -229,12 +230,26 @@ TSharedRef<SDockTab> FPDMissionEditorModule::OnSpawnPluginTab(const FSpawnTabArg
 	GraphObj->Schema = UPDMissionGraphSchema::StaticClass();
 	GraphObj->AddToRoot();
 	
-	const TSharedRef<SDockTab> MajorTab = SNew(SDockTab)
+	// const TSharedRef<SDockTab> MajorTab = SNew(SDockTab)
+	// [
+	// 	MissionEditor->CreateGraphEditorWidget(GraphObj)
+	// ];
+
+	const TSharedRef<SDockTab> CombinedTab = SNew(SDockTab)
 	[
-		MissionEditor->CreateGraphEditorWidget(GraphObj)
-	];
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		[
+			MissionEditor->CreateGraphEditorWidget(GraphObj)
+		] 
+		+ SHorizontalBox::Slot()
+		[
+			MissionEditor->CreateGraphEditorWidget(MissionSubGraphObj)
+		]
+	];	
 	
-	return MajorTab;
+	
+	return CombinedTab;
 }
 
 void FPDMissionEditorModule::CopyMissionTable(const UDataTable* const TableToCopy, bool bAccumulateTables)
