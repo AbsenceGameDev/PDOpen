@@ -37,7 +37,7 @@ class PDMISSIONEDITOR_API UPDMissionGraphSchema : public UEdGraphSchema
 
 	virtual void GetGraphNodeContextActions(FGraphContextMenuBuilder& ContextMenuBuilder, int32 SubNodeFlags) const;
 	virtual UClass* GetSubNodeClass(EMissionGraphSubNodeType SubNodeFlag) const;
-	static void AddAndSetupNodeAction(FGraphContextMenuBuilder& ContextMenuBuilder, FCategorizedGraphActionListBuilder& ListBuilder, const TPair<UClass*, FPDMissionNodeData>& NodePair);
+	static void AddAndSetupNodeAction(FGraphContextMenuBuilder& ContextMenuBuilder, FCategorizedGraphActionListBuilder& ListBuilder, const TPair<UClass*, FPDMissionNodeData>& NodePair, EMissionGraph MissionGraphSelector);
 
 protected:
 	// Reserved
@@ -63,7 +63,7 @@ public:
 	//~ End EdGraphSchema Interface
 
 protected:
-	void GatherNativeClass(TMap<UClass*, FPDMissionNodeData>& NodeClasses, UClass* TestClass) const;
+	void GatherNativeClass(TMap<UClass*, FPDMissionNodeData>& NodeClasses, UClass* TestClass, EMissionGraph MissionGraphSelector) const;
 	void AddMissionNodeOptions(const FString& CategoryName, FGraphContextMenuBuilder& ContextMenuBuilder, const FPDMissionNodeHandle& NodeData) const;
 	static void GetPinDefaultValuesFromString(const FEdGraphPinType& PinType, UObject* OwningObject, const FString& NewDefaultValue,
 	                                          FString& UseDefaultValue, TObjectPtr<UObject>& UseDefaultObject, FText& UseDefaultText,

@@ -18,16 +18,33 @@ struct FPDNodeColours
 	FLinearColor Body    = FLinearColor(180, 180, 180); // LightGray
 };
 
+
+/**
+ * Base class for mission-logic nodes, Nodes in the intra-mission graphs that control the flow inside a specific mission
+ */
+USTRUCT()
+struct FPDMissionLogicNodeTag
+{
+	GENERATED_USTRUCT_BODY()
+public:
+};
+
+
+/**
+ * Base class for mission nodes, nodes in the Inter-mission graphs that controls the flow between missions
+ */
 UCLASS()
 class UPDMissionGraphNode : public UEdGraphNode
 {
 	GENERATED_UCLASS_BODY()
 	
+public:
 	// UObject interface
 	virtual void PreSave(FObjectPreSaveContext SaveContext) override;
 	virtual void Serialize(FArchive& Ar) override;
 	// End of UObject interface
-	
+
+	virtual bool IsLogicNode() { return false; }
 	void RemoveBranchPin(UEdGraphPin* Pin);
 	//~ Begin UEdGraphNode Interface
 	virtual void GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override;
@@ -183,6 +200,21 @@ private:
 	/** Class that this variable is defined in.  */
 	UPROPERTY()
 	TObjectPtr<UScriptStruct> StructType;	
+};
+
+
+/**
+ * Base class for mission-logic nodes, Nodes in the intra-mission graphs that control the flow inside a specific mission
+ */
+UCLASS()
+class UPDMissionLogicNode : public UPDMissionGraphNode, public FPDMissionLogicNodeTag
+{
+	GENERATED_UCLASS_BODY()
+public:
+
+	virtual FLinearColor GetNodeBodyTintColor() const override;
+	virtual bool IsLogicNode() override { return true; }
+
 };
 
 

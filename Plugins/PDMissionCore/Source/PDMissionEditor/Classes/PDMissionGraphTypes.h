@@ -351,6 +351,11 @@ class PDMISSIONEDITOR_API UPDMissionEditorStatics : public UObject
 	GENERATED_BODY()
 
 public:
+	typedef struct GraphOp
+	{
+		static EMissionGraph MissionGraphSelector(const UEdGraph* CurrentGraph);
+	};
+
 	typedef struct NodeOp
 	{
 		static FORCEINLINE int32 GetBranchIdxFromPinName(UEdGraphPin* Pin) 

@@ -36,6 +36,7 @@ public:
 	virtual void OnNodesPasted(const FString& ImportStr);
 	
 	void UpdateClassData();
+	FORCEINLINE EMissionGraph GetGraphType() const { return GraphType; }
 
 	bool IsLocked() const;
 	void LockUpdates();

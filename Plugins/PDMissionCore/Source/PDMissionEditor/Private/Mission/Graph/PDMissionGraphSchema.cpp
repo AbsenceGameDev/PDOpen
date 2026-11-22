@@ -1,6 +1,7 @@
 ﻿/* @author: Ario Amin @ Permafrost Development. @copyright: Full BSL(1.1) License included at bottom of the file  */
 
 // Mission editor
+#include "Mission/Graph/PDMissionGraph.h"
 #include "Mission/Graph/PDMissionGraphSchema.h"
 #include "Mission/Graph/PDMissionGraphSchemaActions.h"
 #include "Mission/Graph/PDMissionGraphNodes.h"
@@ -196,36 +197,64 @@ UClass* UPDMissionGraphSchema::GetSubNodeClass(EMissionGraphSubNodeType SubNodeF
 	return nullptr;
 }
 
-void UPDMissionGraphSchema::AddAndSetupNodeAction(FGraphContextMenuBuilder& ContextMenuBuilder, FCategorizedGraphActionListBuilder& ListBuilder, const TPair<UClass*, FPDMissionNodeData>& NodePair)
+void UPDMissionGraphSchema::AddAndSetupNodeAction(FGraphContextMenuBuilder& ContextMenuBuilder, FCategorizedGraphActionListBuilder& ListBuilder, const TPair<UClass*, FPDMissionNodeData>& NodePair, EMissionGraph MissionGraphSelector)
 {
 	const FText NodeTypeName = FText::FromString(FName::NameToDisplayString(NodePair.Value.ToString(), false));
 	const TSharedPtr<FMissionSchemaAction_NewNode> AddOpAction = MakeShared<FMissionSchemaAction_NewNode>(NodePair.Value.GetCategory(), NodeTypeName, FText::GetEmpty(), 0);
-	UPDMissionGraphNode* OpNode = NewObject<UPDMissionGraphNode>(ContextMenuBuilder.OwnerOfTemporaries, NodePair.Key);
-	OpNode->ClassData = NodePair.Value;
-	AddOpAction->NodeTemplate = OpNode;
+	
+	switch (MissionGraphSelector)
+	{
+		case EMissionGraph::MainGraph:
+		{
+			UPDMissionGraphNode* OpNode = NewObject<UPDMissionGraphNode>(ContextMenuBuilder.OwnerOfTemporaries, NodePair.Key);
+			OpNode->ClassData = NodePair.Value;
+			AddOpAction->NodeTemplate = OpNode;
+		}
+		break;
+		case EMissionGraph::SubGraph:
+		{
+			UPDMissionLogicNode* OpNode = NewObject<UPDMissionLogicNode>(ContextMenuBuilder.OwnerOfTemporaries, NodePair.Key);
+			OpNode->ClassData = NodePair.Value;
+			AddOpAction->NodeTemplate = OpNode;
+		}
+		break;
+	}
 	
 	ListBuilder.AddAction(AddOpAction);
 }
 
 struct FPrivateNodeSelector // @todo move out of here later
 {
-	static UClass* Op(UClass* TestClass)
+	static UClass* Op(UClass* TestClass, EMissionGraph MissionGraphSelector)
 	{
-		if (TestClass->IsChildOf(UPDMissionGraphNode_MainQuest::StaticClass())) { return UPDMissionGraphNode_MainQuest::StaticClass(); }
-		if (TestClass->IsChildOf(UPDMissionGraphNode_SideQuest::StaticClass())) { return UPDMissionGraphNode_SideQuest::StaticClass(); }
-		if (TestClass->IsChildOf(UPDMissionGraphNode_EventQuest::StaticClass())) { return UPDMissionGraphNode_EventQuest::StaticClass(); }
-		if (TestClass->IsChildOf(UPDMissionGraphNode_ConditionNode::StaticClass())) { return UPDMissionGraphNode_ConditionNode::StaticClass(); }
-		if (TestClass->IsChildOf(UPDMissionGraphNode_Knot::StaticClass())) { return UPDMissionGraphNode_Knot::StaticClass(); }
-		if (TestClass->IsChildOf(UPDMissionTransitionNode::StaticClass())) { return UPDMissionTransitionNode::StaticClass(); }
-		if (TestClass->IsChildOf(UPDMissionGraphNode_EntryPoint::StaticClass())) { return UPDMissionGraphNode_EntryPoint::StaticClass(); }
-		if (TestClass->IsChildOf(UPDMissionGraphNode::StaticClass())) { return UPDMissionGraphNode::StaticClass(); }
-		return UPDMissionGraphNode_EntryPoint::StaticClass(); // fallback
+		switch (MissionGraphSelector)
+		{
+		case EMissionGraph::MainGraph:
+			if (TestClass->IsChildOf(UPDMissionGraphNode_MainQuest::StaticClass())) { return UPDMissionGraphNode_MainQuest::StaticClass(); }
+			if (TestClass->IsChildOf(UPDMissionGraphNode_SideQuest::StaticClass())) { return UPDMissionGraphNode_SideQuest::StaticClass(); }
+			if (TestClass->IsChildOf(UPDMissionGraphNode_EventQuest::StaticClass())) { return UPDMissionGraphNode_EventQuest::StaticClass(); }
+			if (TestClass->IsChildOf(UPDMissionGraphNode_ConditionNode::StaticClass())) { return UPDMissionGraphNode_ConditionNode::StaticClass(); }
+			if (TestClass->IsChildOf(UPDMissionGraphNode_Knot::StaticClass())) { return UPDMissionGraphNode_Knot::StaticClass(); }
+			if (TestClass->IsChildOf(UPDMissionTransitionNode::StaticClass())) { return UPDMissionTransitionNode::StaticClass(); }
+			if (TestClass->IsChildOf(UPDMissionGraphNode_EntryPoint::StaticClass())) { return UPDMissionGraphNode_EntryPoint::StaticClass(); }
+			if (TestClass->IsChildOf(UPDMissionGraphNode::StaticClass())) { return UPDMissionGraphNode::StaticClass(); }
+			return UPDMissionGraphNode_EntryPoint::StaticClass(); // fallback
+		case EMissionGraph::SubGraph:
+			if (TestClass->IsChildOf(UPDMissionLogicNode::StaticClass())) { return UPDMissionLogicNode::StaticClass(); }
+			return UPDMissionLogicNode_EntryPoint::StaticClass(); // fallback
+		}
+
+		return nullptr;
 	}
 };
 
-void UPDMissionGraphSchema::GatherNativeClass(TMap<UClass*, FPDMissionNodeData>& NodeClasses, UClass* TestClass) const
+void UPDMissionGraphSchema::GatherNativeClass(TMap<UClass*, FPDMissionNodeData>& NodeClasses, UClass* TestClass, EMissionGraph MissionGraphSelector) const
 {
-	if (TestClass->HasAnyClassFlags(CLASS_Native) == false || TestClass->IsChildOf(UPDMissionGraphNode::StaticClass()) == false)
+	UClass* CompClass = MissionGraphSelector == EMissionGraph::MainGraph 
+			?  UPDMissionGraphNode::StaticClass() 
+			: UPDMissionLogicNode::StaticClass();
+
+	if (TestClass->HasAnyClassFlags(CLASS_Native) == false || TestClass->IsChildOf(CompClass) == false)
 	{
 		return;
 	}
@@ -233,26 +262,28 @@ void UPDMissionGraphSchema::GatherNativeClass(TMap<UClass*, FPDMissionNodeData>&
 	FPDMissionNodeData NodeClass(TestClass);
 	NodeClass.bHideParent = false;
 	NodeClass.bIsHidden = false;
-	NodeClasses.Emplace(FPrivateNodeSelector::Op(TestClass),NodeClass);
+	NodeClasses.Emplace(FPrivateNodeSelector::Op(TestClass, MissionGraphSelector), NodeClass);
 }
 
 void UPDMissionGraphSchema::AddMissionNodeOptions(const FString& CategoryName, FGraphContextMenuBuilder& ContextMenuBuilder, const FPDMissionNodeHandle& NodeData) const
 {
 	// @todo fix after initial test
 	FCategorizedGraphActionListBuilder ListBuilder(CategoryName);
+
+	EMissionGraph MissionGraphSelector = UPDMissionEditorStatics::GraphOp::MissionGraphSelector(ContextMenuBuilder.CurrentGraph);
 	
 	// gather all native classes
 	TMap<UClass*, FPDMissionNodeData> NodeClasses;
 	for (TObjectIterator<UClass> It; It; ++It)
 	{
 		UClass* TestClass = *It;
-		GatherNativeClass(NodeClasses, TestClass);
+		GatherNativeClass(NodeClasses, TestClass, MissionGraphSelector);
 	}
 
 	// Add and set-up the gathered classes in NodeClasses 
 	for (const TPair<UClass*, FPDMissionNodeData>& NodePair : NodeClasses)
 	{
-		AddAndSetupNodeAction(ContextMenuBuilder, ListBuilder, NodePair);
+		AddAndSetupNodeAction(ContextMenuBuilder, ListBuilder, NodePair, MissionGraphSelector);
 	}
 
 	ContextMenuBuilder.Append(ListBuilder);
@@ -893,40 +924,6 @@ bool UPDMissionGraphSchema::ConvertPropertyToPinType(const FProperty* Property, 
 
 	// This flag will be set on the key/inner property for container types, so check the test property.
 	TypeOut.bIsUObjectWrapper = TestProperty->HasAllPropertyFlags(CPF_UObjectWrapper);
-
-	// @todo
-	// // Check to see if this is the wildcard property for the target container type
-	//
-	// if(IsWildcardProperty(Property))
-	// {
-	// 	TypeOut.PinCategory = PC_Wildcard;
-	// 	if(MapProperty)
-	// 	{
-	// 		TypeOut.PinValueType.TerminalCategory = PC_Wildcard;
-	// 	}
-	// }
-	// else
-	// {
-	// 	UObject* SubCategoryObject = nullptr;
-	// 	bool bIsWeakPointer = false;
-	// 	bool bResult = GetPropertyCategoryInfo(TestProperty, TypeOut.PinCategory, TypeOut.PinSubCategory, SubCategoryObject, bIsWeakPointer);
-	// 	TypeOut.bIsWeakPointer = bIsWeakPointer;
-	// 	TypeOut.PinSubCategoryObject = SubCategoryObject;
-	// 	if (!bResult)
-	// 	{
-	// 		return false;
-	// 	}
-	// }
-	//
-	// if (TypeOut.PinSubCategory == PSC_Bitmask)
-	// {
-	// 	const FString& BitmaskEnumName = TestProperty->GetMetaData(TEXT("BitmaskEnum"));
-	// 	if(!BitmaskEnumName.IsEmpty())
-	// 	{
-	// 		// @TODO: Potentially replace this with a serialized UEnum reference on the FProperty (e.g. FByteProperty::Enum)
-	// 		TypeOut.PinSubCategoryObject = UClass::TryFindTypeSlow<UEnum>(BitmaskEnumName);
-	// 	}
-	// }
 
 	return true;
 }

@@ -18,6 +18,8 @@ class UEdGraphSchema;
 struct FDiffResults;
 struct FDiffSingleResult;
 
+//
+// Inter-mission nodes
 
 /** Root node of this mission block */
 UCLASS()
@@ -220,22 +222,8 @@ class UPDMissionGraphNode_ConditionNode : public UPDMissionGraphNode_Knot
 
 public:
 	// UEdGraphNode interface
-	// virtual void AllocateDefaultPins() override;
-	// virtual FText GetTooltipText() const override;
-	// virtual FText GetNodeTitle(ENodeTitleType::Type TitleType) const override;
-	// virtual bool ShouldOverridePinNames() const override;
-	// virtual FText GetPinNameOverride(const UEdGraphPin& Pin) const override;
-	// virtual void OnRenameNode(const FString& NewName) override;
-	// virtual TSharedPtr<class INameValidatorInterface> MakeNameValidator() const override;
-	// virtual bool CanSplitPin(const UEdGraphPin* Pin) const override { return false;}
-	// virtual bool IsCompilerRelevant() const override { return false; }
-	// virtual UEdGraphPin* GetPassThroughPin(const UEdGraphPin* FromPin) const override;
 	virtual TSharedPtr<SGraphNode> CreateVisualWidget() override final;
 	virtual bool ShouldDrawNodeAsControlPointOnly(int32& Out_InputPinIndex, int32& Out_OutputPinIndex) const override { Out_InputPinIndex = 0; Out_OutputPinIndex = 1; return true; }
-	// virtual bool CanCreateUnderSpecifiedSchema(const UEdGraphSchema* Schema) const override;
-	// virtual bool ShouldDrawNodeAsControlPointOnly(int32& Out_InputPinIndex, int32& Out_OutputPinIndex) const override { Out_InputPinIndex = 0; Out_OutputPinIndex = 1; return true; }
-	// virtual void GetNodeContextMenuActions(UToolMenu* Menu, UGraphNodeContextMenuContext* Context) const override {}
-
 	virtual bool ShowVisualWarning() const override {return true;}
 	// End of UEdGraphNode interface
 	
@@ -256,12 +244,8 @@ UCLASS(MinimalAPI, config=Editor)
 class UPDMissionTransitionNode : public UPDMissionGraphNode
 {
 	GENERATED_UCLASS_BODY()
-
-	// @todo replace bound graph with a data ref to teh mission transition rules of the owning mission 
-	// UPROPERTY()
-	// TObjectPtr<class UEdGraph> BoundGraph;
 	
-
+public:
 	// The priority order of this transition. If multiple transitions out of a state go
 	// true at the same time, the one with the smallest priority order will take precedent
 	UPROPERTY(EditAnywhere, Category=Transition)
@@ -316,6 +300,40 @@ class UPDMissionTransitionNode : public UPDMissionGraphNode
 };
 
 
+
+//
+// Intra-mission nodes
+UCLASS()
+class PDMISSIONEDITOR_API UPDMissionLogicNode_EntryPoint : public UPDMissionLogicNode
+{
+	GENERATED_BODY()
+
+public:
+	UPDMissionLogicNode_EntryPoint(const FObjectInitializer& ObjectInitializer)
+		: Super(ObjectInitializer)
+	{
+		bIsSubNode = false;
+	}
+	
+	virtual void AllocateDefaultPins() override
+	{
+		// // Custom pins (Selector Input)
+		// CreateMissionPin(); // @todo when set, generate the mission/questline in the graph using this node as its root
+
+		// // Logical Output
+		// // CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
+		// CreateOutputBranchPins();
+
+
+		// // Custom pins (Data Input)
+		// Super::AllocateDefaultPins(); // super call generates the entries for the mission data
+	}
+	
+	virtual FLinearColor GetNodeBodyTintColor() const override
+	{
+		return MissionTreeColors::NodeBody::Default;
+	}
+};
 
 
 /**

@@ -42,7 +42,7 @@ struct PDMISSIONEDITOR_API FMissionSchemaAction_NewNode : public FEdGraphSchemaA
 
 	/** Template of node we want to create */
 	UPROPERTY()
-	TObjectPtr<class UPDMissionGraphNode> NodeTemplate;
+	TObjectPtr<class UEdGraphNode> NodeTemplate;
 
 	FMissionSchemaAction_NewNode() : FEdGraphSchemaAction(), NodeTemplate(nullptr) {}
 	FMissionSchemaAction_NewNode(FText InNodeCategory, FText InMenuDesc, FText InToolTip, const int32 InGrouping)

@@ -4,7 +4,7 @@
 #include "PDMissionGraphTypes.h"
 
 #include "Mission/FPDMissionEditor.h"
-#include "Mission/Graph/PDMissionGraphNodes.h"
+#include "Mission/Graph/PDMissionGraph.h"
 #include "Mission/Graph/PDMissionGraphNodes.h"
 #include "Mission/Slate/PDMissionView.h"
 #include "Subsystems/PDMissionSubsystem.h"
@@ -58,6 +58,17 @@ const FText FPDMissionGraphTypes::NodeText_MainMission(LOCTEXT("Missions","MainM
 const FText FPDMissionGraphTypes::NodeText_SideMission(LOCTEXT("Missions","SideMission"));
 const FText FPDMissionGraphTypes::NodeText_EventMission(LOCTEXT("Missions","EventMission"));
 
+
+EMissionGraph UPDMissionEditorStatics::GraphOp::MissionGraphSelector(const UEdGraph* CurrentGraph)
+{
+	EMissionGraph MissionGraphSelector = EMissionGraph::MainGraph;
+	const UPDMissionGraph* MissionGraph = Cast<UPDMissionGraph>(CurrentGraph);
+	if (nullptr != MissionGraph)
+	{
+		MissionGraphSelector = MissionGraph->GetGraphType();
+	}
+	return MissionGraphSelector;
+}
 
 
 bool FindConditionNode(UEdGraphPin*& SourcePin, const bool bStartAsInputPin)

@@ -82,10 +82,12 @@ void FPDOptionalPinManager::CustomizePinData(UEdGraphPin* Pin, FName SourcePrope
 		{
 			FStructOnScope StructOnScope(InnerStruct);
 			FPDOptionalPinManager NestedPinManager(StructOnScope.GetStructMemory());
+
+			const EMissionGraph GraphType = UPDMissionEditorStatics::GraphOp::MissionGraphSelector(OwnerNode ? OwnerNode->GetGraph() : nullptr);
 			
 			TArray<FOptionalPinFromProperty> ShowInnerPinForProperties;
-			NestedPinManager.RebuildPropertyList(ShowInnerPinForProperties, InnerStruct);
-			NestedPinManager.CreateVisiblePins(ShowInnerPinForProperties, InnerStruct, EGPD_Input, OwnerNode);
+			NestedPinManager.RebuildPropertyList(ShowInnerPinForProperties, InnerStruct, GraphType);
+			NestedPinManager.CreateVisiblePins(ShowInnerPinForProperties, InnerStruct, EGPD_Input, OwnerNode, GraphType);
 		}
 		else
 		{
@@ -109,8 +111,10 @@ bool FPDOptionalPinManager::CanTreatPropertyAsOptional(FProperty* TestProperty) 
 	return FOptionalPinManager::CanTreatPropertyAsOptional(TestProperty);
 }
 
-void FPDOptionalPinManager::RebuildPropertyList(TArray<FOptionalPinFromProperty>& Properties, UStruct* SourceStruct)
+void FPDOptionalPinManager::RebuildPropertyList(TArray<FOptionalPinFromProperty>& Properties, UStruct* SourceStruct, EMissionGraph TargetGraphType)
 {
+	// TODO; write usage of TargetGraphType
+
 	FOptionalPinManager::RebuildPropertyList(Properties, SourceStruct);
 }
 
@@ -120,8 +124,10 @@ void FPDOptionalPinManager::RebuildProperty(FProperty* TestProperty, FName Categ
 }
 
 //  Tag private member for safe access
-void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& Properties, UStruct* SourceStruct, EEdGraphPinDirection Direction, UPDMissionGraphNode* TargetNode, bool bIsNewMission)
+void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& Properties, UStruct* SourceStruct, EEdGraphPinDirection Direction, UPDMissionGraphNode* TargetNode, EMissionGraph TargetGraphType, bool bIsNewMission)
 {
+	// TODO; write usage of TargetGraphType
+
 	UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: FPDOptionalPinManager::CreateVisiblePins"));
 
 	const UPDMissionGraphSchema* Schema = GetDefault<UPDMissionGraphSchema>();

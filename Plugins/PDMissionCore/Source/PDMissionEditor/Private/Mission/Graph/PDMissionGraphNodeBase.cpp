@@ -594,11 +594,13 @@ void UPDMissionGraphNode::AllocateDefaultPins()
 	if (StructType == nullptr) { return; }
 	
 	PreloadObject(StructType);
+
+	const EMissionGraph GraphType = UPDMissionEditorStatics::GraphOp::MissionGraphSelector(GetGraph());
 	
 	FStructOnScope StructOnScope(StructType);
 	FPDOptionalPinManager OptionalPinManager(StructOnScope.GetStructMemory());
-	OptionalPinManager.RebuildPropertyList(ShowPinForProperties, StructType);
-	OptionalPinManager.CreateVisiblePins(ShowPinForProperties, StructType, EGPD_Input, this);
+	OptionalPinManager.RebuildPropertyList(ShowPinForProperties, StructType, GraphType);
+	OptionalPinManager.CreateVisiblePins(ShowPinForProperties, StructType, EGPD_Input, this, GraphType);
 	
 	for(UEdGraphPin* Pin : Pins)
 	{
@@ -611,9 +613,10 @@ void UPDMissionGraphNode::ReallocateDefaultPins()
 	if (StructType == nullptr) { return; }
 	
 	PreloadObject(StructType);
+
+	const EMissionGraph GraphType = UPDMissionEditorStatics::GraphOp::MissionGraphSelector(GetGraph());
 	FStructOnScope StructOnScope(StructType);
 	FPDOptionalPinManager OptionalPinManager(StructOnScope.GetStructMemory());
-
 
 	TArray<UEdGraphPin*> OldPins = Pins;
 
@@ -633,8 +636,8 @@ void UPDMissionGraphNode::ReallocateDefaultPins()
 	// CreatePin(EGPD_Output, FPDMissionGraphTypes::PinCategory_LogicalPath, TEXT("Out"));
 
 	const bool bNewMission = SelectedMissionRowName == TAG_MakeNewMission.GetTag().ToString();
-	OptionalPinManager.RebuildPropertyList(ShowPinForProperties, StructType);
-	OptionalPinManager.CreateVisiblePins(ShowPinForProperties, StructType, EGPD_Input, this, bNewMission);
+	OptionalPinManager.RebuildPropertyList(ShowPinForProperties, StructType, GraphType);
+	OptionalPinManager.CreateVisiblePins(ShowPinForProperties, StructType, EGPD_Input, this, GraphType, bNewMission);
 
 	TArray<UEdGraphPin*> NewPins = Pins.FilterByPredicate(
 		[OldPins](const UEdGraphPin* NewPinElem) -> bool
@@ -724,6 +727,17 @@ void UPDMissionGraphNode::Serialize(FArchive& Ar)
 		// @todo review if needed
 	}
 }
+
+UPDMissionLogicNode::UPDMissionLogicNode(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
+{
+}
+
+FLinearColor UPDMissionLogicNode::GetNodeBodyTintColor() const
+{
+	return NodeColours.Body * FLinearColor(.85f, .75f, 1.f, 1.f);
+}
+
 
 
 #undef LOCTEXT_NAMESPACE // "FMissionTreeNode"
