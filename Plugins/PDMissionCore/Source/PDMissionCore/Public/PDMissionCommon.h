@@ -190,7 +190,7 @@ struct FPDMissionBranchBehaviour
 };
 
 /**
- * @brief Structure that holds the state information of an active MissionNetDatum. This includes the current value and the current limits of the stat for the said owning mission tracker.
+ * @brief 
  */
 USTRUCT(BlueprintType)
 struct PDMISSIONCORE_API FPDDelayMissionFunctor

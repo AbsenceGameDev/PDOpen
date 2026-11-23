@@ -86,11 +86,34 @@ PDOpenSource.sln.DotSettings.user
 UpgradeLog.htm
 desktop.ini
 /Backup
-/Content
 /DerivedDataCache
 /Intermediate
 /Saved
 
 # Hide for now
-/Plugins/PDProgression/
 /Plugins/PDUtility/
+
+# Content files, hide all for now
+/Content
+
+# Developer files
+Content/Developers
+Content/Developers/arioa/Test/TestOOBject.uasset
+
+# Content external objects, leave out for now
+Content/__ExternalActors__/
+Content/__ExternalObjects__/
+
+# Plugins prototype ideas on hold 
+Plugins/PDLenia
+
+# Workspace misc
+Ideas/FHash/
+*.code-workspace
+*.DotSettings.user
+settings.json
+.vscode/*
+*ignore
+.idea/*
+/ExportedData/
+Plugins/SubsystemBrowserPlugin/

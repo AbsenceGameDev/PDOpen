@@ -1,0 +1,34 @@
+#!/bin/sh
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+# Removes the "# Please enter the commit message..." help message.
+/usr/bin/perl -i.bak -ne 'print unless(m/^. Please enter the commit message/..m/^#$/)' "$COMMIT_MSG_FILE"
+
+# Get today's date in YYYY-MM-DD format
+TODAY=$(date +%Y-%m-%d)
+YEAR=$(date +%Y)
+MONTHNAME=$(date +%B)
+DAYNAME=$(date +%d)
+DAY_NUM=$(date +%-d) # Get day of month without leading zero (e.g., "5", "11")
+
+case "$DAY_NUM" in
+  1|21|31) DAYNAME="${DAY_NUM}st" ;;
+  2|22) DAYNAME="${DAY_NUM}nd" ;;
+  3|23) DAYNAME="${DAY_NUM}rd" ;;
+  *) DAYNAME="${DAY_NUM}th" ;;
+esac
+
+# Get the number of commits made by the current user on the current branch today
+# --author="$(git config user.name)" ensures it's by the current user
+# --since="$TODAY 00:00:00" sets the start of today
+# --before="$TODAY 23:59:59" sets the end of today
+# --count counts the commits
+# HEAD specifies to count commits up to the current HEAD
+COMMIT_COUNT=$(git rev-list HEAD --count --author="$(git config user.name)" --since="$TODAY 00:00:00" --before="$TODAY 23:59:59")
+
+# Echo date and commit number at the head of the commit
+echo "RTSO - Commit#$COMMIT_COUNT - $DAYNAME $MONTHNAME $YEAR
+$(cat $COMMIT_MSG_FILE)" > $COMMIT_MSG_FILE

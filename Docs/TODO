@@ -1,0 +1,670 @@
+22nd June, 2025:
+    ✔ Fix scaling issues in menu @done(25-06-22 05:51)
+    ✔ Fix menu settings being duplicated @done(25-06-22 05:51)
+    ✔ Fix 'invalid distance' float value overflow @done(25-06-22 05:51)
+
+22nd June - 2nd commit, 2025:
+    ✔ Hook up settings buttons with their actual functional part @done(25-06-22 21:10)
+    ✔ Test settings buttons @done(25-06-22 21:10)
+
+
+
+    // PUSH TO DEPOT LATER TODAY
+3rd July - 1st commit, 2025:
+    ✔ Fix vanished settings category buttons @done(25-07-03 07:35)
+    ✔ Fix assertions being hit when binding delegates @done(25-07-03 07:35)
+    ✔ Fix incorrect category settings list bugs @done(25-07-03 07:35)
+    ✔ Remove unwanted border @done(25-07-03 07:35)
+    ✔ Fix slider interaction not working (turns out the click areas was being clipped by too small sizebox) @done(25-07-03 22:49)
+    ✔ Clean up settings value and widget logic @done(25-07-03 22:50)
+    ✔ Add foliage scalability options @done(25-07-03 22:53)
+    ✔ Prepare list of console commands that are needed to apply certain settings @done(25-07-03 22:54)
+
+July 28th 2025 - Commit#0 :
+    ✔ Set up precommit message script, to generate the date and the commit count @done
+    - In progress 'SRTSOStringSelector' and the settings menu. 
+        - String tables filled out. 
+        - Crashes resolved 
+        - List retrieval set up for enum and string based settings
+        - Uwidget classes to intefrace with slate in place
+        - New developer settings class for the game settings, storing the stringtable path in there for now
+        - Other supporting changes 
+
+
+August 9th 2025 - Commit#0 :
+    - DONE 'SRTSOStringSelector' and most of the settings menu entry logic. 
+        - Slate widget functionality finished
+        - UMG widgets are being updated based on the selected string
+        - Changes to how the dataselectors work so we can associate a list of data with the list of strings
+        - String selector fonts have been configured
+        - functionality to handle cahcing/fetching associated string data 
+        - IncrementBox is extended to allow controlling the size of the button and value text from PDRangedSelector
+        - Other changes for the settings menu (lots of them, ranging from resolving bugs, removing uneeded comments, removing logs, adding or removing functions, etc)
+
+August 14th 2025 - Commit#0 :
+    - IN PROGRESS: Set up logic to translate our Gameplay and UI settings to actaul changes for our gameplay states 
+        - Create a property detail extension via overriding detail row content using slate to allow any property to be bound to the games settings system 
+        Note: Need to resolve visual layout issues 
+
+August 15th 2025 - Commit#0 :
+    - IN PROGRESS: Set up logic to translate our Gameplay and UI settings to actual changes for our gameplay states 
+        ✔ DONE: Need to resolve visual layout issues @done(25-08-15 03:38)
+        ✔ DONE: Gameplay tag picker filter logic @done(25-08-15 03:38)
+        ✔ DONE: Subssytem initial registration of all settings tags and their default data selectors @done(25-08-15 03:38)
+        TODO BUGS (Next commit):
+            - Tags not updating in different proeprty types. Bool properties are displying the floatproperties tags
+            - Selecting a tag does not close the tag picker popup 
+
+August 15th 2025 - Commit#1 :
+    - IN PROGRESS: Set up logic to translate our Gameplay and UI settings to actual changes for our gameplay states 
+        TODO BUGS (Next commit):
+            ✔ DONE: Tags not updating in different proeprty types. Bool properties are displying the floatproperties tags @done(25-08-15 12:04)
+            ✔ DONE: Selecting a tag does not close the tag picker popup @done(25-08-15 12:04)
+
+
+August 16th 2025 - Commit#0 :
+    - Allow the property binding to use a function with the signature, 
+        ✔ DONE: template<typename TSettingValueType> TSettingValueType ProcessValue(const TSettingValueType& UnprocessedValue) @done(25-08-16 03:46)
+        ✔ DONE: Extend subsystem to handle invoking any bound processvalue UFunction @done(25-08-16 03:46)
+        ✔ DONE: Need to scan the class for any such signatures and display them in a selectable string list @done(25-08-16 23:56)
+            - TODO: If a function is removed and does not exist, remove the entry from the string list
+
+August 17th 2025 - Commit#2 :
+        ✔ DONE: Layout issues in property binder @done(25-08-17 04:09)
+        ✔ DONE: Custom detail costumization to attach the binding widget with the FRTSOSettingsKeyData details widgets (Bug was not displaying this at all) @done(25-08-17 04:09)
+        
+August 18th 2025 - Commit#0 :
+    ✔ DONE: The "solution" was a bit of a mess, will fix later @done(25-08-18 07:05)
+    - IN PROGRESS: Other related changes and some fruitless debugging, Will figure this crap out in the coming days so I can bind to any core level property type 
+
+August 20th 2025 - Commit#0 :
+    - IN PROGRESS: Base vector slate widgets for the settings entry widget along using the color picker from the appframework module
+    
+August 21st 2025 - Commit#0 :
+        ✔ DONE: Base vector slate widgets for the settings entry widget along using the color picker from the appframework module @done(25-08-21 05:19)
+        - TODO: Fix Vector box Widgets stretching whencolor picker is opened
+        
+August 21st 2025 - Commit#1 :
+        ✔ DONE: Fix Vector box Widgets stretching when color picker is opened @done(25-08-21 07:06)
+        ✔ DONE: Fix Vector box aligment @done(25-08-21 07:06)
+        - TODO: FKey selector widget
+        - TODO: Persistent settings data
+
+August 22nd 2025 - Commit#1 :
+        - IN PROGRESS: FKey selector widget
+        - TODO: Persistent settings data   
+        
+August 23rd 2025 - Commit#0 :
+        - IN PROGRESS: FKey selector widget,
+            - Noticed an issues wih the name widget being incorrect for editinlinecontidion properties, the checkbox for the edit condition is nowhere. Looking to resolve it shortly
+            Pushing what I have although it has not yet reoslved the issue, need more debugging 
+        - TODO: Persistent settings data           
+
+
+        
+
+- NOTE: This took a bit of a break, and I got back to this during the weekend and there are some major issues but I need to spend time finishing the remainder gameplay systems before I get back to fixing the bidning systems I was implementing 
+October 27th 2025 - Commit#0 :
+    ✔ Disable settings binding code, certain editinlinecondition toggles were giving me a headache (those in usizebox specifically) @done(25-10-27 05:24)
+    ✔ Wrap input key settings selector in a slate dropdown, passing over underlying slate widget of a unamedslot @done(25-10-27 05:25)
+    ✔ Fill in missing code to update the submenu description sidepanel @done(25-10-27 05:25)
+    ✔ Add entries to settings stringtable or the submenu sidepanel @done(25-10-27 05:25)
+
+
+Nov 8th 2025 - Commit#0:
+    - Test minimap: If not working, this is the commit to resolve it
+
+
+Nov 2025 - Mar 31st 2026 - Commit#0:
+Note: Haven't updated this in a while, but I have made sporadic changes locally over the past months and I've always had some issues making it never be ready for a commit
+Also, because I am too lazy I will not split things up in different commits, I will however add some notes for things I want to get done the coming week
+TODO: 
+    ☐ Deprecate and then Remove Slate minimap
+IN PROGRESS:
+    ☐ Implementing a new minimap in hlsl, most of the preliminary work here is done now @started(26-03-31 01:48)
+    Note: After fixing the slate minimap it and testing it I realized that the CPU is really not the place I should handle this minimap stuff
+
+    Issues with bitonic sort (getting overhead from 210 sorting passes of a 1024x1024 data texture):
+        ☐ Bringing it down to 256x256 and I will only need to do many fewer passes in total, and will still hold ~65500 entities
+        ☐ Also consider groupshared passes where possible, should bring it down byfrom 210 passes now to ~30 passes, we will see significantly less overhead 
+
+DONE: 
+    ✔ Created a new game-level module that maps our custom shader paths so they may be used by USF scripts @done(26-03-31 01:47)
+    ✔ Wrote a bitonic sort to sort entites based on world location, shader and supporting c++ code to implement it as a global shader (Thanks Epic for the crappy docs on rendergraph, RHI and global shaders) @done(26-03-31 01:47)
+        ✔ Added an RT texture to UPDRTSSubsystemSettings that is the output buffer for our entity data @done(26-03-31 01:47)
+        ✔ Packing entity related data into a flinearcolor, where the RGB values are world location vectors XYZ and A channel encodes TeamColorID, EntityFlags and simplified yaw rotation (360/16) @done(26-03-31 01:47)
+    
+    ✔ Updated various enum classes to inherit from uint8 @done(26-03-31 01:47)
+    ✔ Added function WorldDeinit that deletes the rendergraph buffers for the RTSSubssytem. Calling it upon godhand endplay. @done(26-03-31 01:47)
+    ✔ Build error in experimental system that is on pause. @done(26-03-31 01:47)
+
+    ✔ A number of changes to SRTSO Minimap which are now obsolote sine moving to a shader based approach @done(26-03-31 01:47)
+    ✔ Updated .gitignore @done(26-03-31 01:50)
+
+
+April 2nd 2026 - Commit#0:
+TODO: 
+    IN PROGRESS:
+    ☐ Implementing a new minimap in hlsl, most of the preliminary work here is done now @started(26-03-31 01:48)
+        
+DONE: 
+    Issues with bitonic sort (getting overhead from 210 sorting passes of a 1024x1024 data texture):
+        ✔ Also consider groupshared passes where possible, should bring it down byfrom 210 passes now to ~30 passes, we will see significantly less overhead @done(26-04-02 07:42)
+        ✔ Bringing it down to 256x256 and I will do many fewer passes in total, and will still hold ~65500 entities @done(26-03-31 15:36)
+        
+    ✔ Disable any Slate minimap until later notice @done(26-04-02 07:43)
+
+
+April 2nd 2026 - Commit#1:
+TODO: 
+    ☐ Debug the sorted output texture, and sort out why the log calls are not showing
+
+IN PROGRESS:
+    ☐ Implementing a new minimap in hlsl, most of the preliminary work here is done now @started(26-03-31 01:48)
+        
+DONE: 
+    ✔ Fixed some runtime errors w.r.t. rendering thread and game thread assertions @done(26-04-02 08:05)
+
+
+    
+April 3rd 2026 - Commit#0:
+IN PROGRESS : 
+    ☐ Debug the sorted output texture, and sort out why the log calls are not showing
+        ✔ Simple debug (Logs and onscreenmessages) @done(26-04-03 04:10)
+            ✔ Wrote static helper function to convert pixel data back to the original unpacked data @done(26-04-03 04:19)
+            BUGS FOUND USING SIMPLE DEBUG:
+            ☐ Valid entity data in the datatexture keeps increasing each frame, likely meaning the debug buffer isn't being flushed 
+            ☐ Entity data descontruction has a tendency to write 0 sporadically on teamID when it is known to be 1, need to figure it out, potentially something with how I  
+            
+        ☐ Actual Debug UI 
+            - List amount of valid entities
+            - If entity is selected, display it's selected pixel position in the data texture and some entity meta-data 
+                NOTE: Potentially not possible due to data limits per pixel unless I bump it up to 64 bits per channel, 
+
+
+April 7th 2026 - Commit#0:
+DONE:                 
+    ✔ Adding shader2human and makign sure the shader compiler handles it. Note my change won't output anything useful except that it will not compile if any changes/additions I make to s2h are compilable @done(26-04-07 21:18)
+
+
+April 11th 2026 - Commit#0:
+DONE:                 
+    ✔ Removing shaderinput array, being so long sine I touched this code I had forgotten I was using the the userquery to check for entities within the query shape, so that was a waste of time :catdespair: @done(26-04-11 05:55)
+    ✔ Extending functionality of FPDOctreeUserQuery @done(26-04-11 05:55)
+    ✔ Updated max invalid vector from ZeroVector, to a vector{max_dbl} @done(26-04-11 05:55)
+
+TODO:                 
+    ☐ Fix error when memcpy
+    ☐ Rethink compute shader, 
+        - instead of sorting as I do I might split world up in partitions, like bvh, entites should naturally be filtered into 'zones'
+        - Each zone should then be compared to a section of the minimap, perhaps 32x32 grids, so each pixel only compares with 1000 entites at max in a uniform spread of entities.
+            - An issue I am realizing however is that in case all entities are in the same grid, then that grid will still have each pixel checking against 60000 entites.. hmm should maybe group data
+    - IMPORTANT NOTE: Also think of just shelving this for later and going with the caveman route of a topdown camera on 256x256 output to an RT target and if I want to display certain things but not others I can add objext to some stencil masks I think to just not render it in that camera, like roofs or things like that
+
+
+April 11th 2026 - Commit#1:
+DONE:                 
+    ✔ Fix error when memcpy direclty on the array @done(26-04-11 11:08)
+    ✔ Rethink compute shader, @done(26-04-11 11:09)
+        ✔ Now we are sorting on 60k, compute shade is just be used for pure splatting into the target RT texture @done(26-04-11 11:09)
+    ✔ Some smaller changes as-well, icr, @done(26-04-11 11:09)
+    
+
+April 12th 2026 - Commit#0:
+DONE:
+    ✔ Texture splatting finished, compute shader does what I intended it to now, RT texture gets updated as needed @done(26-04-12 05:14)
+        TODO:
+        ☐ Material system does not force update it's read on the RT texture, need to figure this out also, 
+            but for now I am forcing the RT texture to the slate brush that the widget UImage is holding, I get a workable overlay with entity data
+    ✔ Make so the landscape blocks the interact systems default landscape channel @done(26-04-12 05:22)
+    ✔ Update query position for the minimap queries so it queries the landscape from the camera. @done(26-04-12 05:22)
+        TODO:
+        - I realize this is not necessary and I will have to remove this becasue the interact component does a landscape trace each tick and I can just source the hit data from it
+        - The issue however is that the interact HUD is not being used and having that enables triggers the trace ticks, and I can't remember why it isn't enable so I will have to ensure that first, which will not be in this commit
+    ✔ Removed some comments in the s2h shaders as it was causing unreals shader compiler to cry @done(26-04-12 05:29)
+    ✔ Added an ugly copy of a TRefCountPtr<IPooledRenderTarget> as the target funciton needed a non const version :/ @done(26-04-12 05:29)
+
+TODO:
+    ☐ Need to take into account camera rotation and have it as an option to allow the minimap to rotate along it
+        - This could be I rotate the uimage somehow or add an input to the shader for cam rotation or I handle it in the material graph 
+
+
+
+
+April 13th 2026 - Commit#0:
+DONE:
+    ✔ Material system does not force update it's read on the RT texture, need to figure this out also, @done(26-04-13 20:56)
+
+    TODO:
+        ☐ Need to take into account camera rotation and have it as an option to allow the minimap to rotate along it
+        - This could be I rotate the uimage somehow or add an input to the shader for cam rotation or I handle it in the material graph 
+        
+        ✔ Update query position for the minimap queries so it queries the landscape from the camera. @done(26-04-12 05:22)
+            TODO:
+            - I realize this is not necessary and I will have to remove this becasue the interact component does a landscape trace each tick and I can just source the hit data from it
+            - The issue however is that the interact HUD is not being used and having that enables triggers the trace ticks, and I can't remember why it isn't enable so I will have to ensure that first, which will not be in this commit
+
+
+April 17th 2026 - Commit#0:
+DONE:
+    ✔ Need to take into account camera rotation @done(26-04-17 21:34)
+        ✔ Store camera rotation yaw each tick so the subsystem has access to itm using RWLocks @done(26-04-17 21:34)
+        ✔ Precalculate sinc and cos for the sotred yaw each tick, pass it along to the compute shader, ass threads will need this @done(26-04-17 21:34)
+        ✔ Write a rotation function to ensure our camera rotation is inline with our cosntructed bounds coordinate system, which is: y north, x west @done(26-04-17 21:34)
+
+    ✔ Update critical sections to use RW locks in 'FPDOctreeUserQuery' @done(26-04-17 21:34)
+        - Note, be on the lookout for reader starvations, I don't think RWLocks and their scopelocks take atarvation into account
+
+
+TODOS: 
+    Minimap:
+        ☐ Build some more minimap layers, much like the entity layer, 
+        ☐ Stack all minimap layers untop of a static image
+
+    Interact component and landscape queries:  
+      ✔ Update query position for the minimap queries so it queries the landscape from the camera. @done(26-04-12 05:22)
+          ☐ I realize this is not necessary and I will have to remove this becasue the interact component does a landscape trace each tick and I can just source the hit data from it
+          ☐ The issue however is that the interact HUD is not being used and having that enables triggers the trace ticks, and I can't remember why it isn't enable so I will have to ensure that first, which will not be in this commit
+
+
+
+
+
+April 18th 2026 - Commit#1:
+DONE:
+    Interact component and landscape queries:  
+        ✔ Made some larger changes in the interaction component as it was 1-2 years since I wrote this initially and I noticed I had not completed the design and I had dug myself into a hoel a bit with not beign able to diversify my traces. @done(26-04-18 17:00)
+            ✔ More acceptable Landscape tracing logic, player never moves so use camera as source, skip comparative traces when doing landscape tracing @done(26-04-18 17:00)
+            ✔ Do not skip tracing if no valid frame found as default, that is why the explcit parameter was for.. @done(26-04-18 17:00)
+            ✔ Trace IDs, so as many different traces possible can be configured to run each tick now, as it was meant but never actually ensured it was fully implemented. @done(26-04-18 17:00)
+        ✔ Update so Minimap query position sources the traces from the interact component @done(26-04-18 17:00)
+    
+
+TODOS: 
+    ☐ I really need to update header comments soon, I have created a lot of new code and not been dilligent in adding comments to explain reasoning for it existing and usage 
+    Minimap:
+        ☐ Build some more minimap layers, much like the entity layer, 
+            ☐ Object layer? Maybe finish the object query I was doing in the mass processor and use data from it to display on screen 
+        ☐ Stack all minimap layers untop of a static image, 
+            ☐ Make the image to the world
+                ☐ Either be 1:1 scale with the world or a Whole multiple of it
+                ☐ Where in the world is the center of the map, important for mapping our multiples to our movement
+                ☐ Source our current camera query bounds center, as that is teh center of our minimap view, and use it to traverse the image layer
+        
+
+
+April 19th 2026 - Commit#1:
+DONE:
+    ✔ Updated header comments in: PDRTSBaseSubsystem.h, RTSOMiniMap.h @done(26-04-19 07:54)    
+
+TODOS: 
+    ☐ I really need to update more header comments soon, I have created a lot of new code and not been dilligent in adding comments to explain reasoning for it existing and usage 
+    Minimap:
+        ☐ Build some more minimap layers, much like the entity layer, 
+            ☐ Object layer? Maybe finish the object query I was doing in the mass processor and use data from it to display on screen 
+        ☐ Stack all minimap layers untop of a static image, 
+            ☐ Make the image to the world
+                ☐ Either be 1:1 scale with the world or a Whole multiple of it
+                ☐ Where in the world is the center of the map, important for mapping our multiples to our movement
+                ☐ Source our current camera query bounds center, as that is teh center of our minimap view, and use it to traverse the image layer
+
+
+April 22nd 2026 - Commit#0:
+DONE:
+    ✔ Fixing a bug with user ID selection @done(26-04-22 15:54)
+
+April 23rd 2026 - Commit#0:
+DONE:
+    ✔ More missing header comments @done(26-04-23 18:12)
+
+
+April 26th 2026 - Commit#0:
+DONE:
+    ✔ Add another building type (Storage), and some supporting changes to expose build inventory as needed @done(26-04-26 21:01)
+TODO: 
+    ☐ Extend statetree with moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool) 
+
+
+
+April 26th 2026 - Commit#1:
+DONE:
+    ✔ Buildings with TAG_BUILD_ActionContext_Storage0 as instigator tag will start sending out a ping for an entity job using the same tag @done(26-04-26 23:18)
+        TODO: 
+            ☐ This was a long while ago since I wrote the entity job logic and am still reading through all the parts of it to remember how everything ties in together, will make some further updates eitehr today or tomorrow on this
+TODO: 
+    ☐ Extend statetree with moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool) 
+
+
+
+April 27th 2026 - Commit#0:
+DONE:
+    ✔ Making some needed changes to avoid remaking MoveToTarget code and allowing it to be used for the new task triggered by the pinging subsystem @done(26-04-27 04:50)
+IN PROGRESS: 
+    ☐ Extend statetree with moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool) 
+
+April 27th 2026 - Commit#1:
+IN PROGRESS: 
+    Extend statetree/Entity task: 
+        ☐ Program a new task for moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool), needed to test and finish the pinger system
+
+April 27th 2026 - Commit#2:
+DONE: 
+    Entity storage/bank task prerequisites: 
+        ✔ Resource tracking, all resource actors are now tracked based on their resource types, actor can exists in multiple entries and is untracked upon destruction @done(26-04-27 08:39)
+            ✔ RW Locks for accessing/modifying this data @done(26-04-27 08:39)
+
+IN PROGRESS: 
+    Entity storage/bank task prerequisites: 
+        ☐ Spatial hash on tracked resources & Spatial hash on entities location and find closest resources
+            ☐ If resource has been gathered at the point the entity reaches the place, find new location
+            ☐ If no resources can be found, log error in ActionLog
+
+TODO: 
+    Extend statetree/Entity task: 
+        ☐ Program a new task for moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool), needed to test and finish the pinger system
+
+
+
+April 27th 2026 - Commit#3:
+DONE: 
+    Entity storage/bank task prerequisites: 
+        ✔ Updated Resource tracking to also ensure any resources that have moved one or more gridcells will update their mappings @done(26-04-27 10:29)
+
+IN PROGRESS: 
+    Entity storage/bank task prerequisites: 
+        ☐ Spatial hash on tracked resources & Spatial hash on entities location and find closest resources
+            ☐ If resource has been gathered at the point the entity reaches the place, find new location
+            ☐ If no resources can be found, log error in ActionLog
+    Extend statetree/Entity task: 
+        ☐ Program a new task for moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool), needed to test and finish the pinger system
+
+
+April 27th 2026 - Commit#4:
+- Fix infinite loop or stall that I just noticed by tomorrrow today. Either an infinite loop or a read/write lock that has stalled  
+DONE: 
+    Entity storage/bank task prerequisites: 
+        ✔ Spatial hash on tracked resources & Spatial hash on entities location and find closest resources @done(26-04-27 14:11)
+            ✔ If resource has been gathered at the point the entity reaches the place, find new location @done(26-04-27 14:11)
+            ✔ Removed old octree building tracking system, for this purpose a hashgrid makes much more sense and is much fewer wasted cycles in the massprocessors (important for large entity counts) @done(26-04-27 14:13)
+
+IN PROGRESS: 
+    Entity storage/bank task prerequisites: 
+            ☐ If no resources can be found, log error in ActionLog
+    Extend statetree/Entity task: 
+        ☐ Program a new task for moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool), needed to test and finish the pinger system
+TODO: 
+    Extend statetree/Entity task: 
+       ☐ Finish the changes needed to dispatch the list of items needed in FRTSOTask_BringBackResource::EnterState
+
+
+April 28th 2026 - Commit#0:
+DONE: 
+    ✔ Fix infinite loop or stall that I just noticed by tomorrrow today. Either an infinite loop or a read/write lock that has stalled @done(26-04-28 01:04)
+        - Note. Stall was due to a recursive writelock :facepalm:
+    ✔ BeginDestroy called after subsystem has been destoryed, so one of the rare occasions this subssystem actually needs to be nullptr checked @done(26-04-28 01:41)
+IN PROGRESS: 
+    Entity storage/bank task prerequisites: 
+            ☐ If no resources can be found, log error in ActionLog
+    Extend statetree/Entity task: 
+        ☐ Program a new task for moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool), needed to test and finish the pinger system
+TODO: 
+    Extend statetree/Entity task: 
+       ☐ Finish the changes needed to dispatch the list of items needed in FRTSOTask_BringBackResource::EnterState
+
+
+
+April 28th 2026 - Commit#1:
+DONE: 
+    ✔ Wrote some code to display total spawned entity count on the crude debug view wigdet @done(26-04-28 04:58)
+
+IN PROGRESS: 
+    Entity storage/bank task prerequisites: 
+            ☐ If no resources can be found, log error in ActionLog
+    Extend statetree/Entity task: 
+        ☐ Program a new task for moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool), needed to test and finish the pinger system
+TODO: 
+    Extend statetree/Entity task: 
+       ☐ Finish the changes needed to dispatch the list of items needed in FRTSOTask_BringBackResource::EnterState       
+
+
+April 28th 2026 - Commit#1:
+DONE: 
+    
+IN PROGRESS: 
+    Entity storage/bank task prerequisites: 
+            ☐ If no resources can be found, log error in ActionLog
+    Extend statetree/Entity task: 
+        ☐ Program a new task for moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool), needed to test and finish the pinger system
+TODO: 
+    Extend statetree/Entity task: 
+       ☐ Finish the changes needed to dispatch the list of items needed in FRTSOTask_BringBackResource::EnterState              
+@todo: Also update the 'FPDMTaskStatics::TriggerMove' in the 'FRTSOTask_BringBackResource' tick, each time we get close enough to interact 
+@todo: also check if overwriting the movetarget here is one and done or if I need to do something else in the moveto processor
+@todo: Update TODO_DUMMY_CELL__GET_ENTITY_CELL_AFTER_SLEEP
+
+
+
+April 29th 2026 - Commit#0:
+DONE: 
+    ✔ Also update the 'FPDMTaskStatics::TriggerMove' in the 'FRTSOTask_BringBackResource' tick, each time we get close enough to interact @done(26-04-29 01:09)
+        Note: also check if overwriting the movetarget here is one and done or if I need to do something else in the moveto processor -- DONE
+    ✔ Update TODO_DUMMY_CELL__GET_ENTITY_CELL_AFTER_SLEEP @done(26-04-29 01:09)
+    Extend statetree/Entity task: 
+        ✔ Program a new task for moving picked up inventory and bringing it either to storage (physical bank) or to a players bank (infinite storage pool), needed to test and finish the pinger system @done(26-04-29 01:10)
+        ✔ Finish the changes needed to dispatch the list of items needed in FRTSOTask_BringBackResource::EnterState @done(26-04-29 01:10)
+    
+IN PROGRESS: 
+    Entity storage/bank task prerequisites: 
+            ☐ If no resources can be found, log error in ActionLog
+@todo Remmeber to check if entity is marked as non_idle or bus, can't remember if I ever put that in before the hiatus from the project
+@todo Trigger the actual task transition via entities job tag? 
+
+
+
+April 30th 2026 - Commit#0:
+DONE: 
+    ✔ Trigger the actual task transition via entities job tag? @done(26-04-30 08:09)
+        ✔ Replace old task condition logic with something far more versatile @done(26-04-30 08:09)
+        ✔ Ensure we unassign task and go back to Idle after delivering resources, the pinger system will just reping any idlers if needed @done(26-04-30 08:09)
+    
+IN PROGRESS: 
+
+    Entity storage/bank task prerequisites: 
+            ☐ If no resources can be found, log error in ActionLog
+
+@todo Update 'ARTSOInteractableBuildingBase::ProcessIfWorkersRequired' call to Pinger subssytem and make so our jobtag is a TAG_AI_Job_BringBackResource 
+    I will however need to write some code that retriggers the ghoststage stuff and it seems I do not actually have fully hooked in the inventory system or the system that handles in world banks 
+
+'April 30th 2026 - Commit#1:
+DONE: 
+    ✔ Set some default inventory limits @done(26-04-30 10:22)
+        - NOTE to also test this
+IN PROGRESS: 
+
+    Entity storage/bank task prerequisites: 
+            ☐ If no resources can be found, log error in ActionLog
+
+@todo Update 'ARTSOInteractableBuildingBase::ProcessIfWorkersRequired' call to Pinger subssytem and make so our jobtag is a TAG_AI_Job_BringBackResource 
+    I will however need to write some code that retriggers the ghoststage stuff and it seems I do not actually have fully hooked in the inventory system or the system that handles in world banks 
+
+
+
+'May 1st 2026 - Commit#0:
+DONE: 
+    ✔ Finally had what I needed to start testing the pinger system and the BringBakResource task, some issues regarding entity searching in cells @done(26-05-01 12:01)
+    ✔ Unified the use of resource grid size on all gridell operations regarding resource gathering @done(26-05-01 12:01)
+    ✔ Unified the use of resource grid size on all gridell operations regarding resource gathering @done(26-05-01 12:01)
+    ✔ Annat @done(26-05-01 12:01)
+
+
+    
+IN PROGRESS: 
+
+    Entity storage/bank task prerequisites: 
+            ☐ If no resources can be found, log error in ActionLog
+
+@todo Update 'ARTSOInteractableBuildingBase::ProcessIfWorkersRequired' call to Pinger subssytem and make so our jobtag is a TAG_AI_Job_BringBackResource 
+    I will however need to write some code that retriggers the ghoststage stuff and it seems I do not actually have fully hooked in the inventory system or the system that handles in world banks 
+
+
+May 1st 2026 - Commit#1:
+TODO: 
+    ☐ Enable building costs again, and test harvesting general resources 
+    ☐ Need to mock up some in-game, non-debug, widgets: 
+        - 1. For showing resources that a selected entity is carrying
+        - 2. For showing resources that a selected building or resource-actor is holding
+        - 3. For showing resources in the current player persistent inventory
+        - 4. For showing how much a building costs to build (this may already exist in the building context buttons, may need to ensure this)
+        - 5. Genral Entity Action preview widget, so a selected entities current action may be known
+
+        
+May 2nd 2026 - Commit#0:
+DONE:
+    ✔ Added depth based searching for entities and resources, a brute forced version and a lean 'only search registered cells' version @done(26-05-02 21:13)
+TODO: 
+    ☐ Enable building costs again, and test harvesting general resources 
+    ☐ Need to mock up some in-game, non-debug, widgets: 
+        - 1. For showing resources that a selected entity is carrying
+        - 2. For showing resources that a selected building or resource-actor is holding
+        - 3. For showing resources in the current player persistent inventory
+        - 4. For showing how much a building costs to build (this may already exist in the building context buttons, may need to ensure this)
+        - 5. Genral Entity Action preview widget, so a selected entities current action may be known
+
+
+May 3rd 2026 - Commit#0:
+DONE:
+    ✔ Cleaned up the code for the depth based searching for entities and resources, mostly moved things into template functions in 'FPDEntityStatics' so I could reuse similar logic @done(26-05-03 06:39)
+    ✔ Cleaned up entity list building a bit also movinge the function to a templated funciton in 'FPDEntityStatics' instead for reusability @done(26-05-03 06:39)
+
+
+May 3rd 2026 - Commit#4:
+DONE:
+    ✔ Inventories or resource actors weren't being set properly: small instance of incorrect math in FRTSOLightInventoryFragmentHandler::AddItem @done(26-05-03 12:45)
+    ✔ Noticed an instance of me leaving a CurdeDepthSearch result unused @done(26-05-03 12:45)
+    ✔ Adding too many logs, will remove them when I have this all sorted out. @done(26-05-03 12:45)
+        - Note: some of the issues have liekly been resolved with the inventory functions math fixed, but I have yet to test it
+
+
+May 4th 2026 - Commit#0:
+    ✔ Programmed missing interaction logic for buildings outside of ghost stages @done(26-05-04 07:09)
+        - Still have some crashes to sort out, will leave all logs and actionlog entries still here for the time beaing
+
+May 4th 2026 - Commit#1:
+    ✔ Fix the crash when accessing the inventory fragment in the mass task. turns our our external data was not the issue but the fragments handlers bound inner had gone stale somewhere. easiest was to just move the logic directly into the fragment @done(26-05-04 18:09)
+
+
+May 4th 2026 - Commit#XX:
+TODO - PRIO:
+    - The entity goes and interacts with some resources,  action log says this is successful, but when it goes back to the storage building the action log does not update or storage-inventory never updates
+        - This could mean the interaction between the§ entity and storage fails but I need to rule out that the action log initally isn't outputting incorrect info
+    - Fix this crash I got EOD today 
+        Assertion failed: (Index >= 0) & (Index < Count) [File:C:\Program Files\Epic Games\UE_5.3\Engine\Source\Runtime\Core\Public\Containers\Deque.h] [Line: 587] Parameter index 20 exceeds container size 20
+        UnrealEditor_StateTreeModule!FStateTreeExecutionContext::EnterState() [D:\build\++UE5\Sync\Engine\Plugins\Runtime\StateTree\Source\StateTreeModule\Private\StateTreeExecutionContext.cpp:834]
+        UnrealEditor_StateTreeModule!FStateTreeExecutionContext::Tick() [D:\build\++UE5\Sync\Engine\Plugins\Runtime\StateTree\Source\StateTreeModule\Private\StateTreeExecutionContext.cpp:456]
+        UnrealEditor_MassAIBehavior!``UMassStateTreeProcessor::SignalEntities'::`2'::<lambda_1>::operator()'::`2'::<lambda_1>::operator()() [D:\build\++UE5\Sync\Engine\Plugins\AI\MassAI\Source\MassAIBehavior\Private\MassStateTreeProcessors.cpp:459]
+        UnrealEditor_MassAIBehavior!UE::MassBehavior::ForEachEntityInChunk<``UMassStateTreeProcessor::SignalEntities'::`2'::<lambda_1>::operator()'::`2'::<lambda_1> >() [D:\build\++UE5\Sync\Engine\Plugins\AI\MassAI\Source\MassAIBehavior\Private\MassStateTreeProcessors.cpp:191]
+        UnrealEditor_MassAIBehavior!`UMassStateTreeProcessor::SignalEntities'::`2'::<lambda_1>::operator()() [D:\build\++UE5\Sync\Engine\Plugins\AI\MassAI\Source\MassAIBehavior\Private\MassStateTreeProcessors.cpp:470]
+
+        
+TODO: 
+    ☐ Currently entities have unlimited inventory, when the do no have this anymore, remember to update 'ARTSOInteractableBuildingBase::DepositAllPossibleToBankOrEntity' to reflect this
+    ☐ Enable building costs again, and test harvesting general resources 
+    ☐ Need to mock up some in-game, non-debug, widgets: 
+        - 1. For showing resources that a selected entity is carrying
+        - 2. For showing resources that a selected building or resource-actor is holding
+        - 3. For showing resources in the current player persistent inventory
+        - 4. For showing how much a building costs to build (this may already exist in the building context buttons, may need to ensure this)
+        - 5. Genral Entity Action preview widget, so a selected entities current action may be known
+@todo Currently entities have unlimited inventory, when the do no have this anymore, remember to update 'ARTSOInteractableBuildingBase::DepositAllPossibleToBankOrEntity' to reflect this
+        
+
+
+FRTSOLightInventoryFragmentHandler::AddItem
+
+
+
+COMING:    
+IN PROGRESS : 
+    ☐ Debug the sorted output texture, and sort out why the log calls are not showing
+        ✔ Simple debug (Logs and onscreenmessages) @done(26-04-03 04:10)
+            ✔ Wrote static helper function to convert pixel data back to the original unpacked data @done(26-04-03 04:19)
+            ☐ Integrate S2H in a useful manner in the minimap.usf when we get to it
+            BUGS FOUND USING SIMPLE DEBUG:
+            ☐ Valid entity data in the datatexture keeps increasing each frame, likely meaning the debug buffer isn't being flushed 
+            ☐ Entity data descontruction has a tendency to write 0 sporadically on teamID when it is known to be 1, need to figure it out, potentially something with how I  
+            
+        ☐ Actual Debug UI 
+            - List amount of valid entities
+            - If entity is selected, display it's selected pixel position in the data texture and some entity meta-data 
+                NOTE: Potentially not possible due to data limits per pixel unless I bump it up to 64 bits per channel,                 
+
+IN PROGRESS (BACKLOGGED WHILE DEBUGGING):
+    ☐ Implementing a new minimap in hlsl, most of the preliminary work here is done now @started(26-03-31 01:48)
+        
+
+
+Backlogged until gameplay systems are fully functional:
+XXXXXX XXth 2025 - Commit#1 :
+    - Implement Save/Load logic for settings value as-well
+    - Set up a save dialog in case the user changes a setting but forgets to save, to give them a chance to save the game
+    - Test settings system changes in game
+    
+    - IN PROGRESS: Allow the property binding to use a function with the signature,
+        - INPROGRESS: OnSelect for the bindable function list 
+        - TODO: If a function is removed and does not exist, remove the entry from the string list
+    TODO : 
+        - Actually store property path information to the property we want to target
+        - Save/Load stored property path information to file
+
+TODO:
+    - Set up logic to translate our Gameplay and UI settings to actaul changes for our gameplay states 
+    - (LOW PRIO): Finish UPDRangedSelector changes so it can iterate a list of values instead of just incrementing a value stepwise. 
+        - Search for ERTSOSettingsType::IntegerSelector to find your way back to this
+    
+TODO - After polishing existing systems:
+    - Finish implementation of the mission/quest system
+        - Finish Mission Menu (Partially done)
+        - Finish Mission Editor (Partially done, in 'PDOpen' repo)
+        - Finish implementing tag loader softlock protection 
+            - Provide missing tags to players based on certain conditions (IN PROGRESS)
+        - Test Test Test (And Fix Fix Fix)
+
+    - Finish implementation of the save editor system
+        - Save editor UI (Functionally Done, but have some serious scaling/layout issues)
+        - Save Editor Logic (Functionally Done, needs to be throughly tested)
+
+    - Finish Mass AI implementation
+        - Player MassUnits, Partially done
+            - MassUnit pinging system (DONE, NEED TESTING)
+            - MassUnit builder logic (DONE, NEEDS EXPANDING WITH CONTENT)
+                - MassUnit cooperative building logic (DONE, NEEDS TESTING)
+                - MassUnit Stage-wise building logic (DONE, NEEDS TESTING FOR THE AUTO STAGE PROGRESSION vs. MANUAL STAGE PROGRESSION)
+                ✔ MassUnit interaction system (DONE, PARTIALLY TESTED with items and Mission/Conversation actors) 
+                ✔ MassUnit Item system (DONE, TESTED) 
+            - MassUnit navigation algorithm, 'Weighted A*'  (NOT STARTED)
+                - TODO: Weights to account for {Impassable areas, physical materials, strategic layout}
+            - 
+
+    - Fix threading issues in 'Mass'
+    - Expand build system
+        ✔ Ghost system 
+        - Selection system (Store/Load modules)
+
+    - Finish implementing team logic (Partially done)
+        - Players can be in different teams (DONE, not tested)
+        - Team UI menu (Not started)
+
+    - Set up multiplayer (NOT STARTED)
+        - Local multiplayer (NOT STARTED)
+        - Online Multiplayer (NOT STARTED)
+        - Team UI menu (NOT STARTED)
+        
+
+    - Set up more dialog trees and missions
+    - Set up difficulty system
+
+
+    - Finish implementation of Branching-Spline Level Editor Tool, then port to RTSOpen (Mostly done, in 'Ivarr' repo)
+
+    - Start making chinchilla/rodent based levels (for the actual game)
+''''

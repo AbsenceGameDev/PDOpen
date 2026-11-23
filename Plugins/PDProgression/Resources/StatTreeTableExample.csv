@@ -1,0 +1,5 @@
+---,TREEID,PrimarySID,TreeName,StatTreeElements
+Builder,1,0,Builder,"((SID=1,MaxTier=3),(SID=2,MaxTier=4),(SID=3,MaxTier=3),(SID=4,MaxTier=2))"
+Hunter,2,0,Hunter,"((SID=5,MaxTier=2),(SID=6,MaxTier=2),(SID=7,MaxTier=4),(SID=8,MaxTier=3),(SID=9,MaxTier=3),(SID=10,MaxTier=2))"
+Stealth,3,0,Stealth,"((SID=11,MaxTier=3),(SID=12,MaxTier=4),(SID=13,MaxTier=3))"
+Support,4,0,Support,"((SID=14,MaxTier=3),(SID=15,MaxTier=4),(SID=16,MaxTier=3),(SID=17,MaxTier=4))"

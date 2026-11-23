@@ -1,0 +1,124 @@
+#include "/Engine/Public/Platform.ush"
+#include "s2h/s2h_modified.usf"
+#include "s2h/s2h_3d.usf"
+#include "common.usf"
+
+// Parameters
+uint Step;
+uint Jump;
+RWBuffer<float4> EntityData;
+RWTexture2D<float4> OutSortedEntityDataTexture;
+
+#define GROUP_SIZE 1024
+groupshared float4 LDS_Buffer[GROUP_SIZE];
+
+// Ignore checking against z(height) for now
+float GetBrightness(float3 Color) { return dot(Color, float3(1.0, 1.0, 0.0));}
+bool SortEntity(const float4 UnsortedEntity, const float4 UnsortedPartner) { return GetBrightness(UnsortedEntity.rgb) > GetBrightness(UnsortedPartner.rgb);}
+void SortDataInnerFunc(uint EntityIndex, uint EntityJump, uint EntityStep, uint ThreadIndex, bool bIsLDS)
+{
+    uint PartnerIndex = EntityIndex ^ EntityJump;
+    if (PartnerIndex > EntityIndex)
+    {
+        bool bAscending = (ThreadIndex & EntityStep) == 0;
+        const float4 UnsortedEntity = bIsLDS ? LDS_Buffer[EntityIndex] : EntityData[EntityIndex];
+        const float4 UnsortedPartner = bIsLDS ? LDS_Buffer[PartnerIndex] : EntityData[PartnerIndex];
+
+        if (SortEntity(UnsortedEntity, UnsortedPartner) == bAscending)
+        {
+            if (bIsLDS)
+            {
+                LDS_Buffer[EntityIndex] = UnsortedPartner;
+                LDS_Buffer[PartnerIndex] = UnsortedEntity;
+            }
+            else
+            {
+                EntityData[EntityIndex] = UnsortedPartner;
+                EntityData[PartnerIndex] = UnsortedEntity;
+            }
+        }
+    }
+}
+
+//
+// Functions Mapped to four c++ global shaders
+
+// --- INITIAL PASS FUNCTION ---
+[numthreads(GROUP_SIZE, 1, 1)]
+void SortDataFirstPass(uint3 DTID: SV_DispatchThreadID, uint GI: SV_GroupIndex)
+{
+    // Direct linear load from buffer
+    LDS_Buffer[GI] = EntityData[DTID.x];
+    GroupMemoryBarrierWithGroupSync();
+
+    for (uint EntityStep = 2; EntityStep <= GROUP_SIZE; EntityStep <<= 1)
+    {
+        for (uint EntityJump = EntityStep >> 1; EntityJump > 0; EntityJump >>= 1)
+        {
+            SortDataInnerFunc(GI, EntityJump, EntityStep, DTID.x, true);
+            GroupMemoryBarrierWithGroupSync();
+        }
+    }
+    EntityData[DTID.x] = LDS_Buffer[GI];
+}
+
+// --- GLOBAL PASS ---
+[numthreads(GROUP_SIZE, 1, 1)]
+void SortData(uint3 DTID: SV_DispatchThreadID)
+{
+    SortDataInnerFunc(DTID.x, Jump, Step, DTID.x, false);
+}
+
+// --- INNER CHEAT PASS ---
+[numthreads(GROUP_SIZE, 1, 1)]
+void SortDataInnerCheat(uint3 DTID: SV_DispatchThreadID, uint GI: SV_GroupIndex)
+{
+    LDS_Buffer[GI] = EntityData[DTID.x];
+    GroupMemoryBarrierWithGroupSync();
+
+    for (uint EntityJump = GROUP_SIZE >> 1; EntityJump > 0; EntityJump >>= 1)
+    {
+        SortDataInnerFunc(GI, EntityJump, Step, DTID.x, true);
+        GroupMemoryBarrierWithGroupSync();
+    }
+    EntityData[DTID.x] = LDS_Buffer[GI];
+}
+
+// --- FINAL COPY PASS ---
+uint MortonSpread(uint x)
+{
+    x &= 0x000000ff;
+    x = (x | (x << 4)) & 0x0f0f0f0f;
+    x = (x | (x << 2)) & 0x33333333;
+    x = (x | (x << 1)) & 0x55555555;
+    return x;
+}
+
+uint GetMortonIndex(uint x, uint y) { return (MortonSpread(y) << 1) | MortonSpread(x);}
+[numthreads(8, 8, 1)]
+void CopyToTexture(uint3 DTID: SV_DispatchThreadID)
+{
+    // Note this won't output anything useful anywhere but it will tell us if unreal compiles these shaders and s2h successfully
+    uint bufferwidth;
+    uint bufferheight;
+    uint levels;
+    OutSortedEntityDataTexture.GetDimensions(bufferwidth, bufferheight);
+
+    ContextGather ui;
+    s2h_init(ui, float2(DTID.x, bufferwidth - DTID.y));
+
+    static glyph GlobTest32[32]=
+        {
+            T4(T, E, S, T),
+            T4(SPACE, SET_TEXT_BG, LARGESPACE, COLON),
+            T4(A, B, C, D),
+            T4(A, B, C, D),
+            T4(A, B, C, D),
+            T4(A, B, C, D),
+            T4(A, B, C, D),
+            T4(A, B, C, D)
+        };
+    PrintMessage(ui, GlobTest32);
+
+    OutSortedEntityDataTexture[DTID.xy] = EntityData[GetMortonIndex(DTID.x, DTID.y)];
+}

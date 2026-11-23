@@ -1,0 +1,99 @@
+Gameplay::Camera
+    // RotationRateModifier - Store in Subsystem
+    // TargetInterpSpeed - Store in Subsystem
+    // ScrollSpeed - Store in Subsystem
+    // DoF - Store in Subsystem
+    // FoV - Store in Subsystem
+
+
+Gameplay::ActionLog
+    // bShowActionLog - Store in Subsystem
+    // HighlightColor_1 - Store in Subsystem
+    // HighlightColor_2 - Store in Subsystem
+
+Gameplay::Difficulty
+    // Combat - Store in Subsystem
+    // World - Store in Subsystem
+
+
+Audio::Base (Need to set up metasounds!! Have no actual gameplay support for this as of yet)
+    // Master Volume - Store in Subsystem
+    // Music Volume - Store in Subsystem
+    // Ambient Volume - Store in Subsystem
+    // Voice Volume - Store in Subsystem
+    // SFX Volume - Store in Subsystem
+    // Subtitles : [0,1] - Store in Subsystem
+
+
+Controls::Game (Need to set up the rebind logic)
+Controls::UI  (Need to set up the rebind logic)
+
+
+Interface::Base
+    // UI Scaling [50,400] - Store in subsystem
+    // ShowObjectiveMarkers [0,1] - Store in subsystem
+
+
+Video::Display
+
+    // Gamma
+    r.Gamma : [0,100]
+
+    // Mode [wnd,full,brdrlss] ??
+
+    // Resolution [x,y] ??
+
+    
+    // Resolution Scale
+    r.ScreenPercentage : [10,100]
+
+    // AntiAliasing Quality
+    r.PostProcessAAQuality : [0, 6]
+
+    // VSync
+    r.VSync : [0,1]
+
+    // Max FPS
+    t.MaxFPS : [30,120]
+
+
+
+
+Video::Effects
+
+    // Film grain
+    r.FilmGrain : [0,1]
+
+    // Ambient Occlusion ??
+
+    // Motion Blur ??
+
+
+Video::Graphics
+
+    // Texture Quality
+    sg.TextureQuality : [0,3]
+
+    // Shadow Quality
+    sg.ShadowQuality : [0,3]
+
+    // Reflection Quality
+    sg.ReflectionQuality : [0,3]
+
+    // GlobalIllumination Quality
+    sg.GlobalIlluminationQuality : [0,3]    
+
+    // Effect Quality
+    sg.EffectsQuality : [0,3]
+
+    // Foliage Quality
+    sg.FoliageQuality : [0,3]
+
+    // Resolution Quality
+    sg.ResolutionQuality : [0,3]    
+
+    // Postprocess Quality
+    sg.PostProcessQuality : [0,3]
+
+    // ViewDistance Quality
+    sg.ViewDistanceQuality : [0,3]

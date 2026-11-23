@@ -113,7 +113,7 @@ bool FPDOptionalPinManager::CanTreatPropertyAsOptional(FProperty* TestProperty) 
 
 void FPDOptionalPinManager::RebuildPropertyList(TArray<FOptionalPinFromProperty>& Properties, UStruct* SourceStruct, EMissionGraph TargetGraphType)
 {
-	// TODO; write usage of TargetGraphType
+	// TODO; maybe not needed, but potentially write usage of TargetGraphType
 
 	FOptionalPinManager::RebuildPropertyList(Properties, SourceStruct);
 }
@@ -129,9 +129,7 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 	// TODO; write usage of TargetGraphType
 
 	UE_LOG(LogTemp, Warning, TEXT("MISSIONTEST: FPDOptionalPinManager::CreateVisiblePins"));
-
 	const UPDMissionGraphSchema* Schema = GetDefault<UPDMissionGraphSchema>();
-
 	for (FOptionalPinFromProperty& PropertyEntry : Properties)
 	{
 		FProperty* OuterProperty = FindFieldChecked<FProperty>(SourceStruct, PropertyEntry.PropertyName);
@@ -149,6 +147,7 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 		if (bIsNewMission)
 		{
 			if (nullptr == StructProperty){ return; }
+
 			// Empty unpinnable category pin that is basically just a label, 
 			// @todo need to manage this better when I am done but this is a proof of concept that will mess up teh pin ordering, so if I map pins I need to take this into account
 			const FName PinName = PropertyEntry.PropertyName;
@@ -160,19 +159,26 @@ void FPDOptionalPinManager::CreateVisiblePins(TArray<FOptionalPinFromProperty>& 
 			break;
 		}
 		
-		// ignore but step past these:
-		static UScriptStruct* TickBehaviourStruct = TBaseStructure<FPDMissionTickBehaviour>::Get();
-		static UScriptStruct* MissionRulesStruct = TBaseStructure<FPDMissionRules>::Get();
-
-		// Filtering out the top-level datatypes and the low level datataype 
 		EPDPinCustomizer CreateTopLevelPin = EPDPinCustomizer::CONTINUE;
-		if (StructProperty != nullptr)
+		if (EMissionGraph::MainGraph == TargetGraphType)
 		{
-			CreateTopLevelPin =
-			StructProperty->Struct == TickBehaviourStruct
-			|| StructProperty->Struct == MissionRulesStruct
-				? EPDPinCustomizer::SKIPPAST
-				: EPDPinCustomizer::CONTINUE;
+			// ignore but step past these:
+			static UScriptStruct* TickBehaviourStruct = TBaseStructure<FPDMissionTickBehaviour>::Get();
+			static UScriptStruct* MissionRulesStruct = TBaseStructure<FPDMissionRules>::Get();
+
+			// Filtering out the top-level datatypes and the low level datataype 
+			if (StructProperty != nullptr)
+			{
+				CreateTopLevelPin =
+				StructProperty->Struct == TickBehaviourStruct
+				|| StructProperty->Struct == MissionRulesStruct
+					? EPDPinCustomizer::SKIPPAST
+					: EPDPinCustomizer::CONTINUE;
+			}
+		}
+		else
+		{
+			// TODO
 		}
 
 		switch (CreateTopLevelPin)

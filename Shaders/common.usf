@@ -1,0 +1,16 @@
+#define S2S_FRAMEBUFFERSIZE() Resolution.xy
+#define S2S_TIME() DeltaTime
+#define S2S_MOUSE() MousePos
+#define S2S_NEAR() 0.1f
+#define S2S_INV_VIEW_PROJECTION() transpose(u_WorldFromClip)
+#define S2S_CAMERA_POS() ((u_WorldFromView * vec4(0, 0, 0, 1)).xyz)
+#define S2S_MAKE_FLOAT4x4(x,y,z,eye) mat4(x,y,z,eye)
+
+
+#define MAKE_GLOB_INPUT(Type, Name) Type Name;
+
+#define MERGE(a, b) a##b
+#define T1(A)
+#define T2(A, B)
+#define T3(A, B, C)
+#define T4(A, B, C, D) glyph::_##A, glyph::_##B, glyph::_##C, glyph::_##D

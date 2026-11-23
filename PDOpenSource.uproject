@@ -11,7 +11,20 @@
 			"AdditionalDependencies": [
 				"Engine"
 			]
-		}
+		},
+		{
+			"Name": "RTSOpen",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		},
+		{
+			"Name": "RTSShaders",
+			"Type": "Runtime",
+			"LoadingPhase": "PostConfigInit"
+		}					
 	],
 	"Plugins": [
 		{

@@ -1,0 +1,35 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "PDInteraction",
+	"Description": "Interaction base plugin",
+	"Category": "Other",
+	"CreatedBy": "Ario Amin @ Permafrost Development",
+	"CreatedByURL": "https://github.com/AbsenceGameDev",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "PDInteraction",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "PDInteractPreloader",
+			"Type": "EditorAndProgram",
+			"LoadingPhase": "EarliestPossible"
+		}
+	],
+	"Plugins": [
+		{ 
+			"Name": "MassEntity", 
+			"Enabled": true 
+		}
+	]	
+}

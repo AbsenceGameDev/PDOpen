@@ -1,0 +1,30 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "PDSharedUI",
+	"Description": "Plugin that holds some commonly used widgets, such as number boxes and dialogs",
+	"Category": "Other",
+	"CreatedBy": "Ario Amin @ Permafrost Development",
+	"CreatedByURL": "https://github.com/AbsenceGameDev",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "PDSharedUI",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{ 
+			"Name":  "CommonUI", 
+			"Enabled": true 
+		}
+	]
+}

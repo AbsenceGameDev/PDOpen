@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "PDInventory",
+	"Description": "Plugin enabling a datadriven item/inventory system",
+	"Category": "Other",
+	"CreatedBy": "Ario Amin @ Permafrost Development",
+	"CreatedByURL": "https://github.com/AbsenceGameDev",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "PDInventory",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
